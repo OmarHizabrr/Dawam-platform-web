@@ -1,0 +1,27 @@
+
+@import '~antd/dist/antd.css';
+.space-align-block {
+    flex: none;
+    margin: 8px 4px;
+    padding: 4px;
+  }
+  .space-align-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .taggedInfo{
+      margin-top: 10px;
+      font-size: 15px;
+  }
+
+  .site-layout-card .ant-card-body{
+    padding-bottom: 6px!important;
+  }
+
+  [class="ant-tabs-tab"] a{
+    color:black;
+  }
+  [class="ant-tabs-tab"] a:hover{
+    color:#40a9ff;
+  }

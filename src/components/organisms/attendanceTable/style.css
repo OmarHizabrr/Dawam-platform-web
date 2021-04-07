@@ -1,0 +1,10 @@
+.danger{
+    color: #842029;
+    background-color: #f8d7da;
+    border-color: #f5c2c7;
+}
+.warning{
+    color: #664d03;
+    background-color: #fff3cd;
+    border-color: #ffecb5;
+}

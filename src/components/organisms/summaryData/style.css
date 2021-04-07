@@ -1,0 +1,9 @@
+.apexcharts-legend-marker, .apexcharts-tooltip-marker{
+    margin-left: 5px!important;
+}
+.apexcharts-legend-text{
+font-family: jannatR!important;
+}
+.summary .ant-card-body{
+padding: 2px;
+}

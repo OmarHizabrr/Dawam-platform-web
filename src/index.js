@@ -3,10 +3,13 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-
+import { ConfigProvider } from 'antd';
+import arEG from 'antd/lib/locale/ar_EG';
 ReactDOM.render(
   <React.StrictMode>
+  <ConfigProvider locale={arEG}  direction="rtl">
     <App />
+  </ConfigProvider>
   </React.StrictMode>,
   document.getElementById('root')
 );

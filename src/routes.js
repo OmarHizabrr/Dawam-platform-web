@@ -1,0 +1,15 @@
+export const HOME_ROUTE = '/' ;
+export const PROFILE_ROUTE='/profile'
+export const CONTROL_PANEL_ROUTE = '/control-panel' ;
+export const EVENTS_ROUTE = '/events' ;
+export const REPORTS_ROUTE = '/reports' ;
+export const LOGIN_ROUTE = '/login' ;
+export const ADD_RECORD_ROUTE = '/add-record';
+export const EDIT_RECORD_ROUTE = '/edit-record';
+export const DELETE_RECORD_ROUTE = '/delete-record';
+export const GET_RECORDS_ROUTE = '/get-records';
+export const ABOUT = '/about';
+export const SUMMARY_ROUTE='/data-summary';
+export const ATTENDANCE_TABLE_ROUTE='/attendance-table';
+export const TRANSFER_TABLE_ROUTE='/transfer-table';
+export const TASKS_TABLE_ROUTE='/tasks-table';
