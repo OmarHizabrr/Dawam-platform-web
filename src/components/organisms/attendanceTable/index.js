@@ -1,11 +1,13 @@
 import React from 'react';
 import './style.css';
-import { Typography ,Layout,Tabs,Table, Button,Modal, Row } from 'antd';
+import { Typography ,Layout,Tabs,Table, Button,Modal, Row, Select,Card } from 'antd';
 import {SwapOutlined,FormOutlined} from '@ant-design/icons';
+import firebase from "../../../utilites/firebase";
 
 const { Content } = Layout;
 const { Text,Space } = Typography;
 const { TabPane } = Tabs;
+const { Option } = Select; 
 const data = [
     {
       key: '1',
@@ -55,8 +57,26 @@ export default class attendanceTable extends React.Component{
         filteredInfo: null,
         sortedInfo: null,
         isModalVisible:false,
+        eventsLog:[],
+        dataS:data,
       };
-    
+      componentDidMount(){
+        const eventRef=firebase.database().ref('events/38/log').orderByChild("DateTimeRecord");
+        console.log(eventRef.toString());
+       
+        eventRef.on('value', (snapshot) => {
+           const events = snapshot.val();
+           const todoList = [];
+           console.log('eeee');
+           for (let id in events) {
+             todoList.push({ id, ...events[id] });
+             console.log('i');
+           }
+           this.setState({eventsLog:todoList});
+         });
+      
+       }
+
       handleChange = (pagination, filters, sorter) => {
         console.log('Various parameters', pagination, filters, sorter);
         this.setState({
@@ -73,7 +93,11 @@ export default class attendanceTable extends React.Component{
         this.setState({
           isModalVisible:false,
         });
-      };   
+      }; 
+      selectMonth(value){
+      console.log(new Date(new Date().getFullYear(), value, 0).getDate());
+
+      }  
 render(){
     let { sortedInfo, filteredInfo } = this.state;
     sortedInfo = sortedInfo || {};
@@ -172,7 +196,26 @@ render(){
     ];
 return (
     <Layout>
-    <Table columns={columns} scroll={{x: '200vw' }} onRow={(record, rowIndex) => {return{className:record.status};}} dataSource={data} onChange={this.handleChange} />
+    <Card>
+    <div >
+    <Select
+    showSearch
+    style={{ width: 200 ,float:'left',marginBottom:'10px'}}
+    placeholder="اختر شهر"
+    onChange={this.selectMonth}
+    optionFilterProp="children"
+    filterOption={(input, option) =>
+      option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+    }
+  >
+    <Option value="1">يناير</Option>
+    <Option value="2">فبراير</Option>
+    <Option value="3">مارس</Option>
+    <Option value="4">إبريل</Option>
+  </Select>
+    </div>
+    <Table columns={columns} scroll={{x: '1000px' }} onRow={(record, rowIndex) => {return{className:record.status};}} dataSource={data} onChange={this.handleChange} />
+    </Card>
     </Layout>
 );
     }

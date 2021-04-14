@@ -8,11 +8,6 @@ import {React,Suspense} from 'react';
 import { Layout } from 'antd';
 import MainHeader from './components/Navigation/MainHeader';
 import SideMenu from './components/Navigation/SideMenu/';
-
-
-
-
-
 import Spinner from './components/molecules/Spinner';
 import { AuthContext } from './components/context/auth-context';
 import {useAuth} from './components/hooks/auth-hook'

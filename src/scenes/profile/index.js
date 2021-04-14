@@ -34,8 +34,10 @@ const { Content } = Layout;
 const { Text } = Typography;
 const { TabPane } = Tabs;
 
+
 export default function Profile(){ 
   let { path, url } = useRouteMatch(); 
+  
   const config = {
     options: {
       chart: {
@@ -119,6 +121,7 @@ export default function Profile(){
   const  handleSizeChange = e => {
      setFilter([{name:'أسامة جليل',data:[90,60,70,80]}]);
    }
+
 return (
     <Layout className="site-layout">
     <Breadcrumb style={{margin:20}}>
@@ -149,8 +152,8 @@ return (
       <div className="taggedInfo"><Text><ClusterOutlined /> إدارة الإحصاء وتقنية المعلومات </Text></div>
       <div className="taggedInfo"><Text><TagsOutlined /> مهندس برمجيات </Text></div>
       <div className="taggedInfo" style={{marginTop:'10px'}}><Rate disabled allowHalf defaultValue={2.5} /></div>
-      <div className="taggedInfo" style={{marginTop:'30px'}}> <Progress type='circle' percent={30} format={percent => 100000}/></div>
-      <div className="taggedInfo" style={{marginTop:'10px',paddingRight:'25px',fontSize:'18px'}}><Text>120,000</Text></div>
+      <div className="taggedInfo" style={{marginTop:'30px'}}> <Progress strokeColor='#ff0000' type='circle' percent={80} format={percent => 4000}/></div>
+      <div className="taggedInfo" style={{marginTop:'10px',paddingRight:'25px',fontSize:'18px'}}><Text>5000</Text></div>
     </Col>
     <Col xs={24} sm={24} md={8} lg={8} xl={8} style={{textAlign:'center',marginBottom:'-50px'}}>
     <div>
