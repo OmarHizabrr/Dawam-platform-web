@@ -13,3 +13,4 @@ export const SUMMARY_ROUTE='/data-summary';
 export const ATTENDANCE_TABLE_ROUTE='/attendance-table';
 export const TRANSFER_TABLE_ROUTE='/transfer-table';
 export const TASKS_TABLE_ROUTE='/tasks-table';
+export const LOGIN = '/login';

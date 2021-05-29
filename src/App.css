@@ -31,3 +31,28 @@
 .ant-layout-header{
   background-color: #fff;
 }
+.loginParent{
+  text-align:right;
+  font-family:'jannatR';
+  background-color:#fff;
+  padding:8% 10% 0;
+}
+.loginBox{
+  padding:100px 60px 0;
+  border-radius:10px;
+  box-shadow:5px 5px 18px 4px rgba(115,115,115,0.87);
+  height:500px;
+}
+.loginBox>div{
+  margin: 0 50px;
+}
+.formTitle{
+  font-size: 20px;
+  width: 100%;
+  text-align: center;
+  margin-bottom: 20px;
+  color: #007236;
+}
+.loginBox input{
+  background-color:#C6DFD2;
+}

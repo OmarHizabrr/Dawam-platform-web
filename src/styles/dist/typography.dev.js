@@ -29,3 +29,4 @@ export const FONT_BOLD = {
   fontWeight: FONT_WEIGHT_BOLD,
 };
 */
+"use strict";

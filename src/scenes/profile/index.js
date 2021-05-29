@@ -35,9 +35,8 @@ const { Text } = Typography;
 const { TabPane } = Tabs;
 
 
-export default function Profile(){ 
+export default function Profile(props){ 
   let { path, url } = useRouteMatch(); 
-  
   const config = {
     options: {
       chart: {
@@ -126,7 +125,7 @@ return (
     <Layout className="site-layout">
     <Breadcrumb style={{margin:20}}>
     <Breadcrumb.Item href=""> <HomeOutlined /> </Breadcrumb.Item>
-    <Breadcrumb.Item href=""> <UserOutlined /><span>خلدون السامعي</span></Breadcrumb.Item>
+    <Breadcrumb.Item href=""> <UserOutlined /><span>{props.userData.user_name}</span></Breadcrumb.Item>
     <Breadcrumb.Item>الملف الشخصي</Breadcrumb.Item>
   </Breadcrumb>
     <Card
@@ -144,13 +143,13 @@ return (
     src="https://i.pravatar.cc/150?img=4"
     style={{display:'block',margin:'10px',alignSelf:'center'}}
     />
-    <Text style={{textAlign:'center',fontSize:'20px',marginBottom:'10px'}}>أسامة جليل <Badge status="success"  /></Text>
-    <div style={{textAlign:'center',marginBottom:'18px'}}><Badge count={ 32 }   style={{ backgroundColor: '#DDDDDD',color:'#000' }} /></div>
+    <Text style={{textAlign:'center',fontSize:'20px',marginBottom:'10px'}}>{props.userData.user_name} <Badge status="success"  /></Text>
+    <div style={{textAlign:'center',marginBottom:'18px'}}><Badge count={ props.userData.user_id }   style={{ backgroundColor: '#DDDDDD',color:'#000' }} /></div>
     <div style={{textAlign:'center'}}><Button type='primary'>الملف الشخصي</Button></div>
     </Col>
     <Col xs={24} sm={24} md={10} lg={10} xl={10}>
-      <div className="taggedInfo"><Text><ClusterOutlined /> إدارة الإحصاء وتقنية المعلومات </Text></div>
-      <div className="taggedInfo"><Text><TagsOutlined /> مهندس برمجيات </Text></div>
+      <div className="taggedInfo"><Text><ClusterOutlined /> {props.userData.category.name} </Text></div>
+      <div className="taggedInfo"><Text><TagsOutlined />{props.userData.job}</Text></div>
       <div className="taggedInfo" style={{marginTop:'10px'}}><Rate disabled allowHalf defaultValue={2.5} /></div>
       <div className="taggedInfo" style={{marginTop:'30px'}}> <Progress strokeColor='#ff0000' type='circle' percent={80} format={percent => 4000}/></div>
       <div className="taggedInfo" style={{marginTop:'10px',paddingRight:'25px',fontSize:'18px'}}><Text>5000</Text></div>

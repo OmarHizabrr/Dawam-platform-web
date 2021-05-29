@@ -1,156 +1,102 @@
-import React from 'react';
+/* eslint-disable react-hooks/rules-of-hooks */
+import React, { useState, useEffect } from 'react';
 import './style.css';
 import { Typography ,Layout,Tabs,Table, Button,Modal, Row, Select,Card } from 'antd';
 import {SwapOutlined,FormOutlined} from '@ant-design/icons';
-import firebase from "../../../utilites/firebase";
-
+import axios from 'axios';
+import { useCookies,CookiesProvider  } from 'react-cookie';
+import {Env} from './../../../styles';
 const { Content } = Layout;
 const { Text,Space } = Typography;
 const { TabPane } = Tabs;
 const { Option } = Select; 
-const data = [
-    {
-      key: '1',
-      name: 'السبت',
-      age: '12-01-2020',
-      address: '08:24:00',
-      leaveTime:'08:24:00',
-      netDawam:'7:24:00',
-      lateTime:'02:40:00',
-      status:'danger'
-    },
-    {
-      key: '2',
-      name: 'الأحد',
-      age: '12-01-2020',
-      address: '08:24:00',
-      leaveTime:'08:24:00',
-      netDawam:'7:24:00',
-      lateTime:'02:40:00',
-      status:'success'
-    },
-    {
-      key: '3',
-      name: 'الإثنين',
-      age: '12-01-2020',
-      address: '08:24:00',
-      leaveTime:'08:24:00',
-      netDawam:'7:24:00',
-      lateTime:'02:40:00',
-      status:'warning'
-    },
-    {
-      key: '4',
-      name: 'الثلاثاء',
-      age: '12-01-2020',
-      address: '08:24:00',
-      leaveTime:'08:24:00',
-      netDawam:'7:24:00',
-      lateTime:'02:40:00',
-      status:'seccess'
-    },
-  ];
 
-  
-export default class attendanceTable extends React.Component{
-    state = {
-        filteredInfo: null,
-        sortedInfo: null,
-        isModalVisible:false,
-        eventsLog:[],
-        dataS:data,
-      };
-      componentDidMount(){
-        const eventRef=firebase.database().ref('events/38/log').orderByChild("DateTimeRecord");
-        console.log(eventRef.toString());
-       
-        eventRef.on('value', (snapshot) => {
-           const events = snapshot.val();
-           const todoList = [];
-           console.log('eeee');
-           for (let id in events) {
-             todoList.push({ id, ...events[id] });
-             console.log('i');
-           }
-           this.setState({eventsLog:todoList});
-         });
-      
-       }
 
-      handleChange = (pagination, filters, sorter) => {
-        console.log('Various parameters', pagination, filters, sorter);
-        this.setState({
-          filteredInfo: filters,
-          sortedInfo: sorter,
+export default function attendanceTable(){
+      const [cookies, setCookie, removeCookie]=useCookies(["userId"]);
+      const [filteredInfo,setFilteredInfo]=useState({});
+      const [sortedInfo,setSortedInfo]=useState({});
+      const [isModalVisible,setIsModalVisible]=useState(false);
+      const [eventsLog,setEventsLog]=useState([]);
+      const [data,setData]=useState([]);
+     // eslint-disable-next-line react-hooks/rules-of-hooks
+     useEffect(() => {
+
+        const id=cookies.user;
+        axios.get(Env.HOST_SERVER_NAME+'attendancelog/'+id.user_id)
+        .then(response => {
+          setData(response.data);
         });
+       });
+
+    const handleChange = (pagination, filters, sorter) => {
+        setFilteredInfo(filters);
+        setSortedInfo(sorter);
       };
-       showModal = () => {
-        this.setState({
-          isModalVisible:true,
-        });
+    const  showModal = () => {
+        setIsModalVisible(true);
       };  
-      handleOk = () => {
-        this.setState({
-          isModalVisible:false,
-        });
+     const handleOk = () => {
+        setIsModalVisible(false);
+
       }; 
-      selectMonth(value){
+    const selectMonth=(value)=>{
       console.log(new Date(new Date().getFullYear(), value, 0).getDate());
 
       }  
-render(){
-    let { sortedInfo, filteredInfo } = this.state;
+
+  /*  let { sortedInfo, filteredInfo } = this.state;
     sortedInfo = sortedInfo || {};
-    filteredInfo = filteredInfo || {};
+    filteredInfo = filteredInfo || {};*/
     const columns = [
       {
         title: 'اليوم',
-        dataIndex: 'name',
-        key: 'name',
+        dataIndex: 'DayName',
+        key: 'DayName',
         filters: [
           { text: 'Joe', value: 'Joe' },
           { text: 'Jim', value: 'Jim' },
         ],
-        filteredValue: filteredInfo.name || null,
-        onFilter: (value, record) => record.name.includes(value),
-        sorter: (a, b) => a.name.length - b.name.length,
-        sortOrder: sortedInfo.columnKey === 'name' && sortedInfo.order,
+        filteredValue: filteredInfo.DayName || null,
+        onFilter: (value, record) => record.DayName.includes(value),
+        sorter: (a, b) => a.DayName.length - b.DayName.length,
+        sortOrder: sortedInfo.columnKey === 'DayName' && sortedInfo.order,
         ellipsis: true,
       },
       {
         title: 'التاريخ',
-        dataIndex: 'age',
-        key: 'age',
-        sorter: (a, b) => a.age - b.age,
-        sortOrder: sortedInfo.columnKey === 'age' && sortedInfo.order,
+        dataIndex: 'date',
+        key: 'date',
+        sorter: (a, b) => a.date - b.date,
+        sortOrder: sortedInfo.columnKey === 'date' && sortedInfo.order,
         ellipsis: true,
       },
       {
         title: 'وقت الحضور',
-        dataIndex: 'address',
-        key: 'address',
+        dataIndex: 'attendance_time',
+        key: 'attendance_time',
         filters: [
           { text: 'London', value: 'London' },
           { text: 'New York', value: 'New York' },
         ],
-        filteredValue: filteredInfo.address || null,
-        onFilter: (value, record) => record.address.includes(value),
-        sorter: (a, b) => a.address.length - b.address.length,
-        sortOrder: sortedInfo.columnKey === 'address' && sortedInfo.order,
+        filteredValue: filteredInfo.attendance_time || null,
+        onFilter: (value, record) => record.attendance_time.includes(value),
+        sorter: (a, b) => a.attendance_time.length - b.attendance_time.length,
+        sortOrder: sortedInfo.columnKey === 'attendance_time' && sortedInfo.order,
         ellipsis: true,
       },     
        {
         title: 'وقت الانصراف',
-        dataIndex: 'leaveTime',
-        key: 'leaveTime',
+        dataIndex: 'leave_time',
+        key: 'leave_time',
         filters: [
           { text: 'London', value: 'London' },
           { text: 'New York', value: 'New York' },
         ],
-        filteredValue: filteredInfo.leaveTime || null,
-        onFilter: (value, record) => record.leaveTime.includes(value),
-        sorter: (a, b) => a.leaveTime.length - b.leaveTime.length,
-        sortOrder: sortedInfo.columnKey === 'leaveTime' && sortedInfo.order,
+        filteredValue: filteredInfo.leave_time || null,
+        onFilter: (value, record) => record.leave_time.includes(value),
+        sorter: (a, b) => a.leave_time.length - b.leave_time.length,
+        sortOrder: sortedInfo.columnKey === 'leave_time' && sortedInfo.order,
         ellipsis: true,
       },
       {
@@ -184,7 +130,7 @@ render(){
       {
         title: 'الحدث',
         key: 'action',
-        render: () =><Button type="primary" onClick={this.showModal.bind(this)} shape="round" icon={<SwapOutlined />} >الأحداث</Button>
+        render: () =><Button type="primary" onClick={showModal} shape="round" icon={<SwapOutlined />} >الأحداث</Button>
         ,
       },
       {
@@ -202,7 +148,7 @@ return (
     showSearch
     style={{ width: 200 ,float:'left',marginBottom:'10px'}}
     placeholder="اختر شهر"
-    onChange={this.selectMonth}
+    onChange={selectMonth}
     optionFilterProp="children"
     filterOption={(input, option) =>
       option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
@@ -214,9 +160,9 @@ return (
     <Option value="4">إبريل</Option>
   </Select>
     </div>
-    <Table columns={columns} scroll={{x: '1000px' }} onRow={(record, rowIndex) => {return{className:record.status};}} dataSource={data} onChange={this.handleChange} />
+    <Table columns={columns} scroll={{x: '1000px' }} onRow={(record, rowIndex) => {return{className:record.status};}} dataSource={data} onChange={handleChange} />
     </Card>
     </Layout>
 );
-    }
+    
  }
