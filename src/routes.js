@@ -1,5 +1,4 @@
-export const HOME_ROUTE = '/' ;
-export const PROFILE_ROUTE='/profile'
+export const PROFILE_ROUTE = '/' ;
 export const CONTROL_PANEL_ROUTE = '/control-panel' ;
 export const EVENTS_ROUTE = '/events' ;
 export const REPORTS_ROUTE = '/reports' ;
@@ -14,3 +13,4 @@ export const ATTENDANCE_TABLE_ROUTE='/attendance-table';
 export const TRANSFER_TABLE_ROUTE='/transfer-table';
 export const TASKS_TABLE_ROUTE='/tasks-table';
 export const LOGIN = '/login';
+export const STATISTICS = '/statistics';

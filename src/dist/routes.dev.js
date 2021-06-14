@@ -3,10 +3,8 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.LOGIN = exports.TASKS_TABLE_ROUTE = exports.TRANSFER_TABLE_ROUTE = exports.ATTENDANCE_TABLE_ROUTE = exports.SUMMARY_ROUTE = exports.ABOUT = exports.GET_RECORDS_ROUTE = exports.DELETE_RECORD_ROUTE = exports.EDIT_RECORD_ROUTE = exports.ADD_RECORD_ROUTE = exports.LOGIN_ROUTE = exports.REPORTS_ROUTE = exports.EVENTS_ROUTE = exports.CONTROL_PANEL_ROUTE = exports.PROFILE_ROUTE = exports.HOME_ROUTE = void 0;
-var HOME_ROUTE = '/';
-exports.HOME_ROUTE = HOME_ROUTE;
-var PROFILE_ROUTE = '/profile';
+exports.STATISTICS = exports.LOGIN = exports.TASKS_TABLE_ROUTE = exports.TRANSFER_TABLE_ROUTE = exports.ATTENDANCE_TABLE_ROUTE = exports.SUMMARY_ROUTE = exports.ABOUT = exports.GET_RECORDS_ROUTE = exports.DELETE_RECORD_ROUTE = exports.EDIT_RECORD_ROUTE = exports.ADD_RECORD_ROUTE = exports.LOGIN_ROUTE = exports.REPORTS_ROUTE = exports.EVENTS_ROUTE = exports.CONTROL_PANEL_ROUTE = exports.PROFILE_ROUTE = void 0;
+var PROFILE_ROUTE = '/';
 exports.PROFILE_ROUTE = PROFILE_ROUTE;
 var CONTROL_PANEL_ROUTE = '/control-panel';
 exports.CONTROL_PANEL_ROUTE = CONTROL_PANEL_ROUTE;
@@ -36,3 +34,5 @@ var TASKS_TABLE_ROUTE = '/tasks-table';
 exports.TASKS_TABLE_ROUTE = TASKS_TABLE_ROUTE;
 var LOGIN = '/login';
 exports.LOGIN = LOGIN;
+var STATISTICS = '/statistics';
+exports.STATISTICS = STATISTICS;

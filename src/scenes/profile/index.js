@@ -27,7 +27,6 @@ import AttendanceTable from '../../components/organisms/attendanceTable';
 import TasksTable from '../../components/organisms/tasksTable';
 import {
   Link,
-  useParams,
   useRouteMatch
 } from "react-router-dom";
 const { Content } = Layout;

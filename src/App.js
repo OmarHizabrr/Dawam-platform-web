@@ -14,7 +14,6 @@ import SideMenu from './components/Navigation/SideMenu/';
 import Spinner from './components/molecules/Spinner';
 import Profile from './scenes/profile' ;
 import ControlPanel from './scenes/control-panel/' ;
-import About  from './scenes/about/' ;
 import Login  from './scenes/login/' ;
 //import MainNavigation from './components/Navigation/MainNavigation'
 
@@ -53,7 +52,7 @@ function App() {
   if (!id) {
 
     routes = (
-      <Layout className="loginParent"  theme="light" >
+      <Layout  className="loginParent"  theme="light" >
       <Row justify="center" className="loginBox">
       <Col span={11} >
       <img
@@ -67,6 +66,7 @@ function App() {
       </div>
       <Form
       name="basic"
+      style={{marginTop:'50px'}}
       onFinish={onFinish}
       initialValues={{
         remember: true,
@@ -98,7 +98,7 @@ function App() {
         <Input.Password  style={{backgroundColor:'#C6DFD2'}}/>
       </Form.Item>
 
-      <Form.Item >
+      <Form.Item style={{marginTop:'40px'}} >
         <Button style={{backgroundColor:'#007236',width:'100%',borderColor:'#007236'}} type="primary"  htmlType="submit">
           تسجيل الدخول
         </Button>
@@ -110,16 +110,12 @@ function App() {
     );
   } else {
     routes = (
-      <Layout  theme="light"  style={{textAlign:'right',fontFamily:'jannatR'}}>
+      <Layout  theme="light"  style={{textAlign:'right',fontFamily:'jannatR',height:'100%'}}>
       <MainHeader></MainHeader>
-      <Layout>
-       
+      <Layout>    
         <Switch>
-          <Route path={HOME_ROUTE} exact>
-          </Route>
-          <Route path={PROFILE_ROUTE} render={() => <Profile userData={id} />} />
+          <Route path={PROFILE_ROUTE} render={() => <Profile userData={id} />} exact/>
           <Route path={CONTROL_PANEL_ROUTE} component={ControlPanel} />
-          <Route path={ABOUT} component={About} />
           <Route path={LOGIN} component={Login} />
           <Redirect to="" />
         </Switch>
