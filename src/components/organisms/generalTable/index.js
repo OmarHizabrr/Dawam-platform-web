@@ -4,41 +4,6 @@ import {Table } from 'antd';
 import Avatar from 'antd/lib/avatar/avatar';
 import axios from 'axios';
 import {Env} from './../../../styles';
-
-const data = [
-    {
-      key: '1',
-      avatar:'https://i.pravatar.cc/150?img=4',
-      user_name: 'خلدون السامعي',
-      department: 'الإحصاء وتقنية المعلومات',
-      job: 'مدير',
-      attendance_time:'07:00'
-    },
-    {
-      key: '2',
-      avatar:'https://i.pravatar.cc/150?img=4',
-      user_name: 'أسامة عبدالله',
-      department: 'الإحصاء وتقنية المعلومات',
-      job: 'مهندس برمجيات',
-      attendance_time:'07:30'
-    },
-    {
-      key: '3',
-      avatar:'https://i.pravatar.cc/150?img=4',
-      user_name: 'عادل عقلان',
-      department: 'العلاقات والإعلام',
-      job: 'مدير',
-      attendance_time:'08:00'
-    },
-    {
-      key: '4',
-      avatar:'https://i.pravatar.cc/150?img=4',
-      user_name: 'أيمن البدر',
-      department: 'العلاقات والإعلام',
-      job: 'مختص',
-      attendance_time:'08:30'
-    },
-  ];
 export default class generalTable extends React.Component{
     state = {
         filteredInfo: null,

@@ -7,6 +7,8 @@ import {
     UserOutlined,
     ApartmentOutlined,
     SettingOutlined,
+    DollarCircleOutlined,
+    FileTextOutlined,
   } from '@ant-design/icons';
 
   import {
@@ -19,6 +21,10 @@ import {
   } from "react-router-dom";
 import Statistics from '../../components/organisms/statistics/';
 import EmpCards from '../../components/organisms/empCards';
+import salariesReport from '../../components/organisms/salariesReport';
+import discountsReport from '../../components/organisms/discountsReport';
+import debtReport from '../../components/organisms/debtsReport';
+import settingsPane from '../../components/organisms/settingsPane';
 import {STATISTICS} from '../../routes';
 const { Content } = Layout;
 const { Text } = Typography;
@@ -31,7 +37,7 @@ export default function ControlPanel(props){
 
    const [collapsed,setCollapased]=useState(false);
   const toggle = () => {
-    setCollapased(collapsed); 
+    setCollapased(!collapsed); 
   };
  return(
     <Layout className="site-layout">
@@ -46,7 +52,9 @@ export default function ControlPanel(props){
       onClick: toggle,
     })}
   <Menu.Item key="1" icon={<ApartmentOutlined />}>
+  <Link to={url}>
   بيانات وإحصائيات
+  </Link>
   </Menu.Item>
   <Menu.Item key="2" icon={<ApartmentOutlined />}>
    الإدارات 
@@ -56,8 +64,31 @@ export default function ControlPanel(props){
    الموظفين
   </Link>
   </Menu.Item>
-  <Menu.Item key="4" icon={<SettingOutlined />} >
-  الإعدادات
+  <SubMenu key="4" icon={<FileTextOutlined />} title="تقارير">
+       <Menu.Item key="sub6">
+        <Link to={`${url}/discounts-reports`} >
+          خلاصة الغياب والتأخرات
+        </Link>
+        </Menu.Item>
+        <Menu.Item key="sub1">
+        <Link to={`${url}/salaries-reports`} >
+          خلاصة الأجور
+        </Link>
+        </Menu.Item>
+        <Menu.Item key="sub2"> الحضور والانصراف</Menu.Item>
+        <Menu.Item key="sub3">المهام والإجازات</Menu.Item>
+        <Menu.Item key="sub4">كشف المواصلات</Menu.Item>
+        <Menu.Item key="sub5">الدوام الإضافي</Menu.Item>
+  </SubMenu> 
+  <Menu.Item key="5" icon={<DollarCircleOutlined />} >
+  <Link to={`${url}/debts-report`} >
+  السلف والقروض
+  </Link>
+  </Menu.Item>
+  <Menu.Item key="6" icon={<SettingOutlined />} >
+  <Link to={`${url}/settings`} >
+التهيئة والإعدادات
+  </Link>
   </Menu.Item>
 </Menu>
 </Sider>
@@ -67,7 +98,10 @@ export default function ControlPanel(props){
             <Statistics/>
           </Route>
           <Route path={`${path}/emp-cards`} component={EmpCards} />
-          <Redirect to="" />
+          <Route path={`${path}/salaries-reports`} component={salariesReport} />       
+          <Route path={`${path}/discounts-reports`} component={discountsReport} />         
+          <Route path={`${path}/debts-report`} component={debtReport} />
+          <Route path={`${path}/settings`} component={settingsPane} />
         </Switch>
         </Layout>
   </Layout>

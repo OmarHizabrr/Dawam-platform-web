@@ -114,7 +114,7 @@ function App() {
       <MainHeader></MainHeader>
       <Layout>    
         <Switch>
-          <Route path={PROFILE_ROUTE} render={() => <Profile userData={id} />} exact/>
+          <Route path={PROFILE_ROUTE} render={() => <Profile userData={id} />} />
           <Route path={CONTROL_PANEL_ROUTE} component={ControlPanel} />
           <Route path={LOGIN} component={Login} />
           <Redirect to="" />

@@ -1,0 +1,9 @@
+table{
+    text-align: center!important;
+}
+.ant-table-column-sorters-with-tooltip{
+    text-align: center;
+}
+td{
+    width: auto!important;
+}

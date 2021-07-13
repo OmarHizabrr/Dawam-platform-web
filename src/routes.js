@@ -1,4 +1,4 @@
-export const PROFILE_ROUTE = '/' ;
+export const PROFILE_ROUTE = '/profile' ;
 export const CONTROL_PANEL_ROUTE = '/control-panel' ;
 export const EVENTS_ROUTE = '/events' ;
 export const REPORTS_ROUTE = '/reports' ;

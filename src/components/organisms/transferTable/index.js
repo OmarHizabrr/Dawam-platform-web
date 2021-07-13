@@ -1,70 +1,86 @@
-import React from 'react';
+/* eslint-disable react-hooks/rules-of-hooks */
+import React, { useState, useEffect } from 'react';
 import './style.css';
-import { Typography ,Layout,Tabs,Table } from 'antd';
-
+import { Typography ,Layout,Tabs,Table, Button,Modal, DatePicker, Select,Card } from 'antd';
+import {SwapOutlined,FormOutlined} from '@ant-design/icons';
+import axios from 'axios';
+import { useCookies,CookiesProvider  } from 'react-cookie';
+import {Env} from './../../../styles';
 const { Content } = Layout;
-const { Text } = Typography;
+const { Text,Space } = Typography;
 const { TabPane } = Tabs;
-const data = [
-    {
-      key: '1',
-      day: 'السبت',
-      date: '12-01-2020',
-      fees: '200',
-    },
-    {
-      key: '2',
-      day: 'الأحد',
-      date: '12-01-2020',
-      fees: '0',
+const { Option } = Select; 
+const {RangePicker}=DatePicker;
 
-    },
-    {
-      key: '3',
-      day: 'الاثنين',
-      date: '12-01-2020',
-      fees: '200',
-    },
-    {
-      key: '4',
-      day: 'الثلاثاء',
-      date: '12-01-2020',
-      fees: '200',
+export default function transferTable(){
+      const [cookies, setCookie, removeCookie]=useCookies(["userId"]);
+      const [filteredInfo,setFilteredInfo]=useState({});
+      const [sortedInfo,setSortedInfo]=useState({});
+      const [isModalVisible,setIsModalVisible]=useState(false);
+      const [eventsLog,setEventsLog]=useState([]);
+      const [data,setData]=useState([]);
+      const [load,setLoad]=useState(true);
+     // eslint-disable-next-line react-hooks/rules-of-hooks
+     useEffect(() => {
 
-    },
-  ];
-export default class transferTable extends React.Component{
-    state = {
-        filteredInfo: null,
-        sortedInfo: null,
-      };
-    
-      handleChange = (pagination, filters, sorter) => {
-        console.log('Various parameters', pagination, filters, sorter);
-        this.setState({
-          filteredInfo: filters,
-          sortedInfo: sorter,
+        const id=cookies.user;
+        let now=new Date();
+        let last=new Date(now.setDate(now.getDate() - 30)).toISOString().slice(0,10);
+        let today=new Date().toISOString().slice(0, 10);
+        axios.get(Env.HOST_SERVER_NAME+'transport-amounts/'+id.user_id+'/'+last+'/'+today)
+        .then(response => {
+          setData(response.data);
+          setLoad(false);
         });
+ 
+       });
+
+    const handleChange = (pagination, filters, sorter) => {
+        setFilteredInfo(filters);
+        setSortedInfo(sorter);
       };
-    
+      const changeRange=(all,date)=>{
+        console.log(date[0]);
+        const id=cookies.user;
+        setLoad(true);
+        let now=new Date();
+        let last=new Date(now.setDate(now.getDate() - 30)).toISOString().slice(0,10);
+        let today=new Date().toISOString().slice(0, 10);
+        axios.get(Env.HOST_SERVER_NAME+'transport-amounts/'+id.user_id+'/'+last+'/'+today)        .then(response => {
+          setData([]);
+          setData(response.data);
+          setLoad(false);
+        });
        
-render(){
-    let { sortedInfo, filteredInfo } = this.state;
+      }
+    const  showModal = () => {
+        setIsModalVisible(true);
+      };  
+     const handleOk = () => {
+        setIsModalVisible(false);
+
+      }; 
+    const selectMonth=(value)=>{
+      console.log(new Date(new Date().getFullYear(), value, 0).getDate());
+
+      }  
+
+  /*  let { sortedInfo, filteredInfo } = this.state;
     sortedInfo = sortedInfo || {};
-    filteredInfo = filteredInfo || {};
+    filteredInfo = filteredInfo || {};*/
     const columns = [
       {
         title: 'اليوم',
-        dataIndex: 'day',
-        key: 'day',
+        dataIndex: 'dayName',
+        key: 'dayName',
         filters: [
-          { text: 'السبت', value: 'السبت' },
-          { text: 'الأحد', value: 'الأحد' },
+          { text: 'Joe', value: 'Joe' },
+          { text: 'Jim', value: 'Jim' },
         ],
-        filteredValue: filteredInfo.day || null,
-        onFilter: (value, record) => record.day.includes(value),
-        sorter: (a, b) => a.day.length - b.day.length,
-        sortOrder: sortedInfo.columnKey === 'day' && sortedInfo.order,
+        filteredValue: filteredInfo.dayName || null,
+        onFilter: (value, record) => record.dayName.includes(value),
+        sorter: (a, b) => a.dayName.length - b.dayName.length,
+        sortOrder: sortedInfo.columnKey === 'dayName' && sortedInfo.order,
         ellipsis: true,
       },
       {
@@ -77,21 +93,24 @@ render(){
       },
       {
         title: 'المبلغ المستحق',
-        dataIndex: 'fees',
-        key: 'fees',
-        filters: [
-          { text: 'London', value: 'London' },
-          { text: 'New York', value: 'New York' },
-        ],
-        filteredValue: filteredInfo.fees || null,
-        onFilter: (value, record) => record.fees.includes(value),
-        sorter: (a, b) => a.fees.length - b.fees.length,
-        sortOrder: sortedInfo.columnKey === 'fees' && sortedInfo.order,
+        dataIndex: 'transfer_value',
+        key: 'transfer_value',
+        sorter: (a, b) => a.transfer_value - b.transfer_value,
+        sortOrder: sortedInfo.columnKey === 'transfer_value' && sortedInfo.order,
         ellipsis: true,
       },     
+      
     ];
 return (
-    <Table columns={columns} dataSource={data} onChange={this.handleChange} />
+    <Layout>
+    <Card>
+    <div style={{float:'left',marginBottom:'20px'}}>
+    <span>اختر فترة : </span>
+    <RangePicker  onCalendarChange={changeRange} />
+    </div>
+    <Table loading={load} style={{textAlign:'center!important'}} columns={columns} scroll={{x: '1000px' }} onRow={(record, rowIndex) => {return{className:record.status};}} dataSource={data} onCalendarChange={handleChange} />
+    </Card>
+    </Layout>
 );
-    }
+    
  }

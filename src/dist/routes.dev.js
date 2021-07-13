@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.STATISTICS = exports.LOGIN = exports.TASKS_TABLE_ROUTE = exports.TRANSFER_TABLE_ROUTE = exports.ATTENDANCE_TABLE_ROUTE = exports.SUMMARY_ROUTE = exports.ABOUT = exports.GET_RECORDS_ROUTE = exports.DELETE_RECORD_ROUTE = exports.EDIT_RECORD_ROUTE = exports.ADD_RECORD_ROUTE = exports.LOGIN_ROUTE = exports.REPORTS_ROUTE = exports.EVENTS_ROUTE = exports.CONTROL_PANEL_ROUTE = exports.PROFILE_ROUTE = void 0;
-var PROFILE_ROUTE = '/';
+var PROFILE_ROUTE = '/profile';
 exports.PROFILE_ROUTE = PROFILE_ROUTE;
 var CONTROL_PANEL_ROUTE = '/control-panel';
 exports.CONTROL_PANEL_ROUTE = CONTROL_PANEL_ROUTE;
