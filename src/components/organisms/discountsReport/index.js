@@ -27,7 +27,7 @@ export default function discountsReport(){
 
         const id=cookies.user;
         let now=new Date();
-        let last=new Date(now.setDate(now.getDate() - 30)).toISOString().slice(0,10);
+        let last=new Date(now.setDate(now.getDate() - 15)).toISOString().slice(0,10);
         let today=new Date().toISOString().slice(0, 10);
 
         axios.get(Env.HOST_SERVER_NAME+'get-att-days-count/'+last+'/'+today)

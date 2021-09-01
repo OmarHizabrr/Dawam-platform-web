@@ -12,7 +12,7 @@ const { TabPane } = Tabs;
 const { Option } = Select; 
 const {RangePicker}=DatePicker;
 
-export default function transferTable(){
+export default function transportReport(){
       const [cookies, setCookie, removeCookie]=useCookies(["userId"]);
       const [filteredInfo,setFilteredInfo]=useState({});
       const [sortedInfo,setSortedInfo]=useState({});
@@ -20,23 +20,18 @@ export default function transferTable(){
       const [eventsLog,setEventsLog]=useState([]);
       const [data,setData]=useState([]);
       const [load,setLoad]=useState(true);
-      const [total,setTotal]=useState(0);
      // eslint-disable-next-line react-hooks/rules-of-hooks
      useEffect(() => {
+
         const id=cookies.user;
         let now=new Date();
         let last=new Date(now.setDate(now.getDate() - 30)).toISOString().slice(0,10);
         let today=new Date().toISOString().slice(0, 10);
-        axios.get(Env.HOST_SERVER_NAME+'transport-amounts/'+id.user_id+'/'+last+'/'+today)
+        axios.get(Env.HOST_SERVER_NAME+'transport-cumulative/'+last+'/'+today)
         .then(response => {
           setData(response.data);
           setLoad(false);
         });
-        var tot=0.0;
-        for(var i=0;i<data.length;i++){
-           tot+=data[i].transfer_value;
-        }
-        setTotal(tot);
        });
 
     const handleChange = (pagination, filters, sorter) => {
@@ -44,12 +39,13 @@ export default function transferTable(){
         setSortedInfo(sorter);
       };
       const changeRange=(all,date)=>{
+        console.log(date[0]);
         const id=cookies.user;
         setLoad(true);
         let now=new Date();
         let last=new Date(now.setDate(now.getDate() - 30)).toISOString().slice(0,10);
         let today=new Date().toISOString().slice(0, 10);
-        axios.get(Env.HOST_SERVER_NAME+'transport-amounts/'+id.user_id+'/'+last+'/'+today)        .then(response => {
+        axios.get(Env.HOST_SERVER_NAME+'transport-cumulative/'+last+'/'+today)        .then(response => {
           setData([]);
           setData(response.data);
           setLoad(false);
@@ -73,41 +69,63 @@ export default function transferTable(){
     filteredInfo = filteredInfo || {};*/
     const columns = [
       {
-        title: 'اليوم',
-        dataIndex: 'dayName',
-        key: 'dayName',
+        title: 'اسم الموظف',
+        dataIndex: 'name',
+        key: 'name',
         filters: [
           { text: 'Joe', value: 'Joe' },
           { text: 'Jim', value: 'Jim' },
         ],
-        filteredValue: filteredInfo.dayName || null,
-        onFilter: (value, record) => record.dayName.includes(value),
-        sorter: (a, b) => a.dayName.length - b.dayName.length,
-        sortOrder: sortedInfo.columnKey === 'dayName' && sortedInfo.order,
+        filteredValue: filteredInfo.name || null,
+        onFilter: (value, record) => record.name.includes(value),
+        sorter: (a, b) => a.name.length - b.name.length,
+        sortOrder: sortedInfo.columnKey === 'name' && sortedInfo.order,
         ellipsis: true,
       },
       {
-        title: 'التاريخ',
-        dataIndex: 'date',
-        key: 'date',
-        sorter: (a, b) => a.date - b.date,
-        sortOrder: sortedInfo.columnKey === 'date' && sortedInfo.order,
+        title: 'المسى الوظيفي',
+        dataIndex: 'job',
+        key: 'job',
+        sorter: (a, b) => a.job.length - b.job.length,
+        sortOrder: sortedInfo.columnKey === 'job' && sortedInfo.order,
         ellipsis: true,
       },
       {
-        title: 'المبلغ المستحق',
+        title: 'الإدارة',
+        dataIndex: 'department',
+        key: 'department',
+        sorter: (a, b) => a.department.length - b.department.length,
+        sortOrder: sortedInfo.columnKey === 'department' && sortedInfo.order,
+        ellipsis: true,
+      }, 
+      {
+        title: 'عدد الأيام',
+        dataIndex: 'transportCount',
+        key: 'transportCount',
+        sorter: (a, b) => a.transportCount - b.transportCount,
+        sortOrder: sortedInfo.columnKey === 'transportCount' && sortedInfo.order,
+        ellipsis: true,
+      }, 
+      {
+        title: 'المستحق اليومي',
         dataIndex: 'transfer_value',
         key: 'transfer_value',
         sorter: (a, b) => a.transfer_value - b.transfer_value,
         sortOrder: sortedInfo.columnKey === 'transfer_value' && sortedInfo.order,
         ellipsis: true,
-      },     
-      
+      },    
+      {
+        title: 'المبلغ المستحق',
+        dataIndex: 'transportAmount',
+        key: 'transportAmount',
+        sorter: (a, b) => a.transportAmount - b.transportAmount,
+        sortOrder: sortedInfo.columnKey === 'transportAmount' && sortedInfo.order,
+        ellipsis: true,
+      }, 
     ];
 return (
     <Layout>
     <Card>
-    <div style={{float:'right',marginBottom:'20px'}}>إجمالي المبلغ المستحق : <span>{total}</span> ر.ي </div>
     <div style={{float:'left',marginBottom:'20px'}}>
     <span>اختر فترة : </span>
     <RangePicker  onCalendarChange={changeRange} />

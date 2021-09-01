@@ -24,6 +24,7 @@ import EmpCards from '../../components/organisms/empCards';
 import salariesReport from '../../components/organisms/salariesReport';
 import discountsReport from '../../components/organisms/discountsReport';
 import debtReport from '../../components/organisms/debtsReport';
+import transportReport from '../../components/organisms/transportReport';
 import settingsPane from '../../components/organisms/settingsPane';
 import {STATISTICS} from '../../routes';
 const { Content } = Layout;
@@ -75,10 +76,12 @@ export default function ControlPanel(props){
           خلاصة الأجور
         </Link>
         </Menu.Item>
-        <Menu.Item key="sub2"> الحضور والانصراف</Menu.Item>
-        <Menu.Item key="sub3">المهام والإجازات</Menu.Item>
-        <Menu.Item key="sub4">كشف المواصلات</Menu.Item>
-        <Menu.Item key="sub5">الدوام الإضافي</Menu.Item>
+        <Menu.Item key="sub2">
+        <Link to={`${url}/transport-reports`} >
+         إجمالي المواصلات
+        </Link>
+        </Menu.Item>
+        <Menu.Item key="sub3">الدوام الإضافي</Menu.Item>
   </SubMenu> 
   <Menu.Item key="5" icon={<DollarCircleOutlined />} >
   <Link to={`${url}/debts-report`} >
@@ -100,7 +103,8 @@ export default function ControlPanel(props){
           <Route path={`${path}/emp-cards`} component={EmpCards} />
           <Route path={`${path}/salaries-reports`} component={salariesReport} />       
           <Route path={`${path}/discounts-reports`} component={discountsReport} />         
-          <Route path={`${path}/debts-report`} component={debtReport} />
+          <Route path={`${path}/debts-report`} component={debtReport} />        
+          <Route path={`${path}/transport-reports`} component={transportReport} />         
           <Route path={`${path}/settings`} component={settingsPane} />
         </Switch>
         </Layout>

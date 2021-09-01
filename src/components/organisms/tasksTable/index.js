@@ -1,4 +1,8 @@
-import React from 'react';
+/* eslint-disable react-hooks/rules-of-hooks */
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import {Env} from '../../../styles';
+import { useCookies,CookiesProvider  } from 'react-cookie';
 import './style.css';
 import { DatePicker, Space,Form,Table, Button,Modal,Card,Radio,Input,Select,Progress,Tag,Typography } from 'antd';
 import {CheckCircleOutlined,MinusCircleOutlined,CloseCircleOutlined,PrinterOutlined,FormOutlined} from '@ant-design/icons';
@@ -50,165 +54,253 @@ const data = [
   const { RangePicker } = DatePicker;
   const {TextArea}=Input;
   const {Option}=Select;
-export default class tasksTable extends React.Component{
-    state = {
-        filteredInfo: null,
-        sortedInfo: null,
-        isModalVisible:false,
-        isVacation:true,
-        isTask:false,
-      };
-    handleTypeChange=(e)=>{
-     if(e.target.value=="task"){
-         this.setState({
-            isVacation:false,
-            isTask:true,
-         });
-     }
-     else{
-         this.setState({
-        isVacation:true,
-        isTask:false });
-     }
+export default function tasksTable() {
+  
+  const [cookies, setCookie, removeCookie]=useCookies(["userId"]);
+  const [filteredInfo,setFilteredInfo]=useState({});
+  const [sortedInfo,setSortedInfo]=useState({});
+  const [isModalVisible,setIsModalVisible]=useState(false);
+  const [startVac,setStartVac]=useState("");
+  const [type,setType]=useState(null);
+  const [endVac,setEndVac]=useState("");
+  const [notes,setNotes]=useState("");
+  const [tstypes,setTstypes]=useState([{"id":"1","name":"task 1"},{"id":"2","name":"task 2"}]);
+  useEffect(() => {
+    axios.get(Env.HOST_SERVER_NAME+'get-tasks-types/')
+    .then(response => {
+      setTstypes(response.data);
+    });
+  
+  });
+
+      const download_csv=(csv, filename)=> {
+        var csvFile;
+        var downloadLink;
+    
+        // CSV FILE
+        csvFile = new Blob([csv], {type: "text/csv"});
+    
+        // Download link
+        downloadLink = document.createElement("a");
+    
+        // File name
+        downloadLink.download = filename;
+    
+        // We have to create a link to the file
+        downloadLink.href = window.URL.createObjectURL(csvFile);
+    
+        // Make sure that the link is not displayed
+        downloadLink.style.display = "none";
+    
+        // Add the link to your DOM
+        document.body.appendChild(downloadLink);
+    
+        // Lanzamos
+        downloadLink.click();
     }
-      handleChange = (pagination, filters, sorter) => {
-        console.log('Various parameters', pagination, filters, sorter);
-        this.setState({
-          filteredInfo: filters,
-          sortedInfo: sorter,
-        });
-      };
-       showModal = () => {
-        this.setState({
-          isModalVisible:true,
-        });
-      };  
-      handleOk = () => {
-        this.setState({
-          isModalVisible:false,
-        });
-      };    
-render(){
-    let { sortedInfo, filteredInfo } = this.state;
-    sortedInfo = sortedInfo || {};
-    filteredInfo = filteredInfo || {};
-    const columns = [
-      {
-        title: 'النوع',
-        dataIndex: 'name',
-        key: 'name',
-        filters: [
-          { text: 'Joe', value: 'Joe' },
-          { text: 'Jim', value: 'Jim' },
-        ],
-        filteredValue: filteredInfo.name || null,
-        onFilter: (value, record) => record.name.includes(value),
-        sorter: (a, b) => a.name.length - b.name.length,
-        sortOrder: sortedInfo.columnKey === 'name' && sortedInfo.order,
-        ellipsis: true,
-      },
-      {
-        title: 'من',
-        dataIndex: 'age',
-        key: 'age',
-        sorter: (a, b) => a.age - b.age,
-        sortOrder: sortedInfo.columnKey === 'age' && sortedInfo.order,
-        ellipsis: true,
-      },
-      {
-        title: 'إلى',
-        dataIndex: 'address',
-        key: 'address',
-        filters: [
-          { text: 'London', value: 'London' },
-          { text: 'New York', value: 'New York' },
-        ],
-        filteredValue: filteredInfo.address || null,
-        onFilter: (value, record) => record.address.includes(value),
-        sorter: (a, b) => a.address.length - b.address.length,
-        sortOrder: sortedInfo.columnKey === 'address' && sortedInfo.order,
-        ellipsis: true,
-      },     
-       {
-        title: 'التفاصيل',
-        dataIndex: 'leaveTime',
-        key: 'leaveTime',
-        filters: [
-          { text: 'London', value: 'London' },
-          { text: 'New York', value: 'New York' },
-        ],
-        filteredValue: filteredInfo.leaveTime || null,
-        onFilter: (value, record) => record.leaveTime.includes(value),
-        sorter: (a, b) => a.leaveTime.length - b.leaveTime.length,
-        sortOrder: sortedInfo.columnKey === 'leaveTime' && sortedInfo.order,
-        ellipsis: true,
-      },
-      {
-        title: 'مدة المهمة/الإجازة',
-        dataIndex: 'period',
-        key: 'period',
-        filters: [
-          { text: 'London', value: 'London' },
-          { text: 'New York', value: 'New York' },
-        ],
-        filteredValue: filteredInfo.period || null,
-        onFilter: (value, record) => record.period.includes(value),
-        sorter: (a, b) => a.period.length - b.period.length,
-        sortOrder: sortedInfo.columnKey === 'period' && sortedInfo.order,
-        ellipsis: true,
-      },
-      {
-        title: 'الحالة',
-        key: 'tag',
-        dataIndex: 'tag',
-        render: tags => (
-          <>
-            {tags.map(tag => {
-              if (tag == 'waiting') {
-                return (
-                <MinusCircleOutlined style={{color:'#FFCA2C',fontSize:'20px'}}/>
-              );
-              }
-              else if (tag == 'faild') {
-                return (
-                <CloseCircleOutlined style={{color:'#BB2D3B',fontSize:'20px'}} />
-              );
-              }
-              else{
-                return (
-                <CheckCircleOutlined style={{color:'#007236',fontSize:'20px'}}/>
-              );
-              }
-            })}
-          </>
-        ),
-        filters: [
-          { text: 'معتمدة', value: 'success' },
-          { text: 'في الانتظار', value: 'waiting' },
-          { text: 'مرفوضة', value: 'faild' },
-        ],
-        filteredValue: filteredInfo.tag || null,
-        onFilter: (value, record) => record.tag.includes(value),
-        sorter: (a, b) => a.tag.length - b.tag.length,
-        sortOrder: sortedInfo.columnKey === 'tag' && sortedInfo.order,
-        ellipsis: true,
-      },
-      {
-        title: 'ملاحظات',
-        dataIndex: 'netDawam',
-        key: 'netDawam',
-        filters: [
-          { text: 'London', value: 'London' },
-          { text: 'New York', value: 'New York' },
-        ],
-        filteredValue: filteredInfo.netDawam || null,
-        onFilter: (value, record) => record.netDawam.includes(value),
-        sorter: (a, b) => a.netDawam.length - b.netDawam.length,
-        sortOrder: sortedInfo.columnKey === 'netDawam' && sortedInfo.order,
-        ellipsis: true,
-      },
+    
+    const export_table_to_csv=()=> {
+      // var html=document.querySelector("table").outerHTML;
       
-    ];
+      var csv = [];
+      var rows = document.querySelectorAll("table tr");
+      
+        for (var i = 0; i < rows.length; i++) {
+        var row = [], cols = rows[i].querySelectorAll("td, th");
+        
+            for (var j = 0; j < cols.length; j++) 
+                row.push(cols[j].innerText);
+            
+        csv.push(row.join(","));		
+      }
+    
+        // Download CSV
+        var csvFile;
+        var downloadLink;
+    
+        // CSV FILE
+        csvFile = new Blob([csv], {type: "text/csv"});
+    
+        // Download link
+        downloadLink = document.createElement("a");
+    
+        // File name
+        downloadLink.download = "table.csv";
+    
+        // We have to create a link to the file
+        downloadLink.href = window.URL.createObjectURL(csvFile);
+    
+        // Make sure that the link is not displayed
+        downloadLink.style.display = "none";
+    
+        // Add the link to your DOM
+        document.body.appendChild(downloadLink);
+    
+        // Lanzamos
+        downloadLink.click();
+    }
+    
+    const handleTypeChange=(e)=>{
+      setType(e);
+    }
+    const  handleChange = (pagination, filters, sorter) => {
+ 
+          setFilteredInfo(filters);
+          setSortedInfo(sorter);
+
+      };
+    const  onRangeChange=(all,dates)=>{ 
+        setStartVac(dates[0]);  
+        setEndVac(dates[1]);        
+      }
+     const  showModal = () => {
+          setIsModalVisible(true);
+      };  
+     const handleOk = () => {
+        var values={
+          "user_id": cookies.user.user_id,
+          "startDate":startVac,
+          "endDate":endVac,
+          "type":type,
+          "note":notes
+        }
+        axios.post(Env.HOST_SERVER_NAME+`add-task`,values)
+          .then(function (response) {
+            if(response.statusText=="OK"){
+              alert('تم إرسال الإجازة بنجاح')
+            } 
+          })
+       .catch(function (error) {
+       console.log(error);
+       });
+          setIsModalVisible(false);
+      
+        
+      }; 
+    const  notesChange=(e)=>{
+       setNotes(e.target.value);
+        
+      } 
+
+      const columns = [
+        {
+          title: 'النوع',
+          dataIndex: 'name',
+          key: 'name',
+          filters: [
+            { text: 'Joe', value: 'Joe' },
+            { text: 'Jim', value: 'Jim' },
+          ],
+          filteredValue: filteredInfo.name || null,
+          onFilter: (value, record) => record.name.includes(value),
+          sorter: (a, b) => a.name.length - b.name.length,
+          sortOrder: sortedInfo.columnKey === 'name' && sortedInfo.order,
+          ellipsis: true,
+        },
+        {
+          title: 'من',
+          dataIndex: 'age',
+          key: 'age',
+          sorter: (a, b) => a.age - b.age,
+          sortOrder: sortedInfo.columnKey === 'age' && sortedInfo.order,
+          ellipsis: true,
+        },
+        {
+          title: 'إلى',
+          dataIndex: 'address',
+          key: 'address',
+          filters: [
+            { text: 'London', value: 'London' },
+            { text: 'New York', value: 'New York' },
+          ],
+          filteredValue: filteredInfo.address || null,
+          onFilter: (value, record) => record.address.includes(value),
+          sorter: (a, b) => a.address.length - b.address.length,
+          sortOrder: sortedInfo.columnKey === 'address' && sortedInfo.order,
+          ellipsis: true,
+        },     
+         {
+          title: 'التفاصيل',
+          dataIndex: 'leaveTime',
+          key: 'leaveTime',
+          filters: [
+            { text: 'London', value: 'London' },
+            { text: 'New York', value: 'New York' },
+          ],
+          filteredValue: filteredInfo.leaveTime || null,
+          onFilter: (value, record) => record.leaveTime.includes(value),
+          sorter: (a, b) => a.leaveTime.length - b.leaveTime.length,
+          sortOrder: sortedInfo.columnKey === 'leaveTime' && sortedInfo.order,
+          ellipsis: true,
+        },
+        {
+          title: 'مدة المهمة/الإجازة',
+          dataIndex: 'period',
+          key: 'period',
+          filters: [
+            { text: 'London', value: 'London' },
+            { text: 'New York', value: 'New York' },
+          ],
+          filteredValue: filteredInfo.period || null,
+          onFilter: (value, record) => record.period.includes(value),
+          sorter: (a, b) => a.period.length - b.period.length,
+          sortOrder: sortedInfo.columnKey === 'period' && sortedInfo.order,
+          ellipsis: true,
+        },
+        {
+          title: 'الحالة',
+          key: 'tag',
+          dataIndex: 'tag',
+          render: tags => (
+            <>
+              {tags.map(tag => {
+                if (tag == 'waiting') {
+                  return (
+                  <MinusCircleOutlined style={{color:'#FFCA2C',fontSize:'20px'}}/>
+                );
+                }
+                else if (tag == 'faild') {
+                  return (
+                  <CloseCircleOutlined style={{color:'#BB2D3B',fontSize:'20px'}} />
+                );
+                }
+                else{
+                  return (
+                  <CheckCircleOutlined style={{color:'#007236',fontSize:'20px'}}/>
+                );
+                }
+              })}
+            </>
+          ),
+          filters: [
+            { text: 'معتمدة', value: 'success' },
+            { text: 'في الانتظار', value: 'waiting' },
+            { text: 'مرفوضة', value: 'faild' },
+          ],
+          filteredValue: filteredInfo.tag || null,
+          onFilter: (value, record) => record.tag.includes(value),
+          sorter: (a, b) => a.tag.length - b.tag.length,
+          sortOrder: sortedInfo.columnKey === 'tag' && sortedInfo.order,
+          ellipsis: true,
+        },
+        {
+          title: 'ملاحظات',
+          dataIndex: 'netDawam',
+          key: 'netDawam',
+          filters: [
+            { text: 'London', value: 'London' },
+            { text: 'New York', value: 'New York' },
+          ],
+          filteredValue: filteredInfo.netDawam || null,
+          onFilter: (value, record) => record.netDawam.includes(value),
+          sorter: (a, b) => a.netDawam.length - b.netDawam.length,
+          sortOrder: sortedInfo.columnKey === 'netDawam' && sortedInfo.order,
+          ellipsis: true,
+        },     
+      ];
+      const handleCancel=()=>{
+        setIsModalVisible(false);
+      }
 return (
     <Card>
     <div style={{display:'flex',flexDirection:'row',justifyContent:'space-between',marginBottom:'20px'}}>
@@ -227,30 +319,27 @@ return (
     </span>
     </div>
     <div style={{display:'flex',flexDirection:'column'}}>
-    <Button style={{float:'left',marginBottom:'30px'}} onClick={this.showModal} type='primary'><FormOutlined /> تقديم إجازة </Button>
-    <Button><PrinterOutlined /> طباعة الجدول </Button>
+    <Button style={{float:'left',marginBottom:'30px'}} onClick={showModal} type='primary'><FormOutlined /> تقديم إجازة </Button>
+    <Button onClick={export_table_to_csv}><PrinterOutlined /> طباعة الجدول </Button>
     </div>
     </div>
-    <Modal title="تقديم إجازة / مهمة" visible={this.state.isModalVisible} onOk={this.handleOk} >
+    <Modal title="تقديم إجازة / مهمة" visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
     <Form>
     <Form.Item label="فترة الإجازة / المهمة :">
     <Space>
     <RangePicker
       showTime={{ format: 'HH:mm' }}
       format="YYYY-MM-DD HH:mm"
+      onChange={onRangeChange}
     />
   </Space>
     </Form.Item>
-    <Form.Item>
-    <Radio.Group defaultValue="vacation" buttonStyle="solid" onChange={this.handleTypeChange}>
-      <Radio.Button value="vacation">إجازة</Radio.Button>
-      <Radio.Button value="task">مهمة</Radio.Button>
-    </Radio.Group>
-    </Form.Item>
-    <Form.Item hidden={!this.state.isVacation} label="نوع الإجازة">
+    <Form.Item label="نوع الإجازة">
     <Select
     showSearch
     style={{ width: 200 }}
+    onSelect={handleTypeChange}
+    options={tstypes}
     placeholder="ابحث لاختيار إجازة"
     optionFilterProp="children"
     filterOption={(input, option) =>
@@ -260,24 +349,14 @@ return (
       optionA.children.toLowerCase().localeCompare(optionB.children.toLowerCase())
     }
   >
-    <Option value="1">سنوية</Option>
-    <Option value="2">مرضية</Option>
-    <Option value="3">دراسية</Option>
-    <Option value="4">طارئة</Option>
-    <Option value="5">حج</Option>
-    <Option value="6">عمرة</Option>
-    <Option value="7">زواج</Option>
-    <Option value="8">وضع</Option>
-    <Option value="9">بدون أجر</Option>
   </Select>
     </Form.Item>
-    <Form.Item hidden={!this.state.isTask} label="تفاصيل المهمة">
-    <TextArea row={3}></TextArea>
+    <Form.Item label="تفاصيل ">
+    <TextArea row={3} onChange={notesChange}></TextArea>
     </Form.Item>
     </Form>
     </Modal>
-    <Table columns={columns}  dataSource={data} onChange={this.handleChange} />
+    <Table columns={columns}  dataSource={data} onChange={handleChange} />
     </Card>
 );
-    }
  }
