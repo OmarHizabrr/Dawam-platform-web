@@ -1,59 +1,28 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import React, { useState, useEffect } from 'react';
+import excel from 'xlsx';
 import axios from 'axios';
 import {Env} from '../../../styles';
 import { useCookies,CookiesProvider  } from 'react-cookie';
 import './style.css';
 import { DatePicker, Space,Form,Table, Button,Modal,Card,Radio,Input,Select,Progress,Tag,Typography } from 'antd';
-import {CheckCircleOutlined,MinusCircleOutlined,CloseCircleOutlined,PrinterOutlined,FormOutlined} from '@ant-design/icons';
+import {CheckCircleOutlined,MinusCircleOutlined,CloseCircleOutlined,ExportOutlined,FormOutlined} from '@ant-design/icons';
 const {Text}=Typography;
-const data = [
-    {
-      key: '1',
-      name: 'مهمة',
-      age: '12-01-2020 07:30',
-      address: '12-01-2020 02:00',
-      leaveTime:'نزول تصوير ميداني',
-      period:'08:30',
-      tag:['success'],
-      netDawam:'معتمدة',
-    },
-    {
-      key: '2',
-      name: 'إجازة',
-      age: '12-01-2020 08:30',
-      address: '20-01-2020 02:00',
-      leaveTime:'سنوية',
-      period:'20:30',
-      tag:['waiting'],
-      netDawam:'مرفوضة من الإدارة',
-
-    },
-    {
-      key: '3',
-      name: 'مهمة',
-      age: '12-01-2020 07:30',
-      address: '12-01-2020 07:30',
-      leaveTime:'توزيع سلال غذائية',
-      period:'3:22',
-      tag:['faild'],
-      netDawam:'مرفوضة من الشؤون',
-    },
-    {
-      key: '4',
-      name: 'إجازة',
-      age: '12-01-2020 07:30',
-      address: '12-01-2020 07:30',
-      leaveTime:'دراسية',
-      tag:['success'],
-      period:'12:30',
-      netDawam:'بانتظار الأمين العام',
-    },
-  ];
 
   const { RangePicker } = DatePicker;
   const {TextArea}=Input;
   const {Option}=Select;
+
+const exportToExcel=(type,fn,dl)=>{
+
+    var elt = document.getElementsByTagName('table')[0];
+    if(elt){
+     var wb = excel.utils.table_to_book(elt, { sheet: "sheet1" });
+     return dl ?
+     excel.write(wb, { bookType: type, bookSST: true, type: 'base64' }):
+     excel.writeFile(wb, fn || ('الإجازات والمهام.' + (type || 'xlsx')));  
+    }
+} 
 export default function tasksTable() {
   
   const [cookies, setCookie, removeCookie]=useCookies(["userId"]);
@@ -64,82 +33,20 @@ export default function tasksTable() {
   const [type,setType]=useState(null);
   const [endVac,setEndVac]=useState("");
   const [notes,setNotes]=useState("");
-  const [tstypes,setTstypes]=useState([{"id":"1","name":"task 1"},{"id":"2","name":"task 2"}]);
+  const [tstypes,setTstypes]=useState([]);
+  const [data,setData]=useState([]);
+  const user=cookies.user;
   useEffect(() => {
-    axios.get(Env.HOST_SERVER_NAME+'get-tasks-types/')
+    axios.get(Env.HOST_SERVER_NAME+'get-tasks-types')
     .then(response => {
       setTstypes(response.data);
     });
-  
+    axios.get(Env.HOST_SERVER_NAME+'get-tasks/'+user.user_id)
+    .then(response => {
+      setData(response.data);
+    });
   });
 
-      const download_csv=(csv, filename)=> {
-        var csvFile;
-        var downloadLink;
-    
-        // CSV FILE
-        csvFile = new Blob([csv], {type: "text/csv"});
-    
-        // Download link
-        downloadLink = document.createElement("a");
-    
-        // File name
-        downloadLink.download = filename;
-    
-        // We have to create a link to the file
-        downloadLink.href = window.URL.createObjectURL(csvFile);
-    
-        // Make sure that the link is not displayed
-        downloadLink.style.display = "none";
-    
-        // Add the link to your DOM
-        document.body.appendChild(downloadLink);
-    
-        // Lanzamos
-        downloadLink.click();
-    }
-    
-    const export_table_to_csv=()=> {
-      // var html=document.querySelector("table").outerHTML;
-      
-      var csv = [];
-      var rows = document.querySelectorAll("table tr");
-      
-        for (var i = 0; i < rows.length; i++) {
-        var row = [], cols = rows[i].querySelectorAll("td, th");
-        
-            for (var j = 0; j < cols.length; j++) 
-                row.push(cols[j].innerText);
-            
-        csv.push(row.join(","));		
-      }
-    
-        // Download CSV
-        var csvFile;
-        var downloadLink;
-    
-        // CSV FILE
-        csvFile = new Blob([csv], {type: "text/csv"});
-    
-        // Download link
-        downloadLink = document.createElement("a");
-    
-        // File name
-        downloadLink.download = "table.csv";
-    
-        // We have to create a link to the file
-        downloadLink.href = window.URL.createObjectURL(csvFile);
-    
-        // Make sure that the link is not displayed
-        downloadLink.style.display = "none";
-    
-        // Add the link to your DOM
-        document.body.appendChild(downloadLink);
-    
-        // Lanzamos
-        downloadLink.click();
-    }
-    
     const handleTypeChange=(e)=>{
       setType(e);
     }
@@ -199,38 +106,38 @@ export default function tasksTable() {
         },
         {
           title: 'من',
-          dataIndex: 'age',
-          key: 'age',
-          sorter: (a, b) => a.age - b.age,
-          sortOrder: sortedInfo.columnKey === 'age' && sortedInfo.order,
+          dataIndex: 'date_from',
+          key: 'date_from',
+          sorter: (a, b) => a.date_from - b.date_from,
+          sortOrder: sortedInfo.columnKey === 'date_from' && sortedInfo.order,
           ellipsis: true,
         },
         {
           title: 'إلى',
-          dataIndex: 'address',
-          key: 'address',
+          dataIndex: 'date_to',
+          key: 'date_to',
           filters: [
             { text: 'London', value: 'London' },
             { text: 'New York', value: 'New York' },
           ],
-          filteredValue: filteredInfo.address || null,
-          onFilter: (value, record) => record.address.includes(value),
-          sorter: (a, b) => a.address.length - b.address.length,
+          filteredValue: filteredInfo.date_to || null,
+          onFilter: (value, record) => record.date_to.includes(value),
+          sorter: (a, b) => a.date_to.length - b.date_to.length,
           sortOrder: sortedInfo.columnKey === 'address' && sortedInfo.order,
           ellipsis: true,
         },     
          {
           title: 'التفاصيل',
-          dataIndex: 'leaveTime',
-          key: 'leaveTime',
+          dataIndex: 'description',
+          key: 'description',
           filters: [
             { text: 'London', value: 'London' },
             { text: 'New York', value: 'New York' },
           ],
-          filteredValue: filteredInfo.leaveTime || null,
-          onFilter: (value, record) => record.leaveTime.includes(value),
-          sorter: (a, b) => a.leaveTime.length - b.leaveTime.length,
-          sortOrder: sortedInfo.columnKey === 'leaveTime' && sortedInfo.order,
+          filteredValue: filteredInfo.description || null,
+          onFilter: (value, record) => record.description.includes(value),
+          sorter: (a, b) => a.description.length - b.description.length,
+          sortOrder: sortedInfo.columnKey === 'description' && sortedInfo.order,
           ellipsis: true,
         },
         {
@@ -249,54 +156,20 @@ export default function tasksTable() {
         },
         {
           title: 'الحالة',
-          key: 'tag',
-          dataIndex: 'tag',
-          render: tags => (
-            <>
-              {tags.map(tag => {
-                if (tag == 'waiting') {
-                  return (
-                  <MinusCircleOutlined style={{color:'#FFCA2C',fontSize:'20px'}}/>
-                );
-                }
-                else if (tag == 'faild') {
-                  return (
-                  <CloseCircleOutlined style={{color:'#BB2D3B',fontSize:'20px'}} />
-                );
-                }
-                else{
-                  return (
-                  <CheckCircleOutlined style={{color:'#007236',fontSize:'20px'}}/>
-                );
-                }
-              })}
-            </>
-          ),
+          dataIndex: 'status',
+          key: 'status',
           filters: [
-            { text: 'معتمدة', value: 'success' },
-            { text: 'في الانتظار', value: 'waiting' },
-            { text: 'مرفوضة', value: 'faild' },
+            { text: 'معتمدة', value: 'معتمدة' },
+            { text: 'في الانتظار', value: 'في الانتظار' },
+            { text: 'مرفوضة', value: 'مرفوضة' },
           ],
-          filteredValue: filteredInfo.tag || null,
-          onFilter: (value, record) => record.tag.includes(value),
-          sorter: (a, b) => a.tag.length - b.tag.length,
-          sortOrder: sortedInfo.columnKey === 'tag' && sortedInfo.order,
+          filteredValue: filteredInfo.status || null,
+          onFilter: (value, record) => record.status.includes(value),
+          sorter: (a, b) => a.status.length - b.status.length,
+          sortOrder: sortedInfo.columnKey === 'status' && sortedInfo.order,
           ellipsis: true,
         },
-        {
-          title: 'ملاحظات',
-          dataIndex: 'netDawam',
-          key: 'netDawam',
-          filters: [
-            { text: 'London', value: 'London' },
-            { text: 'New York', value: 'New York' },
-          ],
-          filteredValue: filteredInfo.netDawam || null,
-          onFilter: (value, record) => record.netDawam.includes(value),
-          sorter: (a, b) => a.netDawam.length - b.netDawam.length,
-          sortOrder: sortedInfo.columnKey === 'netDawam' && sortedInfo.order,
-          ellipsis: true,
-        },     
+  
       ];
       const handleCancel=()=>{
         setIsModalVisible(false);
@@ -320,7 +193,7 @@ return (
     </div>
     <div style={{display:'flex',flexDirection:'column'}}>
     <Button style={{float:'left',marginBottom:'30px'}} onClick={showModal} type='primary'><FormOutlined /> تقديم إجازة </Button>
-    <Button onClick={export_table_to_csv}><PrinterOutlined /> طباعة الجدول </Button>
+    <Button onClick={function(){exportToExcel('xlsx')}}><ExportOutlined /> تصدير كملف اكسل </Button>
     </div>
     </div>
     <Modal title="تقديم إجازة / مهمة" visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>

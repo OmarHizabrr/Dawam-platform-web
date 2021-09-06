@@ -1,17 +1,28 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import React, { useState, useEffect } from 'react';
+import excel from 'xlsx';
 import './style.css';
 import { Typography ,Layout,Tabs,Table, Button,Modal, DatePicker, Select,Card } from 'antd';
-import {SwapOutlined,FormOutlined} from '@ant-design/icons';
+import {SwapOutlined,FormOutlined,ExportOutlined} from '@ant-design/icons';
 import axios from 'axios';
 import { useCookies,CookiesProvider  } from 'react-cookie';
+import {FileExcelOutlined} from '@ant-design/icons';
 import {Env} from './../../../styles';
 const { Content } = Layout;
 const { Text,Space } = Typography;
 const { TabPane } = Tabs;
 const { Option } = Select; 
 const {RangePicker}=DatePicker;
+const exportToExcel=(type,fn,dl)=>{
 
+  var elt = document.getElementsByTagName('table')[0];
+  if(elt){
+   var wb = excel.utils.table_to_book(elt, { sheet: "sheet1" });
+   return dl ?
+   excel.write(wb, { bookType: type, bookSST: true, type: 'base64' }):
+   excel.writeFile(wb, fn || ('كشف الخصميات.' + (type || 'xlsx')));  
+  }
+}
 export default function discountsReport(){
       const [cookies, setCookie, removeCookie]=useCookies(["userId"]);
       const [filteredInfo,setFilteredInfo]=useState({});
@@ -21,35 +32,35 @@ export default function discountsReport(){
       const [data,setData]=useState([]);
       const [load,setLoad]=useState(true);
       const [count,setCount]=useState(0);
-
-     // eslint-disable-next-line react-hooks/rules-of-hooks
+      const [start,setStart]=useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().slice(0,10));
+      const [end,setEnd]=useState(new Date().toISOString().slice(0, 10));    
+      // eslint-disable-next-line react-hooks/rules-of-hooks
      useEffect(() => {
-
-        const id=cookies.user;
-        let now=new Date();
-        let last=new Date(now.setDate(now.getDate() - 15)).toISOString().slice(0,10);
-        let today=new Date().toISOString().slice(0, 10);
-
-        axios.get(Env.HOST_SERVER_NAME+'get-att-days-count/'+last+'/'+today)
+        //const id=cookies.user;
+        //let now=new Date();
+       // let last=new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().slice(0,10);
+       // let today=new Date().toISOString().slice(0, 10);
+       setLoad(true);
+        axios.get(Env.HOST_SERVER_NAME+'get-att-days-count/'+start+'/'+end)
         .then(response => {
           setCount(response.data[0].count);
         });
-        axios.get(Env.HOST_SERVER_NAME+'discounts-list/'+last+'/'+today)
+        axios.get(Env.HOST_SERVER_NAME+'discounts-list/'+start+'/'+end)
         .then(response => {
           setData(response.data);
           setLoad(false);
         });
-       });
+       }, [start,end]);
 
     const handleChange = (pagination, filters, sorter) => {
         setFilteredInfo(filters);
         setSortedInfo(sorter);
       };
       const changeRange=(all,date)=>{
-        const id=cookies.user;
-        let last=date[0];
-        let today=date[1];
-        console.log("range changed : "+last+"|"+today);
+        //const id=cookies.user;
+        setStart(date[0]);
+        setEnd(date[1]);
+      /*  console.log("range changed : "+last+"|"+today);
         setLoad(true);
         axios.get(Env.HOST_SERVER_NAME+'get-att-days-count/'+last+'/'+today)
         .then(response => {
@@ -59,7 +70,7 @@ export default function discountsReport(){
         .then(response => {
           setData(response.data);
           setLoad(false);
-        });
+        });*/
        
       }
     const  showModal = () => {
@@ -89,7 +100,7 @@ export default function discountsReport(){
         onFilter: (value, record) => record.name.includes(value),
         sorter: (a, b) => a.name.length - b.name.length,
         sortOrder: sortedInfo.columnKey === 'name' && sortedInfo.order,
-        ellipsis: true,
+        ellipsis: false,
       },
       {
         title: 'المسمى الوظيفي',
@@ -112,7 +123,7 @@ export default function discountsReport(){
         title: 'الغياب',
         dataIndex: 'attendanceDays',
         key: 'attendanceDays',
-        sorter: (a, b) => a.attendanceDays.length - b.attendanceDays.length,
+        sorter: (a, b) => a.attendanceDays - b.attendanceDays,
         sortOrder: sortedInfo.columnKey === 'attendanceDays' && sortedInfo.order,
         ellipsis: true,
         render:(attendanceDays)=> count-attendanceDays,
@@ -121,7 +132,7 @@ export default function discountsReport(){
         title: 'خصميات الغياب',
         dataIndex: ['salary','attendanceDays'],
         key: 'absencePrice',
-        sorter: (a, b) => a.absencePrice.length - b.absencePrice.length,
+        sorter: (a, b) => a.absencePrice - b.absencePrice,
         sortOrder: sortedInfo.columnKey === 'absencePrice' && sortedInfo.order,
         ellipsis: true,
         render:(attendanceDays,row)=>Math.round(((row.salary/30)*(count-row.attendanceDays))*100)/100 + " ر.ي",
@@ -165,9 +176,10 @@ export default function discountsReport(){
 return (
     <Layout>
     <Card>
-    <div style={{float:'left',marginBottom:'20px'}}>
-    <span>اختر فترة : </span>
-    <RangePicker   onChange={changeRange} />
+    <div style={{float:'left',marginBottom:'10px'}}>
+    <div style={{float:'left',marginBottom:'10px'}}><span>اختر فترة : </span>
+    <RangePicker  onCalendarChange={changeRange} /></div>
+    <div><Button style={{float: 'left'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /> تصدير كملف اكسل </Button></div>
     </div>
     <Table loading={load}  style={{textAlign:'center!important'}} columns={columns} scroll={{x: '1000px' }} onRow={(record, rowIndex) => {return{className:record.status};}} dataSource={data} onChange={handleChange} />
     </Card>

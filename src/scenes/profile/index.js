@@ -26,6 +26,7 @@ import GeneralTable from '../../components/organisms/generalTable';
 import TransferTable from '../../components/organisms/transferTable';
 import AttendanceTable from '../../components/organisms/attendanceTable';
 import TasksTable from '../../components/organisms/tasksTable';
+import tasksRequests from '../../components/organisms/tasksRequests';
 import {
   Link,
   useRouteMatch
@@ -238,7 +239,7 @@ return (
     </TabPane>
     <TabPane
       tab={
-        <Link to={`${url}/tasks-table`}>
+        <Link to={`${url}/tasks-requests`}>
         <span>
         <SnippetsOutlined />
        المراجعات 
@@ -279,6 +280,7 @@ return (
           <Route path={`${path}/attendance-table`} component={AttendanceTable} />
           <Route path={`${path}/transfer-table`} component={TransferTable} />
           <Route path={`${path}/tasks-table`} component={TasksTable} />
+          <Route path={`${path}/tasks-requests`} component={tasksRequests} />
           <Redirect to="" />
         </Switch>
   </Layout>

@@ -20,37 +20,25 @@ export default function transportReport(){
       const [eventsLog,setEventsLog]=useState([]);
       const [data,setData]=useState([]);
       const [load,setLoad]=useState(true);
+      const [start,setStart]=useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().slice(0,10));
+      const [end,setEnd]=useState(new Date().toISOString().slice(0, 10));    
      // eslint-disable-next-line react-hooks/rules-of-hooks
      useEffect(() => {
-
-        const id=cookies.user;
-        let now=new Date();
-        let last=new Date(now.setDate(now.getDate() - 30)).toISOString().slice(0,10);
-        let today=new Date().toISOString().slice(0, 10);
-        axios.get(Env.HOST_SERVER_NAME+'transport-cumulative/'+last+'/'+today)
+         setLoad(true);
+        axios.get(Env.HOST_SERVER_NAME+'transport-cumulative/'+start+'/'+end)
         .then(response => {
           setData(response.data);
           setLoad(false);
         });
-       });
+       },[start,end]);
 
     const handleChange = (pagination, filters, sorter) => {
         setFilteredInfo(filters);
         setSortedInfo(sorter);
       };
       const changeRange=(all,date)=>{
-        console.log(date[0]);
-        const id=cookies.user;
-        setLoad(true);
-        let now=new Date();
-        let last=new Date(now.setDate(now.getDate() - 30)).toISOString().slice(0,10);
-        let today=new Date().toISOString().slice(0, 10);
-        axios.get(Env.HOST_SERVER_NAME+'transport-cumulative/'+last+'/'+today)        .then(response => {
-          setData([]);
-          setData(response.data);
-          setLoad(false);
-        });
-       
+        setStart(date[0]);
+        setEnd(date[1]);
       }
     const  showModal = () => {
         setIsModalVisible(true);

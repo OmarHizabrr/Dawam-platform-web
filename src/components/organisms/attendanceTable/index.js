@@ -1,8 +1,9 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import React, { useState, useEffect } from 'react';
+import excel from 'xlsx';
 import './style.css';
 import { Typography ,Layout,Tabs,Table, Button,Progress, DatePicker, Select,Card } from 'antd';
-import {SwapOutlined,FormOutlined} from '@ant-design/icons';
+import {SwapOutlined,FormOutlined,ExportOutlined} from '@ant-design/icons';
 import axios from 'axios';
 import { useCookies,CookiesProvider  } from 'react-cookie';
 import {Env} from './../../../styles';
@@ -11,7 +12,16 @@ const { Text,Space } = Typography;
 const { TabPane } = Tabs;
 const { Option } = Select; 
 const {RangePicker}=DatePicker;
+const exportToExcel=(type,fn,dl)=>{
 
+  var elt = document.getElementsByTagName('table')[0];
+  if(elt){
+   var wb = excel.utils.table_to_book(elt, { sheet: "sheet1" });
+   return dl ?
+   excel.write(wb, { bookType: type, bookSST: true, type: 'base64' }):
+   excel.writeFile(wb, fn || ('سجل الحضور.' + (type || 'xlsx')));  
+  }
+}
 export default function attendanceTable(){
       const [cookies, setCookie, removeCookie]=useCookies(["userId"]);
       const [filteredInfo,setFilteredInfo]=useState({});
@@ -25,14 +35,13 @@ export default function attendanceTable(){
       const [totalLate,setTotalLate]=useState(0);
       const [totalLatePrice,setTotalLatePrice]=useState(0);
       const [salary,setSalary]=useState(0);
+      const [start,setStart]=useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().slice(0,10));
+      const [end,setEnd]=useState(new Date().toISOString().slice(0, 10));    
      // eslint-disable-next-line react-hooks/rules-of-hooks
      useEffect(() => {
 
         const id=cookies.user;
-        let now=new Date();
-        let last=new Date(now.setDate(now.getDate() - 15)).toISOString().slice(0,10);
-        let today=new Date().toISOString().slice(0, 10);
-        axios.get(Env.HOST_SERVER_NAME+'dawam-info/'+id.user_id+'/'+last+'/'+today)
+        axios.get(Env.HOST_SERVER_NAME+'dawam-info/'+id.user_id+'/'+start+'/'+end)
         .then(response => {
           setTotalDays(response.data.count[0].count);
           setTotalAtt(response.data.data[0].attendanceDays);
@@ -40,28 +49,21 @@ export default function attendanceTable(){
           setTotalLatePrice(response.data.data[0].lateTimePrice);
           setSalary(response.data.data[0].salary);
         });
-        axios.get(Env.HOST_SERVER_NAME+'attendancelog/'+id.user_id)
+        setLoad(true);
+        axios.get(Env.HOST_SERVER_NAME+'attendancelog/'+id.user_id+'/'+start+'/'+end)
         .then(response => {
           setData(response.data);
           setLoad(false);
         });
-       });
+       },[start,end]);
 
     const handleChange = (pagination, filters, sorter) => {
         setFilteredInfo(filters);
         setSortedInfo(sorter);
       };
       const changeRange=(all,date)=>{
-        console.log(date[0]);
-        const id=cookies.user;
-        setLoad(true);
-        axios.get(Env.HOST_SERVER_NAME+'attendancelog/'+id.user_id+'/'+date[0]+'/'+date[1])
-        .then(response => {
-          setData([]);
-          setData(response.data);
-          setLoad(false);
-        });
-       
+        setStart(date[0]);
+        setEnd(date[1]);       
       }
     const  showModal = () => {
         setIsModalVisible(true);
@@ -170,9 +172,10 @@ return (
     <div style={{marginBottom:'5px'}}>التأخرات : <span>{totalLate}</span> دقيقة </div>
     <div>إجمالي الخصم : <span>{totalLatePrice}</span> ر.ي </div>
     </span></div>
-    <div style={{float:'left',marginBottom:'20px'}}>
-    <span>اختر فترة : </span>
-    <RangePicker  onCalendarChange={changeRange} />
+    <div style={{float:'left',marginBottom:'10px'}}>
+    <div style={{float:'left',marginBottom:'10px'}}><span>اختر فترة : </span>
+    <RangePicker  onCalendarChange={changeRange} /></div>
+    <div><Button style={{float: 'left'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /> تصدير كملف اكسل </Button></div>
     </div>
     </div>
     <Table loading={load} style={{textAlign:'center!important'}} columns={columns} scroll={{x: '1000px' }} onRow={(record, rowIndex) => {return{className:record.status};}} dataSource={data} onCalendarChange={handleChange} />
