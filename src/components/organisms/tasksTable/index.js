@@ -140,6 +140,7 @@ export default function tasksTable() {
           sortOrder: sortedInfo.columnKey === 'description' && sortedInfo.order,
           ellipsis: true,
         },
+        
         {
           title: 'مدة المهمة/الإجازة',
           dataIndex: 'period',
