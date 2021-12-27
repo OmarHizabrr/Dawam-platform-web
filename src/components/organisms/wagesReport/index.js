@@ -24,7 +24,7 @@ const exportToExcel=(type,fn,dl)=>{
    excel.writeFile(wb, fn || ('كشف الخصميات.' + (type || 'xlsx')));  
   }
 }
-export default function discountsReport(){
+export default function wagesReport(){
       const [cookies, setCookie, removeCookie]=useCookies(["userId"]);
       const [filteredInfo,setFilteredInfo]=useState({});
       const [sortedInfo,setSortedInfo]=useState({});
@@ -37,20 +37,17 @@ export default function discountsReport(){
       const [end,setEnd]=useState(new Date().toISOString().slice(0, 10));    
       // eslint-disable-next-line react-hooks/rules-of-hooks
      useEffect(() => {
-        //const id=cookies.user;
-        //let now=new Date();
-       // let last=new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().slice(0,10);
-       // let today=new Date().toISOString().slice(0, 10);
        setLoad(true);
         axios.get(Env.HOST_SERVER_NAME+'get-att-days-count/'+start+'/'+end)
         .then(response => {
           setCount(response.data[0].count);
         });
-        axios.get(Env.HOST_SERVER_NAME+'discounts-list/'+start+'/'+end)
+        axios.get(Env.HOST_SERVER_NAME+'wages-list/'+start+'/'+end)
         .then(response => {
           setData(response.data);
           setLoad(false);
         });
+
        }, [start,end]);
 
     const handleChange = (pagination, filters, sorter) => {
@@ -85,9 +82,6 @@ export default function discountsReport(){
      
       }  
 
-  /*  let { sortedInfo, filteredInfo } = this.state;
-    sortedInfo = sortedInfo || {};
-    filteredInfo = filteredInfo || {};*/
     const columns = [
       {
         title: 'الاسم',
@@ -118,42 +112,52 @@ export default function discountsReport(){
         sorter: (a, b) => a.salary.length - b.salary.length,
         sortOrder: sortedInfo.columnKey === 'salary' && sortedInfo.order,
         ellipsis: true,
-        render:(salary)=>salary +" ر.ي",
+        render:(salary)=>new Intl.NumberFormat('en-EN').format(salary),
       },     
        {
-        title: 'الغياب',
+        title: 'سُلف',
+        dataIndex: 'debt',
+        key: 'debt',
+        sorter: (a, b) => a.debt - b.debt,
+        sortOrder: sortedInfo.columnKey === 'debt' && sortedInfo.order,
+        ellipsis: true,
+        render:(d)=>new Intl.NumberFormat('en-EN').format(d),
+      },
+      {
+        title: 'غياب',
         dataIndex: 'attendanceDays',
         key: 'attendanceDays',
-        sorter: (a, b) => a.attendanceDays - b.attendanceDays,
-        sortOrder: sortedInfo.columnKey === 'attendanceDays' && sortedInfo.order,
         ellipsis: true,
-        render:(attendanceDays)=> count-attendanceDays,
+        render:(ab,rec,ind)=>new Intl.NumberFormat('en-EN').format(Math.round(((count-ab)*(rec.salary/30))+rec.lateTimePrice)),
       },
       {
-        title: 'خصميات الغياب',
-        dataIndex: ['salary','attendanceDays'],
-        key: 'absencePrice',
-        sorter: (a, b) => a.absencePrice - b.absencePrice,
-        sortOrder: sortedInfo.columnKey === 'absencePrice' && sortedInfo.order,
+        title: 'تكافل',
+        dataIndex: 'symbiosis',
+        key: 'symbiosis',
+        sorter: (a, b) => a.symbiosis - b.symbiosis,
+        sortOrder: sortedInfo.columnKey === 'symbiosis' && sortedInfo.order,
         ellipsis: true,
-        render:(attendanceDays,row)=>Math.round(((row.salary/30)*(count-row.attendanceDays))*100)/100 + " ر.ي",
+        render:(sym)=>new Intl.NumberFormat('en-EN').format(sym),
       },
       {
-        title: 'التأخرات',
-        dataIndex: 'lateTime',
-        key: 'lateTime',
-        sorter: (a, b) => a.lateTime.length - b.lateTime.length,
-        sortOrder: sortedInfo.columnKey === 'lateTime' && sortedInfo.order,
-        ellipsis: true,
-      },
-      {
-        title: 'خصميات التأخرات',
-        dataIndex: 'lateTimePrice',
-        key: 'lateTimePrice',
-        sorter: (a, b) => a.lateTimePrice - b.lateTimePrice,
-        sortOrder: sortedInfo.columnKey === 'lateTimePrice' && sortedInfo.order,
+        title: 'أقساط',
+        dataIndex: 'long_debt',
+        key: 'long_debt',
+        sorter: (a, b) => a.long_debt - b.long_debt,
+        sortOrder: sortedInfo.columnKey === 'long_debt' && sortedInfo.order,
         ellipsis: false,
-        render:(lateTimePrice)=>Math.round(lateTimePrice)+" ر.ي"        
+        render:(ld)=>new Intl.NumberFormat('en-EN').format(ld),
+      },
+      {
+        title: 'إجمالي الاستقطاع',
+        sorter: (a, b) => a.long_debt - b.long_debt,
+        ellipsis: false,
+        render:(_,item,ind)=>new Intl.NumberFormat('en-EN').format(Math.round(item.debt)+Math.round(((count-item.attendanceDays)*(item.salary/30))+item.lateTimePrice)+Math.round(item.symbiosis)+Math.round(item.long_debt)),
+      },
+      {
+        title: 'صافي الاستحقاق',
+        ellipsis: false,
+        render:(_,item,ind)=>new Intl.NumberFormat('en-EN').format(item.salary-(Math.round(item.debt)+Math.round(((count-item.attendanceDays)*(item.salary/30))+item.lateTimePrice)+Math.round(item.symbiosis)+Math.round(item.long_debt))),
       },
     ];
     const printReport=()=>{
@@ -199,7 +203,7 @@ return (
            <img loading="eager" style={{width: "250px"}} src={logoText}/>
        </div>
        <div style={{fontSize: "11px",textAlign: "center",width: "60%",display: "flex",flexDirection: "column",justifyContent: "end",paddingBottom: "10px"}}>
-           <h1 style={{fontSize: " 18px",fontWeight:700,marginBottom: " 5px",margin: "0"}}>خلاصة الغياب والتأخرات</h1>
+           <h1 style={{fontSize: " 18px",fontWeight:700,marginBottom: " 5px",margin: "0"}}>كشف الإعانات</h1>
            <h2 style={{fontSize: " 14px",fontWeight: " 200",margin: "0"}}>للفترة من {start} إلى {end}</h2>
        </div>     
        <div style={{width: "20%"}}>
@@ -216,17 +220,18 @@ return (
                 <th style={{fontWeight: "100"}} rowSpan="2">م</th>              
                      <th style={{fontWeight: "100"}} rowSpan="2">الاسم</th>
                      <th style={{fontWeight: "100"}} rowSpan="2">الوظيفة</th>
-                     <th style={{fontWeight: "100"}} rowSpan="2">الإدارة</th>
                      <th style={{fontWeight: "100"}} rowSpan="2">الاستحقاق</th>
-                     <th style={{fontWeight: "100"}} colSpan="2">التأخرات</th>
-                     <th style={{fontWeight: "100"}} colSpan="2">الغياب</th>
-                     <th style={{fontWeight: "100"}} rowSpan="2">إجمالي الخصم</th>
+                     <th style={{fontWeight: "100"}} colSpan="5">الاستقطاعات</th>
+                     <th style={{fontWeight: "100"}} rowSpan="2">صافي<br/>الاستحقاق</th>
+                     <th style={{fontWeight: "100"}} rowSpan="2">التوقيع</th>
+
                 </tr>
                 <tr style={{color:"#fff",backgroundColor: "#007236",height: "20px"}}>
-                <th style={{fontWeight: "100"}}>الساعات</th>
-                <th style={{fontWeight: "100"}}>الخصم</th>
-                <th style={{fontWeight: "100"}}>الأيام</th>
-                <th style={{fontWeight: "100"}}>الخصم</th>
+                <th style={{fontWeight: "100"}}>سُلف</th>
+                <th style={{fontWeight: "100"}}>غياب</th>
+                <th style={{fontWeight: "100"}}>تكافل</th>
+                <th style={{fontWeight: "100"}}>أقساط</th>
+                <th style={{fontWeight: "100"}}>إجمالي</th>
                 </tr>
             </thead>
             <tbody>
@@ -236,13 +241,14 @@ return (
                 <td>{data.indexOf(item)+1}</td>
                 <td>{item.name}</td>
                 <td>{item.job}</td>
-                <td>{item.category}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(item.salary)}</td>
-                <td>{item.lateTime}</td>
-                <td>{new Intl.NumberFormat('en-EN').format(Math.round(item.lateTimePrice))+" ر.ي"}</td>
-                <td>{count-item.attendanceDays}</td>
-                <td>{new Intl.NumberFormat('en-EN').format(Math.round(((item.salary/30)*(count-item.attendanceDays))*100)/100 )+ " ر.ي"}</td>
-                <td>{new Intl.NumberFormat('en-EN').format((Math.round(((item.salary/30)*(count-item.attendanceDays))*100)/100)+Math.round(item.lateTimePrice))+  " ر.ي"}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(Math.round(item.debt))}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(Math.round(((count-item.attendanceDays)*(item.salary/30))+item.lateTimePrice))}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(Math.round(item.symbiosis))}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(Math.round(item.long_debt ))}</td>
+                <td>{new Intl.NumberFormat('en-EN').format((Math.round(item.debt)+Math.round(((count-item.attendanceDays)*(item.salary/30))+item.lateTimePrice)+Math.round(item.symbiosis)+Math.round(item.long_debt)))}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(item.salary-(Math.round(item.debt)+Math.round(((count-item.attendanceDays)*(item.salary/30))+item.lateTimePrice)+Math.round(item.symbiosis)+Math.round(item.long_debt)))}</td>
+                <td><pre>             </pre></td>
               </tr>
              ))}
             </tbody>

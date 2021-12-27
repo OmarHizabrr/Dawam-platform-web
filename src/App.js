@@ -1,16 +1,16 @@
+/* eslint-disable no-unused-vars */
 import {
   BrowserRouter as Router,
   Switch,
   Route,
   Redirect,
 } from "react-router-dom";
-import {React,Suspense} from 'react';
+import {React,Suspense, useState } from 'react';
 import { Row, Col,Layout, Form, Input, Button } from 'antd';
 import axios from 'axios';
 import illstarte from './assets/images/loginM.png'
 import { useCookies,CookiesProvider  } from 'react-cookie';
 import MainHeader from './components/Navigation/MainHeader';
-import SideMenu from './components/Navigation/SideMenu/';
 import Spinner from './components/molecules/Spinner';
 import Profile from './scenes/profile' ;
 import ControlPanel from './scenes/control-panel/' ;
@@ -20,21 +20,20 @@ import Login  from './scenes/login/' ;
 import './App.css';
 
 import {
-  HOME_ROUTE  ,
+
   CONTROL_PANEL_ROUTE  ,
   PROFILE_ROUTE,
-  ABOUT,
   LOGIN
 } from './routes';
 import {Env} from './styles'
-import { useState } from "react";
 
 function App() {
-  const [cookies, setCookie, removeCookie]=useCookies(["user"]);
+  const [cookies, setCookie]=useCookies(["user"]);
   const [user,setUser]=useState(null);
   let routes;
   const id=cookies.user;
 
+  
   const onFinish = (values) => {
     //console.log(Env.HOST_SERVER_NAME);
     axios.post(Env.HOST_SERVER_NAME+`users/login`,  values)

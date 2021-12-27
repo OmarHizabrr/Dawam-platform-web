@@ -21,9 +21,10 @@ import {
   } from "react-router-dom";
 import Statistics from '../../components/organisms/statistics/';
 import EmpCards from '../../components/organisms/empCards';
-import salariesReport from '../../components/organisms/salariesReport';
+import wagesReport from '../../components/organisms/wagesReport';
 import discountsReport from '../../components/organisms/discountsReport';
 import debtReport from '../../components/organisms/debtsReport';
+import longDebtReport from '../../components/organisms/longDebtReport';
 import transportReport from '../../components/organisms/transportReport';
 import settingsPane from '../../components/organisms/settingsPane';
 import {STATISTICS} from '../../routes';
@@ -66,28 +67,35 @@ export default function ControlPanel(props){
   </Link>
   </Menu.Item>
   <SubMenu key="4" icon={<FileTextOutlined />} title="تقارير">
-       <Menu.Item key="sub6">
+       <Menu.Item key="sub1">
         <Link to={`${url}/discounts-reports`} >
           خلاصة الغياب والتأخرات
         </Link>
         </Menu.Item>
-        <Menu.Item key="sub1">
-        <Link to={`${url}/salaries-reports`} >
+        <Menu.Item key="sub2">
+        <Link to={`${url}/wages-report`} >
           خلاصة الأجور
         </Link>
         </Menu.Item>
-        <Menu.Item key="sub2">
+        <Menu.Item key="sub3">
         <Link to={`${url}/transport-reports`} >
          إجمالي المواصلات
         </Link>
         </Menu.Item>
-        <Menu.Item key="sub3">الدوام الإضافي</Menu.Item>
+        <Menu.Item key="sub4">الدوام الإضافي</Menu.Item>
   </SubMenu> 
-  <Menu.Item key="5" icon={<DollarCircleOutlined />} >
-  <Link to={`${url}/debts-report`} >
-  السلف والقروض
-  </Link>
-  </Menu.Item>
+  <SubMenu key="" icon={<DollarCircleOutlined />} title="السلف والقروض">
+       <Menu.Item key="sub5">
+        <Link to={`${url}/debts-report`}  >
+السلف نصف الشهرية        
+</Link>
+        </Menu.Item>
+        <Menu.Item key="sub6">
+        <Link to={`${url}/long-debts-report`}  >
+         القروض (الأقساط) 
+        </Link>
+        </Menu.Item>
+  </SubMenu> 
   <Menu.Item key="6" icon={<SettingOutlined />} >
   <Link to={`${url}/settings`} >
 التهيئة والإعدادات
@@ -101,9 +109,10 @@ export default function ControlPanel(props){
             <Statistics/>
           </Route>
           <Route path={`${path}/emp-cards`} component={EmpCards} />
-          <Route path={`${path}/salaries-reports`} component={salariesReport} />       
+          <Route path={`${path}/wages-report`} component={wagesReport} />       
           <Route path={`${path}/discounts-reports`} component={discountsReport} />         
-          <Route path={`${path}/debts-report`} component={debtReport} />        
+          <Route path={`${path}/debts-report`} component={debtReport} />  
+          <Route path={`${path}/long-debts-report`} component={longDebtReport} />       
           <Route path={`${path}/transport-reports`} component={transportReport} />         
           <Route path={`${path}/settings`} component={settingsPane} />
         </Switch>

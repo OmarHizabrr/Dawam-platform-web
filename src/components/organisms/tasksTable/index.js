@@ -8,10 +8,10 @@ import './style.css';
 import { DatePicker, Space,Form,Table, Button,Modal,Card,Radio,Input,Select,Progress,Tag,Typography } from 'antd';
 import {CheckCircleOutlined,MinusCircleOutlined,CloseCircleOutlined,ExportOutlined,FormOutlined} from '@ant-design/icons';
 const {Text}=Typography;
-
+  const {Option}=Select;
   const { RangePicker } = DatePicker;
   const {TextArea}=Input;
-  const {Option}=Select;
+
 
 const exportToExcel=(type,fn,dl)=>{
 
@@ -37,6 +37,7 @@ export default function tasksTable() {
   const [data,setData]=useState([]);
   const user=cookies.user;
   useEffect(() => {
+
     axios.get(Env.HOST_SERVER_NAME+'get-tasks-types')
     .then(response => {
       setTstypes(response.data);
@@ -45,7 +46,7 @@ export default function tasksTable() {
     .then(response => {
       setData(response.data);
     });
-  });
+  },[]);
 
     const handleTypeChange=(e)=>{
       setType(e);
@@ -76,9 +77,11 @@ export default function tasksTable() {
             if(response.statusText=="OK"){
               alert('تم إرسال الإجازة بنجاح')
             } 
+           
           })
        .catch(function (error) {
-       console.log(error);
+        alert('error..');
+        console.log(error);
        });
           setIsModalVisible(false);
       
@@ -140,7 +143,7 @@ export default function tasksTable() {
           sortOrder: sortedInfo.columnKey === 'description' && sortedInfo.order,
           ellipsis: true,
         },
-        
+
         {
           title: 'مدة المهمة/الإجازة',
           dataIndex: 'period',
@@ -197,7 +200,7 @@ return (
     <Button onClick={function(){exportToExcel('xlsx')}}><ExportOutlined /> تصدير كملف اكسل </Button>
     </div>
     </div>
-    <Modal title="تقديم إجازة / مهمة" visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
+    <Modal title="تقديم إجازة / مهمة" visible={isModalVisible} onOk={function(){handleOk()}} onCancel={function(){handleCancel()}}>
     <Form>
     <Form.Item label="فترة الإجازة / المهمة :">
     <Space>
@@ -234,3 +237,4 @@ return (
     </Card>
 );
  }
+

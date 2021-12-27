@@ -27,6 +27,7 @@ import TransferTable from '../../components/organisms/transferTable';
 import AttendanceTable from '../../components/organisms/attendanceTable';
 import TasksTable from '../../components/organisms/tasksTable';
 import tasksRequests from '../../components/organisms/tasksRequests';
+import alertsTable from '../../components/organisms/alertsTable';
 import {
   Link,
   useRouteMatch
@@ -251,7 +252,7 @@ return (
     </TabPane>
     <TabPane
       tab={
-        <Link to={`${url}/tasks-table`}>
+        <Link to={`${url}/alerts`}>
         <span>
         <span class="anticon anticon-snippets">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bell" viewBox="0 0 16 16">
@@ -281,6 +282,7 @@ return (
           <Route path={`${path}/transfer-table`} component={TransferTable} />
           <Route path={`${path}/tasks-table`} component={TasksTable} />
           <Route path={`${path}/tasks-requests`} component={tasksRequests} />
+          <Route path={`${path}/alerts`} component={alertsTable} />
           <Redirect to="" />
         </Switch>
   </Layout>
