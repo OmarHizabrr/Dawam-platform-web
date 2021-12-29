@@ -30,22 +30,31 @@ import {Env} from './styles'
 function App() {
   const [cookies, setCookie]=useCookies(["user"]);
   const [user,setUser]=useState(null);
+  const [loading,setLoading]=useState(false);
   let routes;
   const id=cookies.user;
 
   
   const onFinish = (values) => {
     //console.log(Env.HOST_SERVER_NAME);
+    setLoading(true);
     axios.post(Env.HOST_SERVER_NAME+`users/login`,  values)
     .then(function (response) {
       if(response.data){
        setCookie("user",response.data);
        setUser(response.data);
       }
+      else{
+        alert("خطأ في اسم المستهدم وكلمة المرور!");
+        console.log("failed");
+        setLoading(false);
+      }
      
     })
     .catch(function (error) {
       console.log(error);
+        alert("هناك مشكلة في الاتصال بالسرفر");
+        setLoading(false);
     });
   };
   if (!id) {
@@ -96,9 +105,8 @@ function App() {
       >
         <Input.Password  style={{backgroundColor:'#C6DFD2'}}/>
       </Form.Item>
-
       <Form.Item style={{marginTop:'40px'}} >
-        <Button style={{backgroundColor:'#007236',width:'100%',borderColor:'#007236'}} type="primary"  htmlType="submit">
+        <Button loading={loading} style={{backgroundColor:'#007236',width:'100%',borderColor:'#007236'}} type="primary"  htmlType="submit">
           تسجيل الدخول
         </Button>
       </Form.Item>
@@ -116,7 +124,7 @@ function App() {
           <Route path={PROFILE_ROUTE} render={() => <Profile userData={id} />} />
           <Route path={CONTROL_PANEL_ROUTE} component={ControlPanel} />
           <Route path={LOGIN} component={Login} />
-          <Redirect to="" />
+          <Redirect to="/profile" />
         </Switch>
         </Layout>
         </Layout>

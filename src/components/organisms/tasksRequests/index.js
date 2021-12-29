@@ -60,6 +60,8 @@ export default function tasksRequests() {
   const [startVac,setStartVac]=useState("");
   const [type,setType]=useState(null);
   const [endVac,setEndVac]=useState("");
+  const [load,setLoad]=useState(true);
+
   const user = cookies.user;
   useEffect(() => {
     axios
@@ -74,6 +76,7 @@ export default function tasksRequests() {
       )
       .then((response) => {
         setData(response.data["tasks"]);
+        setLoad(false);
         setAccepter(response.data["type"]);
       });
   });
@@ -395,7 +398,7 @@ export default function tasksRequests() {
           ></TextArea>
         </div>
       </Modal>
-      <Table columns={columns} dataSource={data} onChange={handleChange} />
+      <Table loading={load} columns={columns} dataSource={data} onChange={handleChange} />
     </Card>
   );
 }

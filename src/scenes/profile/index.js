@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import ReactApexChart from "react-apexcharts";
 import './style.css';
-import { Typography ,Layout,Breadcrumb,Card,Row,Col,Avatar,Badge,Progress,Tabs,Radio, Button,Rate  } from 'antd';
+import {Env} from '../../styles';
+import { Typography ,Layout,Breadcrumb,Card,Row,Col,Avatar,Badge,Modal,Tabs,Radio, Button,Rate  } from 'antd';
 import {
     UserOutlined,
     HomeOutlined, 
@@ -20,6 +21,7 @@ import {
     Route,
     Redirect,
   } from "react-router-dom";
+  import axios from 'axios';
 
 import SummaryData from '../../components/organisms/summaryData';
 import GeneralTable from '../../components/organisms/generalTable';
@@ -39,6 +41,14 @@ const { TabPane } = Tabs;
 
 export default function Profile(props){ 
   let { path, url } = useRouteMatch(); 
+  const [type,setType]=useState(null);
+  const [isModalVisible,setIsModalVisible]=useState(false);
+  useEffect(() => {
+    axios.get(Env.HOST_SERVER_NAME+'user-type/'+props.userData.id)
+      .then(response => {
+        setType(response.data);
+      });
+  });
   const config = {
     options: {
       chart: {
@@ -123,14 +133,41 @@ export default function Profile(props){
      setFilter([{name:'أسامة جليل',data:[90,60,70,80]}]);
    }
 
+const requestPane=()=>{
+  if(type!=3){
+  return(    <TabPane
+    tab={
+      <Link to={`${url}/tasks-requests`}>
+      <span>
+      <SnippetsOutlined />
+     المراجعات 
+      </span>
+      </Link>
+    }
+    key="6"
+  >
+  </TabPane>);
+  }
+}
+const showModal = () => {
+  setIsModalVisible(true);
+};
+
+const handleOk = () => {
+  setIsModalVisible(false);
+};
+
+const handleCancel = () => {
+  setIsModalVisible(false);
+};
 return (
     <Layout className="site-layout">
-    <Breadcrumb style={{margin:20}}>
+  <Breadcrumb style={{margin:20}}>
     <Breadcrumb.Item href=""> <HomeOutlined /> </Breadcrumb.Item>
     <Breadcrumb.Item href=""> <UserOutlined /><span>{props.userData.user_name}</span></Breadcrumb.Item>
     <Breadcrumb.Item>الملف الشخصي</Breadcrumb.Item>
   </Breadcrumb>
-    <Card
+  <Card
     className="site-layout-card"
     style={{
       margin: '10px 16px',
@@ -142,22 +179,20 @@ return (
     <Col style={{ display: 'flex',flexDirection: 'column'}}  xs={24} sm={24} md={6} lg={6} xl={6}>
     <Avatar
     size={{ xs: 100, sm: 100, md: 130, lg: 150, xl: 150, xxl: 150 }}
-    src="https://i.pravatar.cc/150?img=4"
+    src={Env.HOST_SERVER_STORAGE+props.userData.avatar}
     style={{display:'block',margin:'10px',alignSelf:'center'}}
     />
     <Text style={{textAlign:'center',fontSize:'20px',marginBottom:'10px'}}>{props.userData.user_name} <Badge status="success"  /></Text>
     <div style={{textAlign:'center',marginBottom:'18px'}}><Badge count={ props.userData.user_id }   style={{ backgroundColor: '#DDDDDD',color:'#000' }} /></div>
-    <div style={{textAlign:'center'}}><Button type='primary'>الملف الشخصي</Button></div>
+    <div style={{textAlign:'center'}}><Button type='primary' onClick={showModal}>الملف الشخصي</Button></div>
     </Col>
     <Col xs={24} sm={24} md={10} lg={10} xl={10}>
       <div className="taggedInfo"><Text><ClusterOutlined /> {props.userData.category.name} </Text></div>
       <div className="taggedInfo"><Text><TagsOutlined />{props.userData.job}</Text></div>
       <div className="taggedInfo" style={{marginTop:'10px'}}><Rate disabled allowHalf defaultValue={2.5} /></div>
-      <div className="taggedInfo" style={{marginTop:'30px'}}> <Progress strokeColor='#ff0000' type='circle' percent={80} format={percent => 4000}/></div>
-      <div className="taggedInfo" style={{marginTop:'10px',paddingRight:'25px',fontSize:'18px'}}><Text>5000</Text></div>
     </Col>
     <Col xs={24} sm={24} md={8} lg={8} xl={8} style={{textAlign:'center',marginBottom:'-50px'}}>
-    <div>
+    <div class='spider'>
     <ReactApexChart
       options={config.options}
       series={filter}
@@ -166,7 +201,7 @@ return (
       width="350"
       style={{padding:0}}
     />
-    <div style={{top:'-50px',position:'relative'}} onChange={handleSizeChange} >
+    <div  style={{top:'-50px',position:'relative'}} onChange={handleSizeChange} >
     <Radio.Group defaultValue="day" buttonStyle="solid" >
       <Radio.Button value="day">يوم</Radio.Button>
       <Radio.Button value="week"> أسبوع</Radio.Button>
@@ -238,18 +273,7 @@ return (
       key="5"
     >
     </TabPane>
-    <TabPane
-      tab={
-        <Link to={`${url}/tasks-requests`}>
-        <span>
-        <SnippetsOutlined />
-       المراجعات 
-        </span>
-        </Link>
-      }
-      key="6"
-    >
-    </TabPane>
+{requestPane()}
     <TabPane
       tab={
         <Link to={`${url}/alerts`}>
@@ -286,6 +310,7 @@ return (
           <Redirect to="" />
         </Switch>
   </Layout>
+
   </Layout>
 );
  };

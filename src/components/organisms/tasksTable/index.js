@@ -35,6 +35,7 @@ export default function tasksTable() {
   const [notes,setNotes]=useState("");
   const [tstypes,setTstypes]=useState([]);
   const [data,setData]=useState([]);
+  const [load,setLoad]=useState(true);
   const user=cookies.user;
   useEffect(() => {
 
@@ -45,6 +46,7 @@ export default function tasksTable() {
     axios.get(Env.HOST_SERVER_NAME+'get-tasks/'+user.user_id)
     .then(response => {
       setData(response.data);
+      setLoad(false);
     });
   },[]);
 
@@ -233,7 +235,7 @@ return (
     </Form.Item>
     </Form>
     </Modal>
-    <Table columns={columns}  dataSource={data} onChange={handleChange} />
+    <Table loading={load} columns={columns}  dataSource={data} onChange={handleChange} />
     </Card>
 );
  }

@@ -8,7 +8,8 @@ export default class generalTable extends React.Component{
     state = {
         filteredInfo: null,
         sortedInfo: null,
-        data:[]
+        data:[],
+        load:true,
       };
     
       handleChange = (pagination, filters, sorter) => {
@@ -22,6 +23,7 @@ export default class generalTable extends React.Component{
         axios.get(Env.HOST_SERVER_NAME+'all-users-log/'+new Date().toISOString().split('T')[0])
           .then(response => {
             this.setState({data:response.data});
+            this.setState({load:false});
           });
       }
 render(){
@@ -30,14 +32,11 @@ render(){
     filteredInfo = filteredInfo || {};
     const columns = [
       {
-        title: 'صورة',
+        title: 'الترتيب',
         key: 'avatar',
         dataIndex: 'avatar',
-        render: avatar => (
-          <Avatar src={avatar}>
-          </Avatar>
-        ),
-        ellipsis: true,
+        ellipsis: false,
+        render:(avatar,record,index)=>index+1,
       },
       {
         title: 'الاسم',
@@ -52,6 +51,13 @@ render(){
         sorter: (a, b) => a.user_name.length - b.user_name.length,
         sortOrder: sortedInfo.columnKey === 'user_name' && sortedInfo.order,
         ellipsis: true,
+        render:(user_name,record )=> (
+          <div>
+          <Avatar src={Env.HOST_SERVER_STORAGE+record.avatar}>
+          </Avatar>
+          <span style={{marginRight:'10px'}}>{user_name}</span>
+          </div>
+        )
       },
       {
         title: 'الإدارة',
@@ -91,7 +97,7 @@ render(){
       },   
     ];
 return (
-    <Table columns={columns} dataSource={this.state.data} onChange={this.handleChange} />
+    <Table loading={this.state.load} columns={columns} dataSource={this.state.data} onChange={this.handleChange} />
 );
     }
  }

@@ -12,6 +12,8 @@ export default function alertsTable (){
       const [sortedInfo, setSortedInfo] = useState([])
       const [cookies, setCookie, removeCookie]=useCookies(["user"]);
       const id=cookies.user;
+      const [load,setLoad]=useState(true);
+
     const  handleChange = (pagination, filters, sorter) => {
         console.log('Various parameters', pagination, filters, sorter);
         setFilteredInfo(filters);
@@ -21,6 +23,7 @@ export default function alertsTable (){
         axios.get(Env.HOST_SERVER_NAME+'alerts/'+id.id)
           .then(response => {
             setData(response.data);
+            setLoad(false);
           });
       });
       const columns = [
@@ -41,6 +44,6 @@ export default function alertsTable (){
           },   
       ];
 return(
-    <Table columns={columns} dataSource={data} onChange={handleChange} />
+    <Table loading={load} columns={columns} dataSource={data} onChange={handleChange} />
 );
  }

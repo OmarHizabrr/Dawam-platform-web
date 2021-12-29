@@ -25,3 +25,8 @@
   [class="ant-tabs-tab"] a:hover{
     color:#40a9ff;
   }
+  .spider>div{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+  }
