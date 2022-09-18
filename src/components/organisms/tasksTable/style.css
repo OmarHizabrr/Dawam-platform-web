@@ -1,0 +1,65 @@
+#att-report tbody tr:nth-child(2n){
+    border-bottom: 2px solid;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500&display=swap');
+
+@media print{
+    #att-report h1,h2{
+        margin: 0;
+    }
+    #att-report thead tr{
+    
+        color:#fff;background-color: #0972B6;height: 30px;
+    }
+    #att-report tbody tr:nth-child(even){
+        background-color: #e6e6e6;
+    }
+    #att-report th{
+        font-weight: 100;
+    }
+    #att-report caption{
+        font-weight: 900;
+    }
+}
+.tasksHeader{
+    display:flex;
+    flex-direction:row;
+    justify-content:space-between;
+    margin-bottom:20px;
+}
+.tasksOper{
+    display:flex;
+    flex-direction:row;
+    justify-content:flex-end;
+}
+.tasksData{
+    display:flex;
+    flex-direction:row;
+}
+.tasksBtn{
+    display:flex;
+    flex-direction:row; 
+}
+@media only screen and (max-width: 600px) {
+
+    .tasksHeader{
+        flex-direction:column;
+    }
+    .tasksOper{
+        order: 1;
+        flex-direction: column;
+    }
+    .tasksData{
+        order: 2;
+    }
+    .tasksBtn{
+        flex-direction:row; 
+        order: 1;
+        justify-content: flex-end;
+    }
+    .tasksRange{
+        order: 2;
+        margin-bottom: 10px;
+    }
+}

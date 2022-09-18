@@ -1,0 +1,11 @@
+.content .ant-card-body{
+    padding:10px;
+}
+
+.footer .ant-card-body{
+    padding:15px 12px;
+}
+.ant-badge-status-dot{
+    width: 10px;
+    height: 10px;
+}

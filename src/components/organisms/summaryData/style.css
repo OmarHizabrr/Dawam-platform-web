@@ -7,3 +7,21 @@ font-family: jannatR!important;
 .summary .ant-card-body{
 padding: 2px;
 }
+.userProfileSummary{
+    display: none;
+}
+@media only screen and (max-width: 600px) {
+    .pie-chart .apexcharts-canvas{
+      width: auto!important;
+    }
+    .pieColumn{
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    .userProfileSummary{
+        display: block;
+    }
+    .ant-card.userProfileSummary{
+       margin: 10px 0px!important;
+    }
+}

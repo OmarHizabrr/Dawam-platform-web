@@ -1,0 +1,64 @@
+.danger{
+    color: #842029;
+    background-color: #f8d7da;
+    border-color: #f5c2c7;
+}
+.warning{
+    color: #664d03;
+    background-color: #fff3cd;
+    border-color: #ffecb5;
+}
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500&display=swap');
+
+@media print{
+    #att-report h1,h2{
+        margin: 0;
+    }
+    #att-report thead tr{
+    
+        color:#fff;background-color: #0972B6;height: 30px;
+    }
+    #att-report tbody tr:nth-child(even){
+        background-color: #e6e6e6;
+    }
+    #att-report th{
+        font-weight: 100;
+    }
+    #att-report caption{
+        font-weight: 900;
+    }
+}
+.generalHeader{
+    display:flex;
+    flex-direction:row;
+    margin-bottom:20px;
+    justify-content:space-between;
+}
+.generalHeader .generalData{
+    display:flex;
+    flex:1;
+    flex-direction:row;
+    justify-content:space-between;
+}
+.generalHeader .generalOper{
+    display:flex;
+    flex:1;
+    flex-direction:row;
+    justify-content:flex-end;
+}
+@media only screen and (max-width: 600px) {
+
+    .generalHeader{
+        flex-direction:column;
+    }
+    .generalHeader .generalData{
+        order: 2;
+        margin-top: 10px;
+     }
+     .generalHeader .generalOper{
+        justify-content:space-between;
+    }
+    .genTable .ant-table-thead > tr > th, .ant-table-tbody > tr > td, .ant-table tfoot > tr > th, .ant-table tfoot > tr > td{
+        padding: 16px 0px;
+    }
+}

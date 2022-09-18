@@ -1,3 +1,31 @@
 td,th{
     font-size: 12px;
 }
+.requestsHeader{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+.requestsRange{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+.reauestsProgress{
+    display: flex;
+}
+
+@media only screen and (max-width: 600px) {
+    .requestsHeader{
+        flex-direction: column;
+    }
+    .requestsRange{
+        order:1;
+        align-items: end;
+    }
+    .reauestsProgress{
+        order: 2;
+    }
+
+}

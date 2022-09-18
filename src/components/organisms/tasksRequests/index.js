@@ -4,7 +4,7 @@ import moment from 'moment';
 import excel from "xlsx";
 import {ClusterOutlined,TagsOutlined,CheckCircleOutlined,MinusCircleOutlined,CloseCircleOutlined} from '@ant-design/icons';
 import axios from "axios";
-import {message} from 'antd';
+import {message,notification} from 'antd';
 import { Env } from "../../../styles";
 import { SvelteGantt, SvelteGanttTable } from 'svelte-gantt';
 import { useCookies, CookiesProvider } from "react-cookie";
@@ -25,6 +25,7 @@ import {
   Typography,
 } from "antd";
 import { ExportOutlined, FormOutlined } from "@ant-design/icons";
+import FormItem from "antd/lib/form/FormItem";
 const { Text } = Typography;
 
 const { RangePicker } = DatePicker;
@@ -42,6 +43,8 @@ const exportToExcel = (type, fn, dl) => {
 };
 
 export default function tasksRequests() {
+  const [saving,setSaving]=useState(false);
+
   const [cookies, setCookie, removeCookie] = useCookies(["userId"]);
   const [filteredInfo, setFilteredInfo] = useState({});
   const [sortedInfo, setSortedInfo] = useState({});
@@ -53,6 +56,8 @@ export default function tasksRequests() {
   );
   const [end, setEnd] = useState(new Date().toISOString().slice(0, 10));
   const [selected, setSelected] = useState(null);
+  const [selectedLogs, setSelectedLogs] = useState(null);
+
   const [statusType, setStatusType] = useState(null);
   const [accepter, setAccepter] = useState(null);
   const [notes, setNotes] = useState(null);
@@ -61,9 +66,26 @@ export default function tasksRequests() {
   const [type,setType]=useState(null);
   const [endVac,setEndVac]=useState("");
   const [load,setLoad]=useState(true);
+  const [update,setUpdate]=useState(0);
+  const [namesFilter,setNamesFilter]=useState([]);
+  const [categoriesFilter,setCategoriesFilter]=useState([]);
+  const [vacationsFilter,setVacationsFilter]=useState([]);
+  const [vacationsTypes,setVacationsTypes]=useState([]);
+  const [vacationtype,setVacationtype]=useState([]);
+  const [logload,setLogLoad]=useState(true);
+  const [totalVac,setTotalVac]=useState("");
 
   const user = cookies.user;
+  const [form] = Form.useForm();
+// check if an element exists in array using a comparer function
+// comparer : function(currentElement)
+
+
+// adds an element to the array if it does not already exist using a comparer 
+// function
+ 
   useEffect(() => {
+    setLoad(true);
     axios
       .get(
         Env.HOST_SERVER_NAME +
@@ -74,66 +96,129 @@ export default function tasksRequests() {
           "/" +
           end
       )
-      .then((response) => {
+      .then((response) => {      
         setData(response.data["tasks"]);
+        let names=[];
+        let categories=[];
+        let vacations=[];
+        response.data["tasks"].forEach(element => {  
+            if(!names.some(item => element.user == item.text))      
+              names.push({text:element['user'],value:element['user']});
+            if(!categories.some(item => element.category == item.text))      
+              categories.push({text:element['category'],value:element['category']});
+            if(!vacations.some(item => element.vactype == item.text))      
+              vacations.push({text:element['vactype'],value:element['vactype']});         
+        }); 
+        setNamesFilter([...namesFilter,...names]);
+        setCategoriesFilter([...categoriesFilter,...categories]);
+        setVacationsFilter([...vacationsFilter,...vacations]);     
         setLoad(false);
+        setVacationsTypes(response.data['types']);
         setAccepter(response.data["type"]);
+
+      }).catch(function (error) {
+        console.log(error);
       });
-  });
+     // 
+    // console.log(namesFilter);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[start,end,update]);
 
   const handleChange = (pagination, filters, sorter) => {
     setFilteredInfo(filters);
     setSortedInfo(sorter);
+   // console.log(filters);
   };
   const processRequest = (selected) => {
+    form.resetFields(['range_date','request_type','request_status','notes']);
     setSelected(selected);
+    setTotalVac(selected?.days > 0 ? (parseInt(selected?.days)+1) + " يوم " : "" + selected?.period != 0 ? selected?.period : "");
+    setVacationtype(selected.vacation);
+    setStartVac(selected.date_from);  
+    setEndVac(selected.date_to); 
     setIsModalVisible(true);
+    setSelectedLogs(null);
+    setLogLoad(true);
+    axios.get(Env.HOST_SERVER_NAME+'attendancelogs-between/'+selected.user_id+'/'+selected.date_from+'/'+selected.date_to).then(response=>{
+      setSelectedLogs(response.data);
+      setLogLoad(false);
+    }).catch(function (error) {
+      console.log(error);
+      setLogLoad(false);
+    });
   };
 
   const handleCancel = () => {
     setIsModalVisible(false);
+    form.resetFields(['range_date','request_type','request_status','notes']);
+    //setUpdate(update+1);
   };
+  const checkPeriod=(all,date)=>{
+    if(date[1]!=''){
+      const minutes=(new Date(date[1])-new Date(date[0]))/60000;
+      var alerta="";
+      if(minutes<=420) alerta=(Math.floor(minutes/60)+" ساعة و "+(minutes%60))+" دقيقة ";
+      else alerta=(Math.floor(minutes/1440)+1)+" يوم ";
+      return alerta;
+    }
+  }
   const  onRangeChange=(all,dates)=>{ 
     setStartVac(dates[0]);  
-    setEndVac(dates[1]);        
+    setEndVac(dates[1]); 
+    console.log(checkPeriod(all,dates));
+    setTotalVac(checkPeriod(all,dates));       
   }
   const handleOk = () => {
+    setSaving(true);
     var values = {
       user_id: cookies.user.user_id,
       vid: selected.vid,
       status: statusType,
+      date_from:startVac,
+      date_to:endVac,
+      vacationtype_id:vacationtype,
       note: notes,
       accepter: accepter,
     };
-
     axios
-      .post(Env.HOST_SERVER_NAME + `accept-task`, values)
-      .then(function (response) {
-        if (response.statusText == "OK") {
-          message.success("تم التحديث بنجاح");
-        }
-      })
-      .catch(function (error) {
-        console.log("Refused Request : "+error);
-      });
+    .post(Env.HOST_SERVER_NAME + `accept-task`, values)
+    .then(function (response) {
+     notification.success({
+      message:"تم التحديث بنجاح" ,
+      placement:'bottomLeft',
+      duration:0,
+    });
+    setSaving(false);
     setIsModalVisible(false);
+    setUpdate(update+1);
+    form.resetFields(['range_date','request_type','request_status','notes']);
+    })
+    .catch(function (error) {
+      console.log("Refused Request : "+error);
+      setSaving(false);
+    });
+
   };
   const changeType = (e) => {
     setStatusType(e);
   };
-  const changeNotes = (e) => {
-    setNotes(e);
-    console.log(e.target.value);
+  const changeVType = (e) => {
+    setVacationtype(e);
   };
+  const changeNotes = (e) => {
+    setNotes(e.target.value);
+  };
+  const changeRange=(all,date)=>{
+    setStart(date[0]);
+    setEnd(date[1]);  
+  }
+
   const columns = [
     {
       title: "الموظف",
       dataIndex: "user",
       key: "user",
-      filters: [
-        { text: "Joe", value: "Joe" },
-        { text: "Jim", value: "Jim" },
-      ],
+      filters:namesFilter,
       filteredValue: filteredInfo.user || null,
       onFilter: (value, record) => record.user.includes(value),
       sorter: (a, b) => a.user.length - b.user.length,
@@ -144,13 +229,21 @@ export default function tasksRequests() {
       title: "الإدارة",
       dataIndex: "category",
       key: "category",
-      filters: [
-        { text: "Joe", value: "Joe" },
-        { text: "Jim", value: "Jim" },
-      ],
+      filters: categoriesFilter,
       filteredValue: filteredInfo.category || null,
       onFilter: (value, record) => record.category.includes(value),
       sorter: (a, b) => a.category.length - b.category.length,
+      sortOrder: sortedInfo.columnKey === "category" && sortedInfo.order,
+      ellipsis: false,
+    },
+    {
+      title: "النوع",
+      dataIndex: "vactype",
+      key: "vactype",
+      filters: vacationsFilter,
+      filteredValue: filteredInfo.vactype || null,
+      onFilter: (value, record) => record.vactype.includes(value),
+      sorter: (a, b) => a.vactype.length - b.vactype.length,
       sortOrder: sortedInfo.columnKey === "category" && sortedInfo.order,
       ellipsis: false,
     },
@@ -170,23 +263,6 @@ export default function tasksRequests() {
       sortOrder: sortedInfo.columnKey === "address" && sortedInfo.order,
       ellipsis: false,
     },
-
-    {
-      title: "المسؤول المباشر",
-      dataIndex: "direct_manager",
-      key: "direct_manager",
-      filters: [
-        { text: "معتمدة", value: "معتمدة" },
-        { text: "في الانتظار", value: "في الانتظار" },
-        { text: "مرفوضة", value: "مرفوضة" },
-      ],
-      filteredValue: filteredInfo.direct_manager || null,
-      onFilter: (value, record) => record.direct_manager.includes(value),
-      sorter: (a, b) => a.direct_manager.length - b.direct_manager.length,
-      sortOrder: sortedInfo.columnKey === "direct_manager" && sortedInfo.order,
-      ellipsis: false,
-      render:(el)=>el=="معتمدة"?<CheckCircleOutlined style={{fontSize:'25x',color:'#007236'}} />:el=="في الانتظار"?<MinusCircleOutlined style={{fontSize:'25px',color:'#FFDD1C'}}/>:<CloseCircleOutlined style={{fontSize:'25px',color:'#f00'}}/>,
-    },
     {
       title: "مدير الإدارة",
       dataIndex: "dept_manager",
@@ -201,7 +277,7 @@ export default function tasksRequests() {
       sorter: (a, b) => a.dept_manager.length - b.dept_manager.length,
       sortOrder: sortedInfo.columnKey === "dept_manager" && sortedInfo.order,
       ellipsis: false,
-      render:(el)=>el=="معتمدة"?<CheckCircleOutlined style={{fontSize:'25px',color:'#007236'}} />:el=="في الانتظار"?<MinusCircleOutlined style={{fontSize:'25px',color:'#FFDD1C'}}/>:<CloseCircleOutlined style={{fontSize:'25px',color:'#f00'}}/>,
+      render:(el)=>el=="معتمدة"?<CheckCircleOutlined style={{fontSize:'25px',color:'#0972B6'}} />:el=="في الانتظار"?<MinusCircleOutlined style={{fontSize:'25px',color:'#FFDD1C'}}/>:<CloseCircleOutlined style={{fontSize:'25px',color:'#f00'}}/>,
     },
     {
       title: "الأمين العام",
@@ -218,7 +294,7 @@ export default function tasksRequests() {
       sorter: (a, b) => a.gerenal_sec.length - b.gerenal_sec.length,
       sortOrder: sortedInfo.columnKey === "gerenal_sec" && sortedInfo.order,
       ellipsis: false,
-      render:(el)=>el=="معتمدة"?<CheckCircleOutlined style={{fontSize:'25px',color:'#007236'}} />:el=="في الانتظار"?<MinusCircleOutlined style={{fontSize:'25px',color:'#FFDD1C'}}/>:<CloseCircleOutlined style={{fontSize:'25px',color:'#f00'}}/>,
+      render:(el)=>el=="معتمدة"?<CheckCircleOutlined style={{fontSize:'25px',color:'#0972B6'}} />:el=="في الانتظار"?<MinusCircleOutlined style={{fontSize:'25px',color:'#FFDD1C'}}/>:<CloseCircleOutlined style={{fontSize:'25px',color:'#f00'}}/>,
     },
     {
       title: "شؤون الموظفين",
@@ -234,7 +310,7 @@ export default function tasksRequests() {
       sorter: (a, b) => a.hr_manager.length - b.hr_manager.length,
       sortOrder: sortedInfo.columnKey === "hr_manager" && sortedInfo.order,
       ellipsis: false,
-      render:(el)=>el=="معتمدة"?<CheckCircleOutlined style={{fontSize:'25px',color:'#007236'}} />:el=="في الانتظار"?<MinusCircleOutlined style={{fontSize:'25px',color:'#FFDD1C'}}/>:<CloseCircleOutlined style={{fontSize:'25px',color:'#f00'}}/>,
+      render:(el)=>el=="معتمدة"?<CheckCircleOutlined style={{fontSize:'25px',color:'#0972B6'}} />:el=="في الانتظار"?<MinusCircleOutlined style={{fontSize:'25px',color:'#FFDD1C'}}/>:<CloseCircleOutlined style={{fontSize:'25px',color:'#f00'}}/>,
     },
     {
       title: "مراجعة الطلب",
@@ -242,10 +318,11 @@ export default function tasksRequests() {
       key: "vid",
       render: (vid, record, index) => (
         <Button
+        disabled={record.hr_manager!='في الانتظار'}
           onClick={function () {
             processRequest(record);
           }}
-          style={{ backgroundColor: "#007236", borderColor: "#007236" }}
+          style={{ backgroundColor: "#0972B6", borderColor: "#0972B6" }}
           type="primary"
           shape="round"
           icon={<FormOutlined />}
@@ -253,18 +330,52 @@ export default function tasksRequests() {
       ),
     },
   ];
+  const dcolumns = [
+    {
+      title: 'التاريخ',
+      dataIndex: 'date',
+      key: 'date',
+      sorter: (a, b) => a.date.length - b.date.length,
+      sortOrder: sortedInfo.columnKey === 'date' && sortedInfo.order,
+      ellipsis: true,
+
+    },
+    {
+      title: 'زمن الدخول',
+      dataIndex: 'attendance_time',
+      key: 'attendance_time',
+      sorter: (a, b) => a.attendance_time.length - b.attendance_time.length,
+      sortOrder: sortedInfo.columnKey === 'attendance_time' && sortedInfo.order,
+      ellipsis: true,
+      render:(attendance_time)=>attendance_time?.split(' ')[1],
+
+    },
+    {
+      title: 'زمن الخروج',
+      dataIndex: 'leave_time',
+      key: 'leave_time',
+      sorter: (a, b) => a.leave_time.length - b.leave_time.length,
+      sortOrder: sortedInfo.columnKey === 'leave_time' && sortedInfo.order,
+      ellipsis: true,
+      render:(leave_time)=>leave_time?.split(' ')[1],
+
+    },
+    {
+      title: 'ساعات العمل',
+      dataIndex: 'workHour',
+      key: 'workHour',
+      sorter: (a, b) => a.workHour.length - b.workHour.length,
+      sortOrder: sortedInfo.columnKey === 'workHour' && sortedInfo.order,
+      ellipsis: true,
+    },
+  ];
 
   return (
     <Card>
       <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-          marginBottom: "20px",
-        }}
+      className="requestsHeader"
       >
-        <div style={{ display: "flex", flexDirection: "row" }}>
+        <div className="reauestsProgress">
           <span>
             <Progress
               type="circle"
@@ -282,94 +393,73 @@ export default function tasksRequests() {
             }}
           >
             <div style={{ marginBottom: "5px" }}>الطلبات المنجزة</div>
-            <div style={{ color: "#828282" }}> لقد أنجزت 12 طلباً</div>
+            <div style={{ color: "#828282" }}> بقي لديك 12 طلباً</div>
           </span>
         </div>
-        <div style={{ display: "flex", flexDirection: "row" }}>
-          <span>
-            <Progress
-              type="circle"
-              percent={30}
-              width={80}
-              style={{ marginLeft: "5px", display: "inline-block" }}
-            />
-          </span>
-          <span
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              paddingTop: "10px",
-              marginRight: "5px",
-            }}
-          >
-            <div style={{ marginBottom: "5px" }}>طلبات تحت الانتظار</div>
-            <div style={{ color: "#828282" }}> 30 طلباً في انتظارك</div>
-          </span>
-        </div>
-        <div style={{ display: "flex", flexDirection: "row" }}>
-          <span>
-            <Progress
-              type="circle"
-              percent={100}
-              width={80}
-              style={{ marginLeft: "5px", display: "inline-block" }}
-            />
-          </span>
-          <span
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              paddingTop: "10px",
-              marginRight: "5px",
-            }}
-          >
-            <div style={{ marginBottom: "5px" }}>سرعة الإنجاز</div>
-            <div style={{ color: "#828282" }}>
-              {" "}
-              غالباً يتم الإنجاز خلال 5 أيام
-            </div>
-          </span>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <Button
-            style={{ float: "left", marginBottom: "30px" }}
-            onClick={function () {
-              exportToExcel("xlsx");
-            }}
-            type="primary"
-          >
-            <ExportOutlined /> تصدير كملف اكسل
-          </Button>
-        </div>
+    <div className="requestsRange" >  
+    <div style={{marginBottom:'10px',marginLeft:'5px'}}><span>اختر فترة : </span>
+    <RangePicker  onCalendarChange={changeRange} />
+    </div>   
+    <Button style={{display:'block',marginBottom:'10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
+    </div>
       </div>
       <Modal
         title="مراجعة الطلبات"
         visible={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
+        confirmLoading={saving}
+        width={'600px'}
       >
+      <Form form={form}>
         <div style={{ marginBottom: "20px" }}>
+        <div className="taggedInfo" style={{fontFamily: 'jannatR'}}>
           {" "}
           مقدم الطلب : {" "}
           <span style={{ fontWeight: "900", fontFamily: "jannatR" }}>
             {" "}
             {selected ? selected.user : ""}{" "}
           </span>{" "}
-          <div className="taggedInfo" style={{fontFamily: 'jannatR'}}><Text><ClusterOutlined /> {selected ? selected.category : ""} , {selected ? selected.job : ""} </Text></div>
-          <div className="taggedInfo"> نوع الطلب : <Text  style={{fontFamily: 'jannatR'}}>{selected ? selected.vactype : ""}</Text></div>
-          <div className="taggedInfo"> الإجمالي : <Text  style={{fontFamily: 'jannatR'}}>
-          {selected && selected.days > 0 ? selected.days + " يوم " : ""}
-          {selected && selected.period != 0 ? selected.period : ""}
+          <Text><ClusterOutlined /> {selected ? selected.category : ""} , {selected ? selected.job : ""} </Text></div>          
+          <div className="taggedInfo"> التفاصيل : <Text  style={{fontFamily: 'jannatR'}}>{selected ? selected.description : ""}</Text></div>
+          <div className="taggedInfo"> الإجمالي : <Text  style={{fontFamily: 'jannatR',color:'#f00'}}>
+          {totalVac}
           </Text></div>
           <div className="taggedInfo" style={{fontFamily: 'jannatR'}}><Text>الفترة :   </Text></div>
+          <FormItem name={'range_date'}>
           <RangePicker
             showTime={{ format: "HH:mm" }}
             defaultValue={[moment(selected ? selected.date_from : "", "YYYY-MM-DD HH:mm"), moment(selected ? selected.date_to : "", "YYYY-MM-DD HH:mm")]}
             format="YYYY-MM-DD HH:mm"
-          onChange= {onRangeChange}
+            onChange= {onRangeChange}
           />
+          </FormItem>
+            <Table loading={logload}  pagination={false} style={{textAlign:'center!important'}}   columns={dcolumns}  dataSource={selectedLogs} onCalendarChange={handleChange} />         
         </div>
-        <div>
+        <div style={{display:'flex',flexDirection:'row',justifyContent:'space-between'}}>        
+        <FormItem style={{marginBottom:'0px'}} name={'request_type'} label={'نوع الطلب '}>
+          <Select
+            showSearch
+            defaultValue={selected? selected.vactype:""}
+            style={{ width: 150, marginBottom: "20px" }}
+            placeholder="قم بتعيين نوع الطلب"
+            optionFilterProp="children"
+            onSelect={changeVType}
+            filterOption={(input, option) =>
+              option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            }
+            filterSort={(optionA, optionB) =>
+              optionA.children
+                .toLowerCase()
+                .localeCompare(optionB.children.toLowerCase())
+            }
+          >
+            {vacationsTypes?.map(function(item){return (<Option key={item.id}  value={item.id}>{item.name}</Option>)})}           
+          </Select>
+          </FormItem>
+          
+
+        <FormItem style={{marginBottom:'0px'}} name={'request_status'} label={'حالة الطلب'}>
           <Select
             showSearch
             style={{ width: 200, marginBottom: "20px" }}
@@ -388,17 +478,20 @@ export default function tasksRequests() {
             <Option value="1">اعتماد</Option>
             <Option value="0">رفض</Option>
           </Select>
+          </FormItem>
+            </div>
           <div id="gantt">
-
           </div>
+          <FormItem name={'notes'}>
           <TextArea
             onChange={changeNotes}
             placeholder="ملاحظات"
             row={3}
-          ></TextArea>
-        </div>
+          ></TextArea>       
+          </FormItem>
+        </Form>
       </Modal>
-      <Table loading={load} columns={columns} dataSource={data} onChange={handleChange} />
+      <Table scroll={{x: '1000px' }} loading={load} columns={columns} dataSource={data} onChange={handleChange} />
     </Card>
   );
 }

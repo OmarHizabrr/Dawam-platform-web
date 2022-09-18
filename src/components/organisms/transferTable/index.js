@@ -21,20 +21,21 @@ export default function transferTable(){
       const [data,setData]=useState([]);
       const [load,setLoad]=useState(true);
       const [total,setTotal]=useState(0);
+      const [start,setStart]=useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().slice(0,10));
+      const [end,setEnd]=useState(new Date().toISOString().slice(0, 10));
      // eslint-disable-next-line react-hooks/rules-of-hooks
      useEffect(() => {
         const id=cookies.user;
-        let now=new Date();
-        let last=new Date(now.setDate(now.getDate() - 30)).toISOString().slice(0,10);
-        let today=new Date().toISOString().slice(0, 10);
-        axios.get(Env.HOST_SERVER_NAME+'transport-amounts/'+id.user_id+'/'+last+'/'+today)
+        axios.get(Env.HOST_SERVER_NAME+'transport-amounts/'+id.user_id+'/'+start+'/'+end)
         .then(response => {
           setData(response.data);
           setLoad(false);
+        }).catch(function (error) {
+          console.log(error);
         });
         var tot=0.0;
         for(var i=0;i<data.length;i++){
-           tot+=data[i].transfer_value;
+           tot+=parseFloat(data[i].transfer_value);
         }
         setTotal(tot);
        });
@@ -44,17 +45,10 @@ export default function transferTable(){
         setSortedInfo(sorter);
       };
       const changeRange=(all,date)=>{
-        const id=cookies.user;
+        //const id=cookies.user;
         setLoad(true);
-        let now=new Date();
-        let last=new Date(now.setDate(now.getDate() - 30)).toISOString().slice(0,10);
-        let today=new Date().toISOString().slice(0, 10);
-        axios.get(Env.HOST_SERVER_NAME+'transport-amounts/'+id.user_id+'/'+last+'/'+today)        .then(response => {
-          setData([]);
-          setData(response.data);
-          setLoad(false);
-        });
-       
+        setStart(date[0]);
+        setEnd(date[1]);      
       }
     const  showModal = () => {
         setIsModalVisible(true);
@@ -65,12 +59,8 @@ export default function transferTable(){
       }; 
     const selectMonth=(value)=>{
       console.log(new Date(new Date().getFullYear(), value, 0).getDate());
-
       }  
 
-  /*  let { sortedInfo, filteredInfo } = this.state;
-    sortedInfo = sortedInfo || {};
-    filteredInfo = filteredInfo || {};*/
     const columns = [
       {
         title: 'اليوم',
@@ -108,6 +98,7 @@ return (
     <Layout>
     <Card>
     <div style={{float:'right',marginBottom:'20px'}}>إجمالي المبلغ المستحق : <span>{total}</span> ر.ي </div>
+
     <div style={{float:'left',marginBottom:'20px'}}>
     <span>اختر فترة : </span>
     <RangePicker  onCalendarChange={changeRange} />

@@ -1,7 +1,82 @@
-.ant-card-rtl{
-margin-top: 30px;
+.content .ant-card-body{
+    padding:10px;
 }
-.ant-card-body{
+
+.footer .ant-card-body{
+    padding:15px 12px;
+}
+.ant-badge-status-dot{
+    width: 10px;
+    height: 10px;
+}
+.emp-modal .ant-form-item{
+margin-bottom: 20px;
+}
+.emp-modal .ant-modal-body{
+padding: 0px;
+}
+.personal-data .ant-form-item{
+ display: flex;
+ flex-direction: row;
+}
+.emp-report-modal *{
+    font-family: 'jannatR';
+}
+.emp-report-modal .dawam-section{
     display: flex;
     flex-direction: column;
+    background-color: #fff;
+    border-radius: 5px;
+    padding: 20px;
+}
+.emp-report-modal .ant-progress-circle .ant-progress-text{
+color: #fff!important;
+}
+.emp-report-modal .dawam-section.stat{
+    display: flex;
+    flex-direction: row;
+}
+.emp-report-modal .dawam-section>div{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+.emp-report-modal .dawam-section .card{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    border:1px solid #e8e8e8;
+    color: #fff;
+}
+.emp-report-modal .dawam-section .card-hours{
+    display: flex;
+    flex-direction: row;
+    justify-content:center;
+    align-items: center;
+}
+.emp-report-modal .vio-table{
+    font-size: 14px;
+}
+.emp-report-modal .vio-table tr:nth-child(odd) {background-color: #f2f2f2;}
+.emp-report-modal .vio-table td:first-child { text-align: right;padding-right: 5px; }
+.emp-report-modal .vio-table td:last-child { text-align: left; }
+.emp-report-modal .vio-table td{
+    font-size: 14px; 
+    padding: 8px 5px;
+}
+.personal-data .ant-form-item-label{
+    flex:1;
+}
+.personal-data .ant-form-item-control{
+    flex:2;
+}
+@media only screen and (max-width: 600px) {
+
+.addBtn{
+display: none;
+}
+.emp-report-modal .dawam-section{
+    flex-direction: column;
+}
 }

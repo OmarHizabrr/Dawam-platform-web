@@ -1,8 +1,61 @@
 
-.logo {
-  float: right;
-  width: 120px;
-  height: 31px;
-  margin: 16px 0 16px 24px;
-  background: #007236;
+.userAvatar{
+    display:inline-block;
+    margin-left:20px;
+}
+.noti-icon{
+    vertical-align: middle;
+    padding-left:  10px;
+    padding-right:  5px;
+}
+.profileSmall{
+    display: none!important;
+}
+.profileLarge{
+    display: inline-block;
+}
+.controlLarge{
+    display:  inline-block;
+}
+.moreSmall{
+    display: none;
+    margin-right: 10px;
+}
+@media only screen and (max-width: 600px) {
+    .header{
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+    .ant-layout-header {
+        padding: 0 10px!important;
+    }
+    .logo{
+        width: 60px !important; ;
+        
+    }
+    .avatarName{
+        display: none;
+    }
+    .userAvatar{
+        
+        margin-left:10px;
+    }
+    .noti-icon svg{
+        width: 25px;
+        height: 25px;
+    }
+    .profileSmall{
+        display: inline-block;
+    }
+    .profileLarge{
+        display: none!important;
+    }
+    .controlLarge{
+        display: none!important;
+    }
+    .moreSmall{
+        display: inline-block;
+      
+    }
 }

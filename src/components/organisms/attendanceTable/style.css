@@ -9,14 +9,17 @@
     border-color: #ffecb5;
 }
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500&display=swap');
-
+.attendance .ant-table-cell,.att-model .ant-table-cell{
+    text-align: center!important;
+    font-weight: 700;
+}
 @media print{
     #att-report h1,h2{
         margin: 0;
     }
     #att-report thead tr{
     
-        color:#fff;background-color: #007236;height: 30px;
+        color:#fff;background-color: #0972B6;height: 30px;
     }
     #att-report tbody tr:nth-child(even){
         background-color: #e6e6e6;
@@ -27,4 +30,51 @@
     #att-report caption{
         font-weight: 900;
     }
+}
+.attOper{
+    float:left;
+    margin-bottom:10px;
+    display: flex;
+    flex-direction: row;
+}
+.attHeader{
+    display:flex;
+    flex-direction:row;
+    justify-content:space-between;
+    margin-bottom:30px;
+}
+.attPer{
+    display:flex;
+    flex-direction:row;
+}
+.disPer{
+    display:flex;
+    flex-direction:row;  
+}
+@media only screen and (max-width: 600px) {
+
+.attOper{
+    order:1;
+
+}
+.attOper button{
+    padding: 5px;
+}
+.attOperBtn{
+    padding-top: 14px;
+}
+.attHeader{
+    flex-direction:column;
+}
+.attPer{
+order: 2;
+margin-bottom: 15px;
+}
+.attOperRange{
+   
+    margin-top: 15px;
+}
+.disPer{
+    order: 3; 
+}
 }

@@ -13,15 +13,16 @@ body{
 }
 
 .trigger:hover {
-  color: #007236;
+  color: #0972B6;
 }
 
 .logo {
   float: right;
-  width: 120px;
-  height: 31px;
-  margin: 16px 0 16px 24px;
-  background: #007236;
+  width: 100px;
+  height: 70px;
+  background-image: url('assets/images/logo.png');
+  background-repeat: no-repeat;
+  background-size: contain;
 }
 
 .site-layout .site-layout-background {
@@ -54,11 +55,70 @@ body{
   width: 100%;
   text-align: center;
   margin-bottom: 20px;
-  color: #007236;
+  color: #0972B6;
+}
+.formTitle img{
+  width: 150px;
 }
 .loginBox input{
-  background-color:#C6DFD2;
+  background-color:#ADD0E6;
 }
 #root{
   height: 100%;
+}
+.login-btn{
+margin-top: 40px;
+}
+.loginForm{
+margin-top: 50px;
+}
+.illustrateBox{
+  display: none;
+}
+@media only screen and (max-width: 600px) {
+  .mainColumn{
+    display: none;
+  }
+  .loginBox{
+    padding:10px 30px 20px;
+    height: auto;
+  }
+  .formTitle{
+
+    margin-bottom: 10px;
+   
+  }
+  .formTitle img{
+    width: 120px;
+  }
+
+  .loginBox>div{
+    margin: 0;
+  }
+  .formColumn{
+    max-width: 100%;
+    flex: none;
+  }
+  .formColumn .ant-form-item-label{
+    text-align: right;
+    padding-bottom: 0px;
+  }
+  .formColumn .ant-form-item{
+    margin-bottom: 0px;
+  }
+  .login-btn{
+    margin-top: 20px;
+    }
+    .loginForm{
+      margin-top: 0px;
+      }
+      .illustrateBox{
+        display: block;
+        padding: 20px 10px;
+      }
+      .loginParent{
+        position: absolute;
+        top: 50%;
+        transform: translate(0, -50%);
+      }
 }

@@ -1,0 +1,10 @@
+.gSettingForm label{
+    text-align: left;
+   }
+.gSettingForm input{
+ width: 200px;
+}
+.gSettingForm .ant-form-item-label {
+width: 150px;
+justify-content: left;
+}

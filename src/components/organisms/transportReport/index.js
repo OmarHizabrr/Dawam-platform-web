@@ -25,14 +25,13 @@ const exportToExcel=(type,fn,dl)=>{
   }
 }
 export default function transportReport(){
-    const [cookies, setCookie, removeCookie]=useCookies(["userId"]);
       const [filteredInfo,setFilteredInfo]=useState({});
       const [sortedInfo,setSortedInfo]=useState({});
-      const [isModalVisible,setIsModalVisible]=useState(false);
-      const [eventsLog,setEventsLog]=useState([]);
+
+      const [categories,setCategories]=useState([]);
+
       const [data,setData]=useState([]);
       const [load,setLoad]=useState(true);
-      const [count,setCount]=useState(0);
       const [start,setStart]=useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().slice(0,10));
       const [end,setEnd]=useState(new Date().toISOString().slice(0, 10));    
       // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -40,8 +39,12 @@ export default function transportReport(){
        setLoad(true);
         axios.get(Env.HOST_SERVER_NAME+'transport-cumulative/'+start+'/'+end)
         .then(response => {
-          setData(response.data);
+          setData(response.data.records);
+          setCategories(response.data.categories);
+
           setLoad(false);
+        }).catch(function (error) {
+          console.log(error);
         });
 
        }, [start,end]);
@@ -54,42 +57,14 @@ export default function transportReport(){
         //const id=cookies.user;
         setStart(date[0]);
         setEnd(date[1]);
-      /*  console.log("range changed : "+last+"|"+today);
-        setLoad(true);
-        axios.get(Env.HOST_SERVER_NAME+'get-att-days-count/'+last+'/'+today)
-        .then(response => {
-          setCount(response.data[0].count);
-        });
-        axios.get(Env.HOST_SERVER_NAME+'discounts-list/'+last+'/'+today)
-        .then(response => {
-          setData(response.data);
-          setLoad(false);
-        });*/
-       
       }
-    const  showModal = () => {
-        setIsModalVisible(true);
-      };  
-     const handleOk = () => {
-        setIsModalVisible(false);
-
-      }; 
-    const selectMonth=(value)=>{
-     
-      }  
 
       const columns = [
         {
           title: 'اسم الموظف',
           dataIndex: 'name',
           key: 'name',
-          filters: [
-            { text: 'Joe', value: 'Joe' },
-            { text: 'Jim', value: 'Jim' },
-          ],
-          filteredValue: filteredInfo.name || null,
-          onFilter: (value, record) => record.name.includes(value),
-          sorter: (a, b) => a.name.length - b.name.length,
+          sorter: (a, b) => a.name.localeCompare(b.name.length),
           sortOrder: sortedInfo.columnKey === 'name' && sortedInfo.order,
           ellipsis: true,
         },
@@ -97,16 +72,16 @@ export default function transportReport(){
           title: 'المسى الوظيفي',
           dataIndex: 'job',
           key: 'job',
-          sorter: (a, b) => a.job.length - b.job.length,
+          sorter: (a, b) => a.job.localeCompare(b.job.length),
           sortOrder: sortedInfo.columnKey === 'job' && sortedInfo.order,
           ellipsis: true,
         },
         {
           title: 'الإدارة',
-          dataIndex: 'department',
-          key: 'department',
-          sorter: (a, b) => a.department.length - b.department.length,
-          sortOrder: sortedInfo.columnKey === 'department' && sortedInfo.order,
+          dataIndex: 'category',
+          key: 'category',
+          sorter: (a, b) => a.category.localeCompare(b.category.length),
+          sortOrder: sortedInfo.columnKey === 'category' && sortedInfo.order,
           ellipsis: true,
         }, 
         {
@@ -144,29 +119,30 @@ export default function transportReport(){
       mywindow.document.write('</body></html>');
   
       mywindow.document.close();
-      mywindow.focus();
-  
-      mywindow.print();
-      mywindow.close();   
-      /* var printContents = document.getElementById("att-report").innerHTML;
-      var originalContents = document.body.innerHTML;
-  
-      document.body.innerHTML = printContents;
-      window.print();
-      document.body.innerHTML = originalContents;*/ 
+       mywindow.onload = function() { // wait until all resources loaded 
+        mywindow.focus(); // necessary for IE >= 10
+        mywindow.print();  // change window to mywindow
+        mywindow.close();// change window to mywindow
+    };  
+    
     }
+    var index=0;
+    var ttvalue=0;
+    var ttamount=0;
+    var ttcount=0;
 return (
     <Layout>
     <Card>
-    <div style={{float:'left',marginBottom:'10px'}}>
-    <div style={{float:'left',marginBottom:'10px'}}>
-    <div style={{marginBottom:'10px'}}><span>اختر فترة : </span>
-    <RangePicker  onCalendarChange={changeRange} /></div>
-    <div style={{float: 'left'}}>
-    <Button style={{display:'block',marginBottom:'10px',width:'160px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /> تصدير كملف اكسل </Button>
-    <Button style={{display:'block',width:'160px',backgroundColor:"#007236",borderColor:"#007236"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /> طباعة السجل </Button>
-   </div>
-    </div>
+    <div style={{marginBottom:'10px'}}>
+      <div className='discountHeader' style={{marginBottom:'10px'}}>
+        <div className='discountRange' style={{marginBottom:'10px'}}><span>اختر فترة : </span>
+          <RangePicker  onCalendarChange={changeRange} />
+        </div>
+        <div className='discountBtn'>
+          <Button style={{display:'block',margin:'0 10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
+          <Button style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button>
+        </div>
+      </div>
     </div>
     <Table loading={load}  style={{textAlign:'center!important'}} columns={columns} scroll={{x: '1000px' }} onRow={(record, rowIndex) => {return{className:record.status};}} dataSource={data} onChange={handleChange} />
     </Card>
@@ -190,11 +166,10 @@ return (
     <div >
         <table style={{fontSize: "12px",width: " 100%",textAlign: " center",marginTop: " 20px"}}>
             <thead>
-                <tr style={{color:"#fff",backgroundColor: "#007236",height: "25px"}}>
+                <tr style={{color:"#fff",backgroundColor: "#0972B6",height: "30px"}}>
                 <th style={{fontWeight: "100"}} rowSpan="2">م</th>              
                      <th style={{fontWeight: "100"}} >الاسم</th>
                      <th style={{fontWeight: "100"}} >الوظيفة</th>
-                     <th style={{fontWeight: "100"}} >الإدارة</th>
                      <th style={{fontWeight: "100"}} >عدد الأيام</th>
                      <th style={{fontWeight: "100"}} >المستحق اليومي</th>
                      <th style={{fontWeight: "100"}} >إجمالي المبلغ المستحق</th>
@@ -203,19 +178,54 @@ return (
                 </tr>
             </thead>
             <tbody>
-             
-             {data.map(item=>(
-              <tr style={{height: " 25px",backgroundColor:data.indexOf(item) %2!=0?'#e6e6e6':'#fff'}}>
-                <td>{data.indexOf(item)+1}</td>
+            {
+             categories.map(item=>{
+              var catData=data.filter(record => record.category==item.name);
+              var tcount=0;
+              var tvalue=0;
+              var tamount=0;
+    
+              return (
+            <>
+              {
+              catData.map(item=>{
+                tcount+=item.transportCount*1;
+                tvalue+=item.transfer_value*1;
+                tamount+=item.transportAmount*1;
+                ttvalue+=item.transfer_value*1;
+                ttamount+=item.transportAmount*1;
+                ttcount+=item.transportCount*1;
+              return  (
+              <tr style={{height: " 30px",backgroundColor:++index %2!=0?'#e6e6e6':'#fff'}}>
+                <td>{index}</td>
                 <td>{item.name}</td>
                 <td>{item.job}</td>
-                <td>{item.department}</td>
-                <td>{item.transportCount}</td>
-                <td>{item.transfer_value}</td>
-                <td>{item.transportAmount}</td>
+                <td>{(item.transportCount)}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(item.transfer_value)}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(item.transportAmount)}</td>
                 <td><pre>             </pre></td>
               </tr>
-             ))}
+              );
+
+             })
+              }
+              <tr  style={{height: " 30px",color:"#fff",backgroundColor: "#0972B6",}}>
+                <td colSpan={3}>{item.name}</td>               
+                <td>{tcount}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(tvalue)}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(tamount)}</td>
+                <td><pre>             </pre></td>
+              </tr>
+            </>            
+              );
+              })}
+              <tr  style={{height: " 30px",color:"#fff",backgroundColor: "#0972B6",}}>
+                <td colSpan={3}>{'الإجمالي العام'}</td>    
+                <td>{ttcount}</td>           
+                <td>{new Intl.NumberFormat('en-EN').format(ttvalue)}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(ttamount)}</td>                               
+                <td><pre>             </pre></td>
+              </tr>
             </tbody>
         </table>
     </div>
@@ -224,7 +234,7 @@ return (
        <div style={{width: "50%",fontWeight: "900"}}>مدير الشؤون</div>
      </div>  
      <div style={{marginTop: " 20px",width: "85%",backgroundColor: "#e6e6e61",padding: "5px 0",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px"}}>
-         <div style={{backgroundColor: " #007236",width: " 95%",height: " 15px",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px",color: " #fff",paddingRight: " 20px"}}>نظام دوام | {new Date().toLocaleString('en-IT')} </div>
+         <div style={{backgroundColor: " #0972B6",width: " 95%",height: " 15px",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px",color: " #fff",paddingRight: " 20px"}}>نظام دوام | {new Date().toLocaleString('en-IT')} </div>
      </div>
  </div> 
  </div>

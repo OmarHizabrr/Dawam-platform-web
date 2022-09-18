@@ -1,78 +1,24 @@
 import React from 'react';
-import GeneralTable from '../../organisms/generalTable';
 import { Typography, Row,Col, Card } from 'antd';
 import Layout from 'antd/lib/layout/layout';
 import ReactApexChart from "react-apexcharts";
 import axios from 'axios';
 import {Env} from './../../../styles';
+import './style.css';
+import  { useState, useEffect } from 'react';
+
 const { Text } = Typography;
 
-export default class Statistics extends React.Component{
-    constructor(props){
-        super(props);
-        this.state = {
-           config : {
-            options: {
-              chart: {
-                width:500,
-                dropShadow: {
-                  enabled: true,
-                  blur: 1,
-                  left: 1,
-                  top: 1
-                }
-              },dataLabels: {
-                enabled: true,
-                background: {
-                  enabled: true,
-                  borderRadius:2,
-                }
-              },xaxis: {
-                categories: ['الحضور المبكر', 'الانضباط', 'الانصراف', 'نسبة أيام الحضور', 'احترام النظام','iuwye','wioewey','ieuryiuwey','qwioewuy'],
-                labels: {
-                  show: true,
-                  style: {
-                    colors: ["#808080"],
-                    fontSize: "11px",
-                    fontFamily: 'jannatR'
-                  }
-                }
-              },
-              yaxis: {
-                min:0,
-                max:100,
-                tickAmount:5,
-              },
-              colors: ["#007236", "#002612"],
-              stroke: {
-                width: 1
-              },
-              fill: {
-                opacity: 0.5
-              },
-              markers: {
-                size: 5
-              }
-            },
-            series: [
-              {
-                name: "أسامة جليل",
-                data: [
-                  45,
-                  90,
-                 60,
-                  80,
-                  70,
-                  56,
-                  99,
-                  30,
-                  65
-                ],
-              },
-            ]
-          },   
-            seriesp: [44, 55, 13, 43, 22],
-            optionsp: {
+export default function Statistics (props) {
+
+  const [discData,setDiscData]=useState([]);
+  const [data,setData]=useState([]);
+  const [qdata,setQData]=useState([]);
+  const [qlabels,setQlabels]=useState([]);
+  const [ddata,setDData]=useState([]);
+  const [dlabels,setDlabels]=useState([]); 
+
+  const   optionsp= {
                 title:{
                  text:'توزيع الموظفين على الإدارات',
                  align:'center',
@@ -84,7 +30,7 @@ export default class Statistics extends React.Component{
                 width: 380,
                 type: 'pie',
               },
-              labels: ['الإحصاء وتقنية المعلومات', 'الاجتماعية', 'العلاقات والإعلام', 'العلمية والتحفيظ', 'الشؤون الإدارية'],
+              labels:dlabels,
               responsive: [{
                 breakpoint: 480,
                 options: {
@@ -96,112 +42,171 @@ export default class Statistics extends React.Component{
                   }
                 }
               }]
-            },
+            };                   
+   const  options = {
+      series: discData,
+      chart: {
+      type: 'donut',
+    },
+    colors: [ '#775DD0', '#FF4560'],
+    labels: ["الوقت المهدور", "وقت الدوام"],
+    responsive: [{
+      breakpoint: 480,
+      options: {
+        chart: {
+          width: 400
+        },
+        legend: {
+          position: 'bottom'
+        }
+      }
+    }]
+    };
 
-            series: [{
-              data: [21, 22, 10, 28, 16]
-            }],
-            options: {
-              chart: {
-                type: 'bar',
-                events: {
-                  click: function(chart, w, e) {
-                    // console.log(chart, w, e)
-                  }
-                }
-              },
-           
-              plotOptions: {
-                bar: {
-                  columnWidth: '30%',
-                  distributed: true,
-                }
-              },
-              dataLabels: {
-                enabled: false
-              },
-              legend: {
-                show: false
-              },
-              xaxis: {
-                categories: [
-                  'إعدادي',
-                  'ثانوي',
-                  'بكالاريوس',
-                  'ماجستير',
-                  'دكتوراه', 
-                ],
-                labels: {
-                  style: {
-                 
-                    fontSize: '12px'
-                  }
-                }
-              }
-            },
-            data:[]         
-          };
-        
-    }
-componentDidMount(){
+    var qoptions = {
+      title: {
+        text: 'إحصائيات المؤهلات',
+        align: 'center',
+        margin: 10,
+        offsetX: 0,
+        offsetY: 0,
+        floating: true,
+        style: {
+          fontSize:  '14px',
+          fontWeight:  'bold',
+          fontFamily:  'jannatR',
+          color:  '#263238'
+        },
+    },
+      series: [{
+      name:"العدد",
+      data: qdata
+    }],
+      chart: {
+      height: 200,
+      type: 'bar',
+    },
+    plotOptions: {
+      bar: {
+        columnWidth: '45%',
+        distributed: true,
+      }
+    },
+    dataLabels: {
+      enabled: true
+    },
+    legend: {
+      show: false
+    },
+    xaxis: {
+      categories:qlabels,
+      labels: {
+        style: {
+          fontFamily:'jannatR',
+          fontSize: '12px'
+        }
+      }
+    },
+    tooltip: {
+      style:{
+        fontFamily:'jannatR',
+        marginLeft:'5px',
+      },
+      y:{         
+        formatter: function (val, opts) {
+          return val;
+      },
+      },
+    },
+    };
+
+useEffect(() => {  
   axios.get(Env.HOST_SERVER_NAME+'general-statistics')
   .then(response => {
-    this.setState({data:response.data});
-  },[]);
-}
-    render(){
-        return(
-        <Layout style={{padding:'2.75rem 2.25rem'}}>
+    console.log(response.data);
+    setData(response.data);
+    var q=[];
+    var l=[];
+
+    response.data.qulaifications.map((item)=>{
+      q.push(parseInt(item.count));
+      l.push(item.qualification);
+    });   
+    setQData(q);
+    setQlabels(l);
+
+    var dd=[];
+    var dl=[];
+    response.data.depts_per.map((item)=>{
+      dd.push(parseInt(item.count));
+      dl.push(item.category);
+    });
+    setDData(dd);
+    setDlabels(dl);
+    setDiscData([response.data.idealTime[0].ideal_time-response.data.workHours[0].workHours,parseFloat(response.data.workHours[0].workHours)]);    
+  },[]).catch(function (error) {
+    console.log(error);
+  });
+},[]);
+
+    return(
+      <Layout className='stat-layout' >
         <Row style={{margin:'0 0 1.5rem'}}>
-        <Col span={24}>
-        <Text style={{fontSize:'18px'}}>لوحة البيانات</Text>
-        </Col>          
+          <Col span={24}>
+            <Text style={{fontSize:'18px'}}>لوحة البيانات</Text>
+          </Col>          
         </Row>
-        <Row style={{marginTop:'10px'}}>
-          <Col span={6} style={{padding:'20px',color:'#fff',fontSize:'16px'}}>
+        <Row gutter={[ {xs: 10, sm: 16, md: 24, lg: 32 },{xs: 10, sm: 16, md: 24, lg: 32 }]}  style={{marginTop:'10px'}}>
+          <Col xs={24} sm={12} md={12} xl={6} className="gutter-row" span={6} style={{padding:'20px',color:'#fff',fontSize:'16px'}}>
               <div style={{padding:'10px 20px',borderRadius:'10px',background: "linear-gradient(-90deg,#ffbf96,#fe7096)"}}>
                   <div style={{marginBottom:'10px'}}>عدد الموظفين</div>
-                  <div style={{fontSize:'22px'}}>{this.state.data.users_count} موظفاً</div>
-                  <div style={{fontSize:'12px',marginTop:'10px'}}>آخر توظيف منذ 2021-05-03</div>
+                  <div style={{fontSize:'22px'}}>{data.users_count} موظفاً</div>
+                  <div style={{fontSize:'12px',marginTop:'10px'}}>آخر توظيف منذ {data.latest_assignment?data.latest_assignment[0].assignment_date:''}</div>
               </div>
           </Col>
-          <Col span={6} style={{padding:'20px',color:'#fff',fontSize:'16px'}}>
+          <Col xs={24} sm={12} md={12} xl={6} className="gutter-row" span={6} style={{padding:'20px',color:'#fff',fontSize:'16px'}}>
               <div style={{padding:'10px 20px',borderRadius:'10px',background: "linear-gradient(-90deg,#90caf9,#047edf 99%)"}}>
                   <div style={{marginBottom:'10px'}}>عدد الإدارات</div>
-                  <div style={{fontSize:'22px'}}>{this.state.data.depts_count} إدارات</div>
-                  <div style={{fontSize:'12px',marginTop:'10px'}}>متوسط الموظفين لكل إدارة 5</div>
+                  <div style={{fontSize:'22px'}}>{data.depts_count} إدارات</div>
+                  <div style={{fontSize:'12px',marginTop:'10px'}}>متوسط الموظفين لكل إدارة {data.dept_emp_avg}</div>
               </div>
           </Col>
-          <Col span={6} style={{padding:'20px',color:'#fff',fontSize:'16px'}}>
+          <Col xs={24} sm={12} md={12} xl={6} className="gutter-row" span={6} style={{padding:'20px',color:'#fff',fontSize:'16px'}}>
               <div style={{padding:'10px 20px',borderRadius:'10px',background: "linear-gradient(-90deg,#84d9d2,#07cdae)"}}>
                   <div style={{marginBottom:'10px'}}>متوسط الأعمار</div>
-                  <div style={{fontSize:'22px'}}>{Math.round(this.state.data.age_avg)} عاماً</div>
-                  <div style={{fontSize:'12px',marginTop:'10px'}}>خلدون السامعي أصغر الموظفين عمراً</div>
+                  <div style={{fontSize:'22px'}}>{Math.round(data.age_avg)} عاماً</div>
+                  <div style={{fontSize:'12px',marginTop:'10px'}}>{data.youngest} أصغر الموظفين عمراً</div>
               </div>
           </Col>
-          <Col span={6} style={{padding:'20px',color:'#fff',fontSize:'16px'}}>
+          <Col xs={24} sm={12} md={12} xl={6} className="gutter-row" span={6} style={{padding:'20px',color:'#fff',fontSize:'16px'}}>
               <div style={{padding:'10px 20px',borderRadius:'10px',background: "linear-gradient(-90deg,#E2B0FF,#9F44D3)"}}>
                   <div style={{marginBottom:'10px'}}>عدد الموظفين المتواجدين</div>
-                  <div style={{fontSize:'22px'}}>{this.state.data.attendance_count} موظفاً</div>
-                  <div style={{fontSize:'12px',marginTop:'10px'}}>نسبة حضور الموظفين اليوم {this.state.data.attendance_percent}%</div>
+                  <div style={{fontSize:'22px'}}>{data.attendance_count} موظفاً</div>
+                  <div style={{fontSize:'12px',marginTop:'10px'}}>نسبة حضور الموظفين اليوم {data.attendance_percent}%</div>
               </div>
           </Col>
-       </Row>
-       <Row>
-           <Col span={13}>
+        </Row>
+        <Row gutter={[ {xs: 10, sm: 16, md: 24, lg: 32 },{xs: 10, sm: 16, md: 24, lg: 32 }]}  style={{marginTop:'20px'}}>
+           <Col xs={24} sm={24} md={12} xl={12} span={12}>
            <Card>
-               <ReactApexChart options={this.state.options} series={this.state.series} type="bar" height={300}  />
+               <ReactApexChart options={qoptions} series={qoptions.series} type="bar" height={300}  />
             </Card>
            </Col>
-           <Col span={1}></Col>
-           <Col span={10}>
-         <Card>
-           <ReactApexChart options={this.state.optionsp} series={this.state.seriesp} type="pie"  height={300} />
+           
+           <Col xs={24} sm={24} md={12} xl={12} span={12}>
+           <Card>
+              <ReactApexChart options={optionsp} series={ddata} type="pie"  height={300} />
            </Card>
            </Col>
-       </Row>
-        </Layout>
+        </Row>
+        <Row>
+        <Col xs={24} sm={24} md={10} xl={10} span={10}>
+        <Card>
+           <ReactApexChart options={options} series={discData} type="donut"  height={300} />
+           </Card>
+        </Col>
+        </Row>
+      </Layout>
         );
-    };
 }
 

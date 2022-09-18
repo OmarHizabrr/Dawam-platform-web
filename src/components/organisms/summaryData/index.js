@@ -1,98 +1,303 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './style.css';
-import {Typography,Row,Col,Avatar,Button,Card, Space, Form,Input} from 'antd';
+import axios from 'axios';
+import {Typography,Row,Col,Avatar,Button,Card, Spin, Form,Input, Layout,Badge,Radio, Rate } from 'antd';
+
+
+import { useCookies,CookiesProvider  } from 'react-cookie';
+import {useLocation} from 'react-router-dom';
+import {
+
+  ClusterOutlined,
+  TagsOutlined,
+
+} from '@ant-design/icons';
+import {Env} from './../../../styles';
+
 import ReactApexChart from "react-apexcharts";
 const {Text} = Typography;
-const config = {
-  options: {
-    chart: {
-      width: 380,
-      type: "pie"
-    },
-    labels: ["سُلف", "أقساط", "تأخرات", "غيابات","صافي الراتب"],
-    responsive: [
-      {
-        breakpoint: 480,
-        options: {
-          chart: {
-            width: 200
-          },
-          legend: {
-            position: "bottom"
+
+
+
+/* eslint-disable react-hooks/rules-of-hooks */
+export default function summaryData (props) {
+  const [cookies, setCookie, removeCookie]=useCookies(["userId"]);
+  const location = useLocation();
+
+  const [start,setStart]=useState(new Date(new Date().setDate(new Date().getDate() - 31)).toISOString().slice(0,10));
+  const [end,setEnd]=useState(new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().slice(0,10));
+  
+  const [data,setData]=useState([]);
+  const [serData,setSerData]=useState([]);
+  const [salSpin,setSalSpin]=useState(true);
+  const [attDates,setAttDates]=useState([]);
+  const [attAtt,setAttAtt]=useState([]);
+  const [attLeave,setAttLeave]=useState([]);
+  const [attSpin,setAttSpin]=useState(true);
+  const [thresholds,setThresholds]=useState([]);
+  const [attCount,setAttCount]=useState(0);
+  const [leaveCount,setLeaveCount]=useState(0);
+  const [spiderData,setSpiderData]=useState([]);
+
+  const [star,setStar]=useState(0); 
+
+  const config = {
+    options: {
+      chart: {
+        width: 380,
+        type: "pie"
+      },
+     
+        colors: ['#008FFB', '#775DD0', '#FEB019','#FF4560', '#B8C22E', '#00E396'],
+    
+      labels: ["سُلف", "أقساط", "تأخرات", "غياب","جزاءات","صافي الراتب"],
+      responsive: [
+        {
+          breakpoint: 480,
+          options: {
+            chart: {
+              width: 200
+            },
+            legend: {
+              position: "bottom"
+            }
           }
         }
-      }
-    ],
-  series: [ 7000, 8000, 10000, 5000,70000],
+      ],
+    series: serData,
+    }
+  };
+  const config2={
+    series: [{
+      name: 'صافي الدوام',
+      data: attAtt
+    },{
+      name: 'الدوام المثالي',
+      data:thresholds
+    }],
+    options: {
+      chart: {
+        height: 350,
+        type: 'area'
+      },
+      dataLabels: {
+        enabled: false,
+      },
+      stroke: {
+        show:true,
+        curve: 'smooth',
+        width:2,
+      },
+      xaxis: {
+        type: 'datetime',
+        categories: attDates
+      },
+      yaxis:{
+        type:'datetime',
+        min: 0,
+        max: 660,
+        tickAmount:7,
+      },
+      tooltip: {
+        style:{
+          fontFamily:'jannatR',
+          marginLeft:'5px',
+        },
+        x: {
+          show:true,
+          format: 'dd-MM-yyyy'
+        },
+        y:{         
+          format:'HH:mm',
+          formatter: function (val, opts) {
+            return parseInt(val/60)+":"+(val%60);
+        },
+        }
+      },
+    },
   }
-};
-
-const config2={
-  series: [{
-    name: 'وقت الحضور',
-    data: ['07:00', '8:30', '7:35', '7:20', '7:15', '7:30', '7:27']
-  }, {
-    name: 'وقت الانصراف',
-    data: ['13:50', '14:00', '13:55', '13:30', '12:30', '14:30', '15:00']
-  }],
-  options: {
-    chart: {
-      height: 350,
-      type: 'area'
-    },
-    dataLabels: {
-      enabled: false
-    },
-    stroke: {
-      show:true,
-      curve: 'smooth',
-      width:2,
-    },
-    xaxis: {
-      type: 'datetime',
-      categories: ["2018-09-19", "2018-09-20", "2018-09-21", "2018-09-22", "2018-09-23", "2018-09-24", "2018-09-25"]
-    },
-    yaxis:{
-      type:'datetime',
-    },
-    tooltip: {
-      style:{
-        fontFamily:'jannatR',
-        marginLeft:'5px',
+  const configSpider = {
+    options: {
+      chart: {
+        dropShadow: {
+          enabled: true,
+          blur: 1,
+          left: 1,
+          top: 1
+        }
+      },dataLabels: {
+        enabled: true,
+        background: {
+          enabled: true,
+          borderRadius:2,
+        }
+      },xaxis: {
+        categories: ['الحضور المبكر', 'الانضباط', 'الانصراف', 'نسبة أيام الحضور', 'احترام النظام'],
+        labels: {
+          show: true,
+          style: {
+            colors: ["#808080"],
+            fontSize: "11px",
+            fontFamily: 'jannatR'
+          }
+        }
       },
-      x: {
-        show:true,
-        format: 'dd-MM-yyyy'
+      yaxis: {
+        min:0,
+        max:100,
+        tickAmount:5,
       },
-      y:{
-        show:true,
-        format:'HH:mm',
+      colors: ["#0972B6", "#002612"],
+      stroke: {
+        width: 1
+      },
+      fill: {
+        opacity: 0.5
+      },
+      markers: {
+        size: 5
       }
     },
-  },
+    series: [
+      {
+        name: "النسبة",
+        data: spiderData,
+      },
+    ]
+  };
+  const id=cookies.user; 
+  let  user=props.userData;
+  // let  user=location.userData;
+  if(location.userData != null) 
+       user=location.userData;
+ 
+  const [filter,setFilter]=useState(configSpider.series); 
+
+  const  handleSizeChange = e => {
+    setFilter([{name:'أسامة جليل',data:[90,60,70,80]}]);
+  }
+  function getTwentyFourHourTime(amPmString) { 
+    var d = new Date("1/7/2022 " + amPmString); 
+    return d.getHours() + ':' + d.getMinutes(); 
 }
-export default class summaryData extends React.Component{
-  
-    render(){
-        return(
-    <Row className="summary" style={{paddingBottom:'10px'}}>
-    <Col lg={10} sm={24}>
-    <Card>
+
+function getMinutesTime(amPmString) {
+ 
+  if(amPmString!=null){
+    var d = amPmString.split(':'); 
+    var m=(parseInt(d[0])*60) + parseInt(d[1]);
+    return m; 
+  }
+  else return 0;
+}
+  useEffect(() => {       
+    axios.get(Env.HOST_SERVER_NAME+'salary-info/'+id.user_id+'/'+start+'/'+end)
+    .then(response => {
+      setData(response.data);     
+      setSerData([parseInt(response.data.lists[0]['debt'] || 0),parseInt(response.data.lists[0]['long_debt'] || 0), parseInt(response.data.lists[0]['lateTimePrice'] || 0), parseInt(Math.round(((response.data.count[0].count-(response.data.lists[0]['attendanceDays']|| 0))*( response.data.lists[0].salary/30)))), parseInt(response.data.lists[0]['vdiscount'] || 0) ,
+      response.data.lists[0].salary - (Math.round(response.data.lists[0].debt || 0)+Math.round(((response.data.count[0].count-response.data.lists[0].attendanceDays)*(response.data.lists[0].salary/30))+parseFloat(response.data.lists[0].lateTimePrice || 0))+Math.round(response.data.lists[0].symbiosis || 0)+Math.round(response.data.lists[0].long_debt || 0)) ]);
+      setSalSpin(false);
+
+      setSpiderData([Math.round(response.data.att_count[0].att_count/response.data.att_count[0].count*100) || 0,Math.round(response.data.id_count[0].id_count/response.data.id_count[0].count*100) || 0,Math.round(response.data.leave_count[0].leave_count/response.data.leave_count[0].count*100) || 0,Math.round(response.data.lists[0].attendanceDays/response.data.count[0].count*100) || 0,Math.round(response.data.vac_count[0].late_vacs/response.data.vac_count[0].count*100) || 0]);
+
+      var dates=[];
+      var atts=[];
+     // var leaves=[];
+     var thr=[];
+     response.data.logs.map(function(item){
+     
+      //if(item.dayName!='الجمعة'){
+        dates.push(item.date);
+        
+        if(item.workHours==0   && item.discount==0) {
+          thr.push(0);
+          atts.push(0);
+        }
+        else {
+          thr.push(getMinutesTime(item.duartion));
+          atts.push(getMinutesTime(item.workHours));
+        }
+      //}
+      //  leaves.push(getTwentyFourHourTime(item.leave_time));
+    });
+      setAttDates(dates);
+      setAttAtt(atts);
+      setThresholds(thr);
+     // setAttLeave(leaves);
+      setAttSpin(false);
+    }).catch(function (error) {
+      console.log(error);
+    });
+  },[]);
+
+
+  return(
+    <Layout>
+    <Card
+     className="site-layout-card userProfileSummary"
+     style={{
+       margin: '10px 16px',
+       padding: 0,
+       height:'auto',
+     }}>
+    <Row >
+    <Col style={{ display: 'flex',flexDirection: 'column'}}  xs={24} sm={24} md={6} lg={6} xl={6}>
+    <Avatar
+    size={{ xs: 100, sm: 100, md: 130, lg: 150, xl: 150, xxl: 150 }}
+    src={Env.HOST_SERVER_STORAGE+user.avatar}
+    style={{display:'block',margin:'10px',alignSelf:'center'}}
+    />
+    <Text style={{textAlign:'center',fontSize:'20px',marginBottom:'10px'}}>{user.user_name} <Badge status="success"  /></Text>
+    <div style={{textAlign:'center',marginBottom:'18px'}}><Badge count={ user.user_id }   style={{ backgroundColor: '#DDDDDD',color:'#000' }} /></div>
+    <div style={{textAlign:'center'}}><Button type='primary' >الملف الوظيفي {props.aboutProps}</Button></div>
+    </Col>
+    <Col className='userData' xs={24} sm={24} md={10} lg={10} xl={10}>
+      <div className="taggedInfo"><Text><ClusterOutlined /> {user.category.name} </Text></div>
+      <div className="taggedInfo"><Text><TagsOutlined />{user.job}</Text></div>
+      <div className="taggedInfo" style={{marginTop:'10px'}}>
+        <Rate disabled allowHalf value={Math.round(props.star*10)/2} />
+      </div>
+    </Col>
+    <Col xs={24} sm={24} md={8} lg={8} xl={8} style={{textAlign:'center',marginBottom:'-50px'}}>
+    <div className='spider'>
     <ReactApexChart
+      options={configSpider.options}
+      series={configSpider.series}
+      type="radar"
+      height="300"
+      width="350"
+      style={{padding:0}}
+    />
+    <div  style={{top:'-50px',position:'relative'}} onChange={()=>handleSizeChange()} >
+
+    </div>
+    </div>
+    </Col>
+  </Row>
+  </Card>
+    <Row className="summary" style={{paddingBottom:'10px'}}>
+
+    <Col className='pieColumn' lg={10} sm={24}>
+    <Card>
+    <Spin spinning={salSpin}>
+    <ReactApexChart
+      className="pie-chart"
       options={config.options}
       series={config.options.series}
       type="pie"
       height="400"
       width="400"
-      style={{padding:0}}
+      style={{padding:0,textAlign:'center'}}
     />
     <div style={{textAlign:'center',paddingBottom:'20px'}}>
-    <Text>ملخص إعانة شهر فبراير</Text>
+    <Text>ملخص المستحقات لآخر شهر </Text>
     </div>
+    </Spin>
     </Card>
     </Col>
-    <Col lg={14} sm={24}>
+    <Col className='pieColumn' lg={14} sm={24}>
     <Card>
+    <Spin spinning={attSpin}>
     <ReactApexChart
       options={config2.options}
       series={config2.series}
@@ -103,9 +308,10 @@ export default class summaryData extends React.Component{
      <div style={{textAlign:'center',}}>
     <Text>حركة الحضور والانصراف لآخر 30 يوماً</Text>
     </div>
+    </Spin>
     </Card>
     </Col>   
      </Row>
+     </Layout>
      );
-    }
 }
