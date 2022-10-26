@@ -276,6 +276,7 @@ key={'control-drawer'}
       onClick: showDrawer,
     })}    
     <Switch>
+      {props.userData.role_id==2 && <Redirect to='/profile'  />}
           <Route path={path} exact>
             <Statistics/>
           </Route>
@@ -286,7 +287,6 @@ key={'control-drawer'}
           <Route path={`${path}/debts-report`} component={debtReport} /> 
           <Route path={`${path}/tasks-records`} component={tasksRecords} /> 
           <Route path={`${path}/tasks-accounts`} component={tasksAccounts} /> 
-
           <Route path={`${path}/violations-records`} component={violationsRecords} />
           <Route path={`${path}/cum-violation-report`} component={violationsReport} />    
           <Route path={`${path}/cum-tasks-report`} component={cumTasksReport} />   

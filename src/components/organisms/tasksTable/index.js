@@ -87,23 +87,27 @@ export default function tasksTable(props) {
 
     axios.get(Env.HOST_SERVER_NAME+'tasks-info/'+props.user.user_id+'/'+start+'/'+end)
         .then(response => {
+        
           setVacations(response.data.vacs);
           setVacationsTypes(response.data.vacstypes);
           setTotalConsumedVacs(response.data.vacs);
+        
           setRequiredTasks(response.data.requiredTasks);
           setVacationsAmount(response.data.tasksAmount);
           setAnnuPerc(response.data.annuPerc[0]);
-          var times=response.data.tasksAmount.find(it=>it.vid==2).rest.split(":");
-
-        //  console.log(Math.round(((((times[0]*60)+parseInt(times[1]))/60)/7)*10)/10);
-
-         setAnnuDays(Math.round(((((times[0]*60)+parseInt(times[1]))/60)/7)*100)/100);
+        if(response.data.tasksAmount.length>0){
+          var times=response.data.tasksAmount?.find(it=>it.vid==2)?.rest?.split(":");
+          setAnnuDays(Math.round(((((times[0]*60)+parseInt(times[1]))/60)/7)*100)/100);
+        }
+        else
+        setAnnuDays(0);
         }).catch(function (error) {
           console.log(error);
         });
     setLoad(true);
     axios.get(Env.HOST_SERVER_NAME+'get-tasks/'+props.user.user_id+'/'+start+'/'+end)
     .then(response => {
+     
       let vacations=[];
       response.data.forEach(element => {  
         if(!vacations.some(item => element.name == item.text))      
@@ -179,9 +183,10 @@ export default function tasksTable(props) {
           "type":type,
           "note":notes
         }
+        //console.log(values);
         axios.post(Env.HOST_SERVER_NAME+`add-task`,values)
           .then(function (response) { 
-            console.log(response);
+  
             openNotification('bottomLeft',<Text>{'تم إرسال الإجازة بنجاح'}</Text>);
             setSaving(false);
             setIsModalVisible(false);    
@@ -214,7 +219,7 @@ export default function tasksTable(props) {
          }
         axios.post(Env.HOST_SERVER_NAME+`update-task`,values)
            .then(function (response) { 
-             console.log(response);
+
                openNotification('bottomLeft',<Text>{'تم تعديل الإجازة بنجاح'}</Text>);
                setUSaving(false);
              setIsUModalVisible(false);    
@@ -658,8 +663,8 @@ return (
               <tr style={{height: " 25px"}}>
                 <td style={{backgroundColor: index%2==0?'#e6e6e6':'#fff'}}>إلى</td>
                 <td style={{backgroundColor: index%2==0?'#e6e6e6':'#fff'}}>{days[new Date(item.date_to ).getDay()]}</td>
-                <td style={{backgroundColor: index%2==0?'#e6e6e6':'#fff'}}>{item.date_to.split(" ")[0]}</td>
-                <td style={{backgroundColor: index++%2==0?'#e6e6e6':'#fff'}}>{moment(item.date_to.split(" ")[1],'HH:mm:ss').format('hh:mm A')}</td>
+                <td style={{backgroundColor: index%2==0?'#e6e6e6':'#fff'}}>{item.date_to?.split(" ")[0]}</td>
+                <td style={{backgroundColor: index++%2==0?'#e6e6e6':'#fff'}}>{moment(item.date_to?.split(" ")[1],'HH:mm:ss').format('hh:mm A')}</td>
               </tr>
               </>
               );

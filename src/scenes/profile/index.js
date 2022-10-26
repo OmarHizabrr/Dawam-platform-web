@@ -24,7 +24,7 @@ import {
     BrowserRouter as Router,
     Switch,
     Route,
-    Redirect,
+    Redirect
   } from "react-router-dom";
   import axios from 'axios';
 
@@ -38,7 +38,8 @@ import alertsTable from '../../components/organisms/alertsTable';
 import DeptsTable from '../../components/organisms/deptsTable';
 import {
   Link,
-  useRouteMatch
+  useRouteMatch,
+  useHistory,
 } from "react-router-dom";
 import Cookies from 'universal-cookie';
 const { Content } = Layout;
@@ -50,9 +51,12 @@ const { RangePicker } = DatePicker;
 
 export default function Profile(props){ 
   let { path, url } = useRouteMatch(); 
+  
   const [cookies, setCookie, removeCookie]=useCookies(["userId"]);
   const [type,setType]=useState(null);
+  const [activeTab,setActiveTab]=useState(1);
   const location = useLocation();
+  
   const [isVisibleModal,setIsVisibleModal]=useState(false);
   const [load,setLoad]=useState(true);
 
@@ -88,7 +92,8 @@ export default function Profile(props){
  // let  user=location.userData;
  if(location.userData != null) 
       user=location.userData;
-const openShowUser=()=>{
+
+  const openShowUser=()=>{
         // console.log(Object.keys(user).map((key) => [Number(key), user[key]]));
         var user=data;
         var birth=user.birth_date;
@@ -128,11 +133,12 @@ const openShowUser=()=>{
          //-----------------------------       
        }
   useEffect(() => {
+   
     axios.get(Env.HOST_SERVER_NAME+'salary-info/'+user.user_id+'/'+start+'/'+end)
     .then(response => {   
  
       setStar(1-((parseFloat(response.data.lists[0].lateTimePrice || 0)+parseInt(Math.round(((response.data.count[0].count-(response.data.lists[0]['attendanceDays'] || 0))*( response.data.lists[0].salary/response.data.count[0].count)))))/(response.data.lists[0].salary )));
-      setSpiderData([Math.round(response.data.att_count[0].att_count/response.data.att_count[0].count*100) || 0,Math.round(response.data.id_count[0].id_count/response.data.id_count[0].count*100) || 0,Math.round(response.data.leave_count[0].leave_count/response.data.leave_count[0].count*100) || 0,Math.round(response.data.lists[0].attendanceDays/response.data.count[0].count*100) || 0,Math.round(response.data.vac_count[0].late_vacs/response.data.vac_count[0].count*100) || 0]);
+      setSpiderData([Math.round(response.data.att_count[0].att_count/response.data.att_count[0].count*100) || 0,Math.round(response.data.id_count[0].id_count/response.data.id_count[0].count*100) || 0,Math.round(response.data.leave_count[0].leave_count/response.data.leave_count[0].count*100) || 0,Math.round(response.data.lists[0].attendanceDays/response.data.count[0].count*100) || 0,Math.round(response.data.vac_count[0].late_vacs/response.data.vac_count[0].count*100) || 100]);
 
     }).catch(function (error) {
       console.log(error);
@@ -167,6 +173,7 @@ const openShowUser=()=>{
     
 
   },[]);
+
   const config = {
     options: {
       chart: {
@@ -216,6 +223,7 @@ const openShowUser=()=>{
       },
     ],
   };
+
   const [filter,setFilter]=useState(config.series); 
   const  handleSizeChange = e => {
      setFilter([{name:'أسامة جليل',data:[90,60,70,80]}]);
@@ -250,8 +258,30 @@ const handleCancel = () => {
 };
 const onFinish=()=>{
 }
+const getCurrentTab=()=>{
 
+  switch(location.pathname){
+    case '/profile':
+      return '1';
+    case '/profile/general-table':
+      return '2';    
+    case '/profile/attendance-table':
+      return '3';
+    case '/profile/transfer-table':
+      return '4';      
+    case '/profile/tasks-table':
+        return '5';        
+    case '/profile/tasks-requests':
+        return '6';
+    case '/profile/alerts':
+        return '7';           
+    case '/profile/depts-table':
+        return '8';         
+  }
+
+}
 const [userform] = Form.useForm();
+
 
 return (
 <Layout className="site-layout">
@@ -707,9 +737,8 @@ return (
     </Col>
   </Row>
   <Row className='profile-row'>
-  <Tabs className='profile-tabs' style="padding-right:10px" tabPosition="bottom" defaultActiveKey="1" style={{width:'100%'}}>
-    <TabPane
-      
+  <Tabs className='profile-tabs' style={{paddingRight:'10px',width:'100%'}} tabPosition="bottom" activeKey={getCurrentTab()} >
+    <TabPane 
       tab={
         <Link to={url}  hidden={location.userData!=null?true:false}>
         <span>
@@ -719,6 +748,7 @@ return (
         </Link>
       }
       key="1"
+      
     >
     </TabPane>
     <TabPane
@@ -731,6 +761,7 @@ return (
         </Link>
       }
       key="2"
+      active={true}
     >
     </TabPane>
     <TabPane
@@ -755,9 +786,12 @@ return (
         </Link>
       }
       key="3"
+      
     >
     </TabPane>
-    <TabPane
+   { 
+   true &&
+   <TabPane
       tab={
         <Link to={`${url}/transfer-table`}>
         <span>
@@ -769,6 +803,7 @@ return (
       key="4"
     >
     </TabPane>
+}
     <TabPane
       tab={
         <Link to={`${url}/tasks-table`}>

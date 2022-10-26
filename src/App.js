@@ -37,10 +37,11 @@ function App() {
   const [loading,setLoading]=useState(false);
   const [setting,setSetting]=useState([]);
   let routes;
+  
   const id=cookies.user;
 
   useEffect(() => {   
-     axios.get(Env.HOST_SERVER_NAME+'setting/')
+     axios.get(Env.HOST_SERVER_NAME+'setting')
      .then(response => {
         setSetting(response.data);
      }).catch(function (error) {
@@ -146,7 +147,7 @@ function App() {
       <Layout>    
         <Switch>
           <Route path={PROFILE_ROUTE} render={() => <Profile setting={setting} userData={id} />} />
-          <Route path={CONTROL_PANEL_ROUTE} render={() =><ControlPanel setting={setting} />} />
+          <Route path={CONTROL_PANEL_ROUTE} render={() =><ControlPanel setting={setting} userData={id} />} />
           <Route path={LOGIN} component={Login} />
           <Redirect to="/profile" />
         </Switch>

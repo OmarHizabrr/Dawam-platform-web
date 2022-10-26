@@ -29,7 +29,7 @@ export default function SettingsPane(props){
       const [start,setStart]=useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().slice(0,10));
       const [end,setEnd]=useState(new Date().toISOString().slice(0, 10));    
       // eslint-disable-next-line react-hooks/rules-of-hooks
-     useEffect(() => {
+    /* useEffect(() => {
        setLoad(true);
        
         axios.get(Env.HOST_SERVER_NAME+'wages-list/'+start+'/'+end)
@@ -43,7 +43,7 @@ export default function SettingsPane(props){
           console.log(error);
         });;
 
-       }, [start,end]);
+       }, [start,end]);*/
 
 
 return (

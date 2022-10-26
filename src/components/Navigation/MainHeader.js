@@ -4,7 +4,7 @@ import axios from 'axios';
 import { Badge, Layout, Menu, Dropdown,Avatar,Button,Modal, Input,notification,Form } from 'antd';
 import { Typography } from 'antd';
 import {UserOutlined,DownOutlined,PoweroffOutlined,EyeInvisibleOutlined, EyeTwoTone ,LockOutlined,UploadOutlined,EllipsisOutlined}  from '@ant-design/icons';
-import  { useHistory,Redirect} from 'react-router-dom'
+import  { useHistory,Redirect,useRouteMatch} from 'react-router-dom'
 
 import { NavHashLink as NavLink } from 'react-router-hash-link';
 import { useCookies,CookiesProvider  } from 'react-cookie';
@@ -28,6 +28,7 @@ export default function MainHeader() {
   const [profileImage,setProfileImage]=useState();
   const [form] = Form.useForm();
   let history = useHistory();
+  let { path, url } = useRouteMatch(); 
 
   const showModal = () => {
     setIsModalVisible(true);
@@ -85,10 +86,18 @@ export default function MainHeader() {
   const handleICancel = () => {
     setIsIModalVisible(false);
   };
+
+  const readAlerts = () => {
+    setCount(null);
+    var fData=new FormData();
+    fData.append('alerts',data);
+    axios.post(Env.HOST_SERVER_NAME+'read-alerts', data).then(res => {
+    }).catch(err => console.log(err))
+  };
+  
   const handleRemoveCookie=()=>{
     removeCookie('user');
-    //cookies.remove("user");
-   document.location.reload();
+   return document.location.reload();
   }
   const [cookies, setCookie, removeCookie]=useCookies(["user"]);
   const id=cookies.user;
@@ -126,7 +135,7 @@ export default function MainHeader() {
    ))}
    <Menu.Divider />  
    <Menu.Item key="0" style={{textAlign:'center'}}>
-   <a href="http://localhost:3000/profile/alerts">عرض كل الإشعارات</a>
+   <a href= {`${url}/alerts`}>عرض كل الإشعارات</a>
      </Menu.Item>   
    </Menu>
     );
@@ -146,7 +155,7 @@ export default function MainHeader() {
         </Menu.Item>
         <Menu.Divider />
         <Menu.Item key="1" style={{marginTop:'8px', textAlign:'center'}}>
-        <Button style={{backgroundColor:'#f00',fontWeight:'900',borderColor:'#f00',color:'#fff'}} onClick={handleRemoveCookie}>
+        <Button style={{backgroundColor:'#f00',fontWeight:'900',borderColor:'#f00',color:'#fff'}} onClick={function(){handleRemoveCookie();}}>
         <PoweroffOutlined />
             تسجيل الخروج
         </Button></Menu.Item>
@@ -222,7 +231,7 @@ export default function MainHeader() {
        </Dropdown>
        </span>
        <span   style={{display:'inline-block'}}>
-       <Dropdown overlay={alertsMenu} trigger={['click']}>
+       <Dropdown overlay={alertsMenu} onClick={function(){readAlerts()}} trigger={['click']}>
        <a  href="#">
        <Badge className='noti-icon' count={count} >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bell" viewBox="0 0 16 16">

@@ -74,6 +74,8 @@ export default function tasksRequests() {
   const [vacationtype,setVacationtype]=useState([]);
   const [logload,setLogLoad]=useState(true);
   const [totalVac,setTotalVac]=useState("");
+  const [countPer,setCountPer]=useState(0);
+  const [countRest,setCountRest]=useState(0);
 
   const user = cookies.user;
   const [form] = Form.useForm();
@@ -96,7 +98,9 @@ export default function tasksRequests() {
           "/" +
           end
       )
-      .then((response) => {      
+      .then((response) => { 
+        setCountPer(Math.round(response.data["count"][0]['done']/response.data["count"][0]['total']*100));
+        setCountRest(response.data["count"][0]['total']-response.data["count"][0]['done']);
         setData(response.data["tasks"]);
         let names=[];
         let categories=[];
@@ -379,7 +383,7 @@ export default function tasksRequests() {
           <span>
             <Progress
               type="circle"
-              percent={12}
+              percent={countPer}
               width={80}
               style={{ marginLeft: "5px", display: "inline-block" }}
             />
@@ -393,7 +397,7 @@ export default function tasksRequests() {
             }}
           >
             <div style={{ marginBottom: "5px" }}>الطلبات المنجزة</div>
-            <div style={{ color: "#828282" }}> بقي لديك 12 طلباً</div>
+            <div style={{ color: "#828282" }}> بقي لديك {countRest} طلباً</div>
           </span>
         </div>
     <div className="requestsRange" >  

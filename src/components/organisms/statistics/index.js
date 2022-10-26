@@ -132,8 +132,8 @@ useEffect(() => {
       q.push(parseInt(item.count));
       l.push(item.qualification);
     });   
-    setQData(q);
-    setQlabels(l);
+    q??setQData(q);
+    l??setQlabels(l);
 
     var dd=[];
     var dl=[];
