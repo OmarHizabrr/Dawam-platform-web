@@ -29,8 +29,10 @@ export default function wagesReport(props){
       const [filteredInfo,setFilteredInfo]=useState({});
       const [sortedInfo,setSortedInfo]=useState({});
       const [isModalVisible,setIsModalVisible]=useState(false);
-      const [eventsLog,setEventsLog]=useState([]);
-      const [data,setData]=useState([]);    
+      const [namesFilter,setNamesFilter]=useState([]);
+      const [data,setData]=useState([]);   
+      const [pdata, setPData] = useState([]);
+ 
       const [categories,setCategories]=useState([]);
       const [load,setLoad]=useState(true);
       const [count,setCount]=useState(0);
@@ -43,9 +45,15 @@ export default function wagesReport(props){
        
         axios.get(Env.HOST_SERVER_NAME+'wages-list/'+start+'/'+end)
         .then(response => {
-         
+          let names=[];
+          response.data["lists"].forEach(element => {  
+            if(!names.some(item => element.name == item.text))      
+              names.push({text:element['name'],value:element['name']});        
+        }); 
+        setNamesFilter([...namesFilter,...names]);
           setCount(response.data.count[0].count);
           setData(response.data.lists);
+          setPData(response.data.lists);
           setCategories(response.data.categories);
           setLoad(false);
         }).catch(function (error) {
@@ -57,6 +65,18 @@ export default function wagesReport(props){
     const handleChange = (pagination, filters, sorter) => {
         setFilteredInfo(filters);
         setSortedInfo(sorter);
+
+        if(filters){       
+          Object.keys(filters).forEach(key => {
+            if(filters[key]!=null){
+              setPData(data.filter(item => filters[key].includes(item[key])));
+            }
+            else
+              setPData(data);           
+          });               
+        }
+
+       
       };
     const changeRange=(all,date)=>{
         //const id=cookies.user;
@@ -72,6 +92,10 @@ export default function wagesReport(props){
         sorter: (a, b) => a.name.length - b.name.length,
         sortOrder: sortedInfo.columnKey === 'name' && sortedInfo.order,
         ellipsis: false,
+        filters:namesFilter,
+        filterSearch: true,
+
+        onFilter: (value, record) => record.name.includes(value),
       },
       {
         title: 'المسمى الوظيفي',
@@ -236,7 +260,8 @@ return (
             <tbody>
              {
              categories.map(item=>{
-              var catData=data.filter(record => record.category==item.name);
+              var catData=pdata.filter(record => record.category==item.name);
+              
               var sal=0;
               var debts=0;
               var abs=0;
@@ -246,7 +271,7 @@ return (
               var totD=0;
               var total=0;
               var totr=0;
-              
+            if(catData.length) 
               return (
             <>
               {
@@ -292,7 +317,6 @@ return (
                   <td>{new Intl.NumberFormat('en-EN').format(tor)}</td>
                   <td><pre>             </pre></td>
                 </tr>);
-
              })
               }
               <tr  style={{height: " 30px",color:"#fff",backgroundColor: "#0972B6",}}>

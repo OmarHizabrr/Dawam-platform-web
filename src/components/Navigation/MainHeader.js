@@ -4,7 +4,7 @@ import axios from 'axios';
 import { Badge, Layout, Menu, Dropdown,Avatar,Button,Modal, Input,notification,Form } from 'antd';
 import { Typography } from 'antd';
 import {UserOutlined,DownOutlined,PoweroffOutlined,EyeInvisibleOutlined, EyeTwoTone ,LockOutlined,UploadOutlined,EllipsisOutlined}  from '@ant-design/icons';
-import  { useHistory,Redirect,useRouteMatch} from 'react-router-dom'
+import  { useLocation,Redirect,useRouteMatch} from 'react-router-dom'
 
 import { NavHashLink as NavLink } from 'react-router-hash-link';
 import { useCookies,CookiesProvider  } from 'react-cookie';
@@ -27,7 +27,7 @@ export default function MainHeader() {
 
   const [profileImage,setProfileImage]=useState();
   const [form] = Form.useForm();
-  let history = useHistory();
+  const location = useLocation();
   let { path, url } = useRouteMatch(); 
 
   const showModal = () => {
@@ -135,7 +135,7 @@ export default function MainHeader() {
    ))}
    <Menu.Divider />  
    <Menu.Item key="0" style={{textAlign:'center'}}>
-   <a href= {`${url}/alerts`}>عرض كل الإشعارات</a>
+   <a href= {'/profile/alerts'}>عرض كل الإشعارات</a>
      </Menu.Item>   
    </Menu>
     );

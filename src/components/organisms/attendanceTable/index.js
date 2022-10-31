@@ -103,7 +103,7 @@ export default function attendanceTable(props){
         }
 
         if(filters){       
-          console.log(filters);
+
           Object.keys(filters).forEach(key => {
 
             if(filters[key]!=null){

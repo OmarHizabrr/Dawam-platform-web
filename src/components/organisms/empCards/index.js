@@ -223,6 +223,7 @@ const onFinish=()=>{
   }
   
   axios.post(Env.HOST_SERVER_NAME+'users/add',formData).then(res => {
+    console.log(res.data);
     if(res.status==200){
       notification.success({
         message:'تمت العملية بنجاح' ,
@@ -232,15 +233,16 @@ const onFinish=()=>{
       userform.resetFields();
       setIsVisibleModal(false);
       setModalLoad(false);
-      setUserFormDisable(true);
-      
+      setUserFormDisable(true);   
     }
     else{
     alert("فشل إضافة موظف");
     setModalLoad(false);
   }
 }).catch(err =>{ console.log(err);
+  alert("فشل إضافة موظف");
   setModalLoad(false);
+
 }); 
 }
 var options = {
