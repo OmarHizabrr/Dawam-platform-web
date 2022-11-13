@@ -21,14 +21,45 @@ export default function deptCards(props){
     const [data,setData]=useState([]);
     const [load,setLoad]=useState(true);
     const [today,setToday]=useState(new Date().toISOString().split('T')[0]);
-
+    const [starList,setStarList]=useState([]); 
+    const [start,setStart]=useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().slice(0,10));
+    const [end,setEnd]=useState(new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().slice(0,10));
+    
     useEffect(() => {       
       setLoad(true);
-      axios.get(Env.HOST_SERVER_NAME+'categories-cards/'+today)
+      axios.get(Env.HOST_SERVER_NAME+'categories-cards/'+today+'/'+start+'/'+end)
       .then(response => {
-        setData(response.data);
-        console.log(response.data);
+        setData(response.data['categories']);
+
+        var stars=[];
+       
+        response.data['lists'].forEach(function(e){
+          var avg=(((response.data.count[0].count-e.attendanceDays)*(e.salary/response.data.count[0].count))+parseInt(e.lateTimePrice || 0))/e.salary;
+          stars.push({'user_id':e.user_id,'category_id':e.category_id,'star':Math.round((1-avg)*10)/2});
+        });
+        const reduced = stars.reduce(function(m, d){
+          if(!m[d.category_id]){
+            m[d.category_id] = {...d, count: 1};
+            return m;
+          }
+          m[d.category_id].star += d.star;
+          m[d.category_id].count += 1;
+          return m;
+       },{});
+
+       const result = Object.keys(reduced).map(function(k){
+        const item  = reduced[k];
+        return {
+            category_id: item.category_id,
+            star: Math.round((item.star/item.count)),
+
+        }
+    });
+        setStarList(result);
+
         setLoad(false);
+
+
       }).catch(function (error) {
         console.log(error);
       });
@@ -90,7 +121,7 @@ return(
 </div>
 <Progress type="circle" percent={category.att_percent} width={50} />
 </div>
-<Rate style={{textAlign: 'center',margin:'10px 0 5px'}} disabled allowHalf defaultValue={2.5} />
+<Rate style={{textAlign: 'center',marginBottom:'5px'}} disabled allowHalf value={starList?.filter(function (e) { return e.category_id == category.id; })[0]?.star} />
 </div>
   </Card>
 </Col>

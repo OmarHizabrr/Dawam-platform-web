@@ -123,17 +123,18 @@ export default function Statistics (props) {
 useEffect(() => {  
   axios.get(Env.HOST_SERVER_NAME+'general-statistics')
   .then(response => {
-    console.log(response.data);
+    
     setData(response.data);
     var q=[];
     var l=[];
 
-    response.data.qulaifications.map((item)=>{
+    response.data.qulaifications?.map((item)=>{
       q.push(parseInt(item.count));
       l.push(item.qualification);
-    });   
-    q??setQData(q);
-    l??setQlabels(l);
+    });
+    
+    setQData(q);
+    setQlabels(l);
 
     var dd=[];
     var dl=[];

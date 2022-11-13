@@ -15,14 +15,16 @@ import {Env} from './../../../styles';
 const {RangePicker}=DatePicker;
 
 export default function deptsTable(props){
-  const [cookies, setCookie, removeCookie]=useCookies(["userId"]);
-
+      const [cookies, setCookie, removeCookie]=useCookies(["userId"]);
       const [filteredInfo,setFilteredInfo]=useState({});
       const [sortedInfo,setSortedInfo]=useState({});
       const [data,setData]=useState([]);
       const [stdata,setStData]=useState([]);
       const [load,setLoad]=useState(true);
       const [today,setToday]=useState(new Date().toISOString().split('T')[0]);
+      const [start,setStart]=useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().slice(0,10));
+      const [end,setEnd]=useState(new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().slice(0,10));
+  
       const id=cookies.user;   
       const changeDate=(all,date)=>{
          setToday(date); 
@@ -39,9 +41,10 @@ export default function deptsTable(props){
      // eslint-disable-next-line react-hooks/rules-of-hooks
      useEffect(() => {
         setLoad(true);
-        axios.get(Env.HOST_SERVER_NAME+'categories-cards/'+today)
+        axios.get(Env.HOST_SERVER_NAME+'categories-cards/'+today+'/'+start+'/'+end)
           .then(response => {
-            setData(response.data);
+           
+            setData(response.data.categories);
             setLoad(false);
           }).catch(function (error) {
             console.log(error);

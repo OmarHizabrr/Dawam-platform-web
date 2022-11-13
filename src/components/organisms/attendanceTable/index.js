@@ -373,7 +373,19 @@ return (
       </div>    
     </div>
   </div>
-    <Table  loading={load} style={{textAlign:'center!important'}} columns={columns} scroll={{x: '1000px' }} onRow={(record, rowIndex) => {return{className:record.status};}} dataSource={data} onChange={handleChange} />
+    <Table  loading={load} style={{textAlign:'center!important'}} columns={columns} scroll={{x: '1000px' }} 
+      onRow={(record, rowIndex) => {
+        var bc;
+        if(record.attendance_time==null || record.leave_time==null)
+               bc="#FCEF96";
+
+        return{
+          className:record.status,
+          style:{backgroundColor:bc,}
+        };}}
+
+      dataSource={data} 
+      onChange={handleChange} />
     </Card>
   <div id="att-report" style={{display:'none'}}>
     <div  style={{direction: "rtl",fontSize: "12px",fontFamily: "Tajawal",margin: "0"}}>

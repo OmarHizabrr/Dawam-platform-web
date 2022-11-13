@@ -717,7 +717,7 @@ return (
       <div className="taggedInfo"><Text><ClusterOutlined /> {user.category.name} </Text></div>
       <div className="taggedInfo"><Text><TagsOutlined />{user.job}</Text></div>
       <div className="taggedInfo" style={{marginTop:'10px'}}>
-        <Rate disabled allowHalf value={Math.round(star*10)/2} />
+        <Rate disabled allowHalf value={Math.round(star*10)/2} /> {Math.round(star*100)}%
       </div>
     </Col>
     <Col xs={24} sm={24} md={8} lg={8} xl={8} style={{textAlign:'center',marginBottom:'-50px'}}>

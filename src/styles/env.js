@@ -7,6 +7,8 @@ if(offline){
 }
 else{
     server="https://api.alhikma-ye.com";
+   //  server="https://api.dawam.app";
+
 }
 
 export const HOST_SERVER_NAME =server +'/api/';
