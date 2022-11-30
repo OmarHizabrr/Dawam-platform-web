@@ -8,13 +8,15 @@ import excel from 'xlsx';
 import logoText from '../../../assets/images/logo-text.png';
 import {Env} from './../../../styles';
 import Modal from 'antd/lib/modal/Modal';
+import moment from 'moment';
+
 const {Text}=Typography;
 
   const { RangePicker } = DatePicker;
   const {TextArea}=Input;
   const {Option}=Select;
  
-export default function cumTasksReport (){
+export default function CumTasksReport (props){
 
   const [filteredInfo, setFilteredInfo] = useState({});
   const [sortedInfo, setSortedInfo] = useState({});
@@ -29,9 +31,10 @@ export default function cumTasksReport (){
   const [tasksTypes,setTasksTypes]=useState([]);
   const [empNames,setEmpNames]=useState([]);
   const [selectedName,setSelectedName]=useState(null);
-  const [start,setStart]=useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().slice(0,10));
-  const [end,setEnd]=useState(new Date().toISOString().slice(0, 10));
-  
+  const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
+  const [end,setEnd]=useState(moment().format('YYYY-MM-DD'));  
+  const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));  
+  const [categories,setCategories]=useState([]);
 
  
   const getVacDuration=(user_id,vac_name)=>{
@@ -40,10 +43,13 @@ export default function cumTasksReport (){
       return 0;
   }
   const getOrganizedVacations=()=>{
+
     if(data.length>0 && empNames.length>0 && tasksTypes.length>0){
     var vacData='[';
     empNames.map((user,index)=>{
-    vacData+='{'+'"empName":"'+user.label+'","user_id":"'+user.value+'",';
+
+    vacData+='{'+'"empName":"'+user.label+'","user_id":"'+user.value+'","category":"'+data?.filter(record => record.uid==user.value)[0]?.category+'",';
+
     var vacDetails="";
     tasksTypes.map((task)=>{
       vacDetails+='"'+task.label+'":"'+getVacDuration(user.value,task.label)+'",';    
@@ -107,7 +113,9 @@ export default function cumTasksReport (){
     if(end!='')
     axios.get(Env.HOST_SERVER_NAME+'get-cum-tasks/'+start+'/'+end)
     .then(response => {
-      setData(response.data);
+      console.log(response.data);
+      setCategories(response.data.categories);
+      setData(response.data.tasks);
       setLoad(false);
     }).catch(function (error) {
       console.log(error);
@@ -123,25 +131,18 @@ export default function cumTasksReport (){
       };
       const printReport=()=>{
         var report=document.getElementById('att-report');
-        //var report=document.body;
-       var mywindow = window.open('');
+        var mywindow = window.open('');
         mywindow.document.write("<html><head><title></title> <style>@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500&display=swap'); body{font-family:Tajawal;font-size:12px;margin:0}  </style>");
         mywindow.document.write('</head><body dir="rtl" style="font-size:12px;" >');
         mywindow.document.write(report.innerHTML);
         mywindow.document.write('</body></html>');
-    
         mywindow.document.close();
-        mywindow.focus();
-    
-        mywindow.print();
-        mywindow.close();   
-        /* var printContents = document.getElementById("att-report").innerHTML;
-        var originalContents = document.body.innerHTML;
-    
-        document.body.innerHTML = printContents;
-        window.print();
-        document.body.innerHTML = originalContents;*/ 
-      }
+         mywindow.onload = function() { // wait until all resources loaded 
+          mywindow.focus(); // necessary for IE >= 10
+          mywindow.print();  // change window to mywindow
+          mywindow.close();// change window to mywindow
+      };
+    }
       const exportToExcel=(type,fn,dl)=>{
         var elt = document.getElementsByClassName('print-table')[0];
         if(elt){
@@ -155,6 +156,7 @@ export default function cumTasksReport (){
         notification.success({
           message: <span> 'تم إضافة الإجازات/المهام الخاصة بـ ' <span style={{fontWeight:'bold'}}>{user_name} </span> ' بنجاح.' </span>,
           placement,
+          duration:10,
         });
       };
   const addTasks = () => {
@@ -195,13 +197,40 @@ export default function cumTasksReport (){
           setStart(date[0]);
           setEnd(date[1]); 
         }
+        const onChange=(all,data)=>{
+          setCurrentMonth(all.format('MMMM'));
+      
+          var startDay=props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value;
+          var endDay=props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value;
+      
+          setStart(moment(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
+          setEnd(moment(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
+      
+          }
+
+          function getMinutesTime(amPmString) {
+
+            if(amPmString){
+              var d = amPmString.split(':'); 
+              var m=(parseInt(d[0])*60) + parseInt(d[1]);
+              return m; 
+            }
+            else return 0;
+
+          }
+
         var index=1;
+        var tttasksTypes=Array(tasksTypes.length).fill(0);
 return (
     <Card>
       <div style={{marginBottom:'10px'}}>
       <div className='discountHeader' style={{marginBottom:'10px'}}>
+      <div style={{marginLeft:'10px'}}>
+        <span>اختر شهرًا : </span>
+        <DatePicker  defaultValue={moment()} onChange={onChange} picker="month" />
+      </div> 
         <div className='discountRange' style={{marginBottom:'10px'}}><span>اختر فترة : </span>
-          <RangePicker  onCalendarChange={changeRange} />
+          <RangePicker value={[moment(start,"YYYY-MM-DD"),moment(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
         </div>
         <div className='discountBtn'>
           <Button style={{display:'block',margin:'0 10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
@@ -214,10 +243,10 @@ return (
     <div  style={{direction: "rtl",fontSize: "12px",fontFamily: "Tajawal",margin: "0"}}>
     <header style={{display: "flex",flexDirection: "row",borderColor:'#000',borderBottomStyle: "solid",borderBottomWidth:"1px"}}>
        <div style={{width: "20%"}}>
-           <img loading="eager" style={{width: "250px"}} src={logoText}/>
+           <img loading="eager" style={{width: "250px"}} src={Env.HOST_SERVER_STORAGE+props.setting.filter((item)=> item.key == 'admin.logo')[0]?.value}/>
        </div>
        <div style={{fontSize: "11px",textAlign: "center",width: "60%",display: "flex",flexDirection: "column",justifyContent: "end",paddingBottom: "10px"}}>
-           <h1 style={{fontSize: " 18px",fontWeight:700,marginBottom: " 5px",margin: "0"}}>كشف الإجازات</h1>
+           <h1 style={{fontSize: " 18px",fontWeight:700,marginBottom: " 5px",margin: "0"}}>كشف الإجازات لشهر {currentMonth}</h1>
            <h2 style={{fontSize: " 14px",fontWeight: " 200",margin: "0"}}>للفترة من {start} إلى {end}</h2>
        </div>     
        <div style={{width: "20%"}}>
@@ -239,19 +268,66 @@ return (
                 </tr>
             </thead>
             <tbody>
-             {getOrganizedVacations().map(item=>(
+             {
+             
+            categories.map(item=>{
+
+              var catData=getOrganizedVacations()?.filter(record => record.category==item.name);
+
+              var ttasksTypes=Array(tasksTypes.length).fill(0);
+
+          if(catData.length) 
+            return (
+            <>
+            {
+             catData.map(item=>{
+
+              return(
               <tr style={{height: " 25px",backgroundColor:index %2==0?'#e6e6e6':'#fff'}}>
                 <td>{index++}</td>
                 <td>{item.empName}</td>
                 <td>{item.user_id}</td>
-                {tasksTypes.map(task=>{
+                {tasksTypes.map((task,index)=>{
 
-                return  <td>{item[task.label]?.replace(/(\d{1,2}:\d{2}):\d{2}/, "$1")}</td>;
+                  var taskAmount=item[task.label]?.replace(/(\d{1,2}:\d{2}):\d{2}/, "$1");
+                  var taskSplit=taskAmount.split(":");
+                 
+                  var finalTask=taskAmount==0?0: parseInt(taskSplit[0]*60)+parseInt(taskSplit[1]);
+
+                  ttasksTypes[index]=ttasksTypes[index]+parseInt(finalTask);
+                  tttasksTypes[index]=tttasksTypes[index]+parseInt(finalTask);
+
+                return  <td>{taskAmount}</td>;
+
+                })}               
+                <td><pre>             </pre></td>
+              </tr>);
+            }
+            )
+             }
+              <tr  style={{height: " 30px",color:"#fff",backgroundColor: "#0972B6",}}>
+                <td colSpan={3}>{item.name}</td>               
+                {tasksTypes.map((task,index)=>{
+
+                return  <td>{parseInt(ttasksTypes[index]/60)+":"+ttasksTypes[index]%60}</td>;
 
                 })}               
                 <td><pre>             </pre></td>
               </tr>
-             ))}
+             </>
+             );
+
+             })}
+              <tr  style={{height: " 30px",color:"#fff",backgroundColor: "#0972B6",}}>
+                <td colSpan={3}>{'الإجمالي العام'}</td>               
+                {tasksTypes.map((task,index)=>{
+
+                  return  <td>{parseInt(tttasksTypes[index]/60)+":"+tttasksTypes[index]%60}</td>;
+
+                  })}               
+                  <td><pre>             </pre></td>
+              </tr>
+  
             </tbody>
         </table>
     </div>

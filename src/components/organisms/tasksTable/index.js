@@ -39,8 +39,10 @@ export default function tasksTable(props) {
   const [startVac,setStartVac]=useState("");
   const [type,setType]=useState(null);
   const [endVac,setEndVac]=useState("");
-  const [start,setStart]=useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().slice(0,10));
-  const [end,setEnd]=useState(new Date().toISOString().slice(0, 10)); 
+  const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
+  const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
+  const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
+ 
   const [notes,setNotes]=useState("");
   const [tstypes,setTstypes]=useState([]);
   const [data,setData]=useState([]);
@@ -107,7 +109,7 @@ export default function tasksTable(props) {
     setLoad(true);
     axios.get(Env.HOST_SERVER_NAME+'get-tasks/'+props.user.user_id+'/'+start+'/'+end)
     .then(response => {
-     
+
       let vacations=[];
       response.data.forEach(element => {  
         if(!vacations.some(item => element.name == item.text))      
@@ -192,6 +194,7 @@ export default function tasksTable(props) {
             setIsModalVisible(false);    
             setUpdate(update+1);
             form.resetFields(['date_range','task_type','notes']);
+            setTotalVac("");
             setType(null);
             setNotes(null);
           })
@@ -200,7 +203,7 @@ export default function tasksTable(props) {
         notification.error({
           message:'فشل إرسال الإجازة!' ,
           placement:'bottomLeft',
-          duration:0,
+          duration:10,
         });
         setSaving(false);
         setIsModalVisible(false);   
@@ -220,11 +223,12 @@ export default function tasksTable(props) {
         axios.post(Env.HOST_SERVER_NAME+`update-task`,values)
            .then(function (response) { 
 
-               openNotification('bottomLeft',<Text>{'تم تعديل الإجازة بنجاح'}</Text>);
-               setUSaving(false);
+             openNotification('bottomLeft',<Text>{'تم تعديل الإجازة بنجاح'}</Text>);
+             setUSaving(false);
              setIsUModalVisible(false);    
              setUpdate(update+1);
              uform.resetFields(['date_range','task_type','notes']);
+             setTotalVac("");
              setVacType(null);
              setNotes(null);
            })
@@ -233,7 +237,7 @@ export default function tasksTable(props) {
          notification.error({
            message:'فشل إرسال الإجازة!' ,
            placement:'bottomLeft',
-           duration:0,
+           duration:10,
          });
          setUSaving(false);
          setIsUModalVisible(false);    
@@ -245,7 +249,7 @@ export default function tasksTable(props) {
         notification.success({
           message:text ,
           placement,
-          duration:0,
+          duration:10,
         });
       }
   const deleteTask = (record) => {
@@ -406,7 +410,7 @@ export default function tasksTable(props) {
           width:100,
           render: (vid, record, index) => (
             <Button
-              disabled={record.status!='في الانتظار'}
+              disabled={record.manager_accept!='في الانتظار' || record.status!='في الانتظار'}
               onClick={function () {uform.setFieldsValue({notes:record.description,date_range:[moment(record.date_from,"YYYY-MM-DD HH:mm") , moment(record.date_to, "YYYY-MM-DD HH:mm")],task_type:record.vac_id});setVacId(record.id);setVacType(record.vac_id);setDatefromValue(record.date_from);setDatetoValue(record.date_to);setNotes(record.description);setSelectedLogs(null);setIsUModalVisible(true);}}
               className={'edit-btn'}
               style={{ backgroundColor: "#fff", borderColor: "#0972B6",color:"#0972B6" }}
@@ -414,7 +418,6 @@ export default function tasksTable(props) {
               shape="round"
               icon={<FormOutlined />}
             >
-
             </Button>
           ),
         } ,  
@@ -500,6 +503,17 @@ export default function tasksTable(props) {
       }
       var days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
       var index=1;
+
+      const onChange=(all,data)=>{
+        setCurrentMonth(all.format('MMMM'));
+    
+        var startDay=props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value;
+        var endDay=props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value;
+    
+        setStart(moment(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
+        setEnd(moment(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
+    
+        }
 return (
     <Card>
     <div className='tasksHeader'>
@@ -511,9 +525,13 @@ return (
         </span>
       </div>
   
-      <div className='tasksOper'>  
+      <div className='tasksOper'>
+      <div style={{marginLeft:'10px'}}>
+        <span>اختر شهرًا : </span>
+        <DatePicker  defaultValue={moment()} onChange={onChange} picker="month" />
+      </div>  
         <div className='tasksRange' style={{marginBottom:'10px',marginLeft:'5px'}}><span>اختر فترة : </span>
-          <RangePicker  onCalendarChange={changeRange} />
+          <RangePicker value={[moment(start,"YYYY-MM-DD"),moment(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
         </div>
         <div className='tasksBtn'>   
           <Button style={{marginBottom:'10px',marginLeft:'5px',backgroundColor:'#FAA61A',border:'none'}} onClick={showModal} type='primary'><FormOutlined /> تقديم إجازة </Button>
@@ -610,7 +628,7 @@ return (
            <img loading="eager" style={{width: "250px"}} src={Env.HOST_SERVER_STORAGE+props.setting.filter((item)=> item.key == 'admin.logo')[0]?.value}/>
        </div>
        <div style={{fontSize: "11px",textAlign: "center",width: "60%",display: "flex",flexDirection: "column",justifyContent: "end",paddingBottom: "10px"}}>
-           <h1 style={{fontSize: " 18px",fontWeight:700,marginBottom: " 5px",margin: "0"}}>حافظة الإجازات  والمهام</h1>
+           <h1 style={{fontSize: " 16px",fontWeight:700,marginBottom: " 5px",margin: "0"}}>حافظة الإجازات  والمهام لشهر {currentMonth}</h1>
            <h2 style={{fontSize: " 14px",fontWeight: " 200",margin: "0"}}>للفترة من {start} إلى {end}</h2>
        </div>     
        <div style={{width: "20%"}}>

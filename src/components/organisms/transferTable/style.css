@@ -1,0 +1,7 @@
+@media only screen and (max-width: 600px) {
+
+.transHeader{
+    display: flex;
+    flex-direction: column;
+}
+}

@@ -138,7 +138,7 @@ export default function events() {
       notification.success({
         message:text ,
         placement,
-        duration:0,
+        duration:10,
       });
     }
     const testUpload=(file)=>{

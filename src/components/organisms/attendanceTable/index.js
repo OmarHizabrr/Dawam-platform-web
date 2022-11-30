@@ -39,8 +39,9 @@ export default function attendanceTable(props){
       const [totalLate,setTotalLate]=useState(0);
       const [totalLatePrice,setTotalLatePrice]=useState(0);
       const [salary,setSalary]=useState(0);
-      const [start,setStart]=useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().slice(0,10));
-      const [end,setEnd]=useState(new Date().toISOString().slice(0, 10)); 
+      const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
+      const [end,setEnd]=useState(moment().format('YYYY-MM-DD'));  
+
       const [dsalary,setDsalary]=useState(0);
       const [totalDebt,setTotalDebt]=useState(0);
       const [totalLoan,setTotalLoan]=useState(0);
@@ -49,8 +50,8 @@ export default function attendanceTable(props){
       const [totalVacs,setTotalVacs]=useState([]);
       const [selUser,setSelUser]=useState(null);
       const [pdata, setPData] = useState([]);
+      const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
 
-    
       const id=cookies.user;   
       var allWorkHours=0;
       var allLateTimes=0;
@@ -343,7 +344,16 @@ export default function attendanceTable(props){
   const handleCancel = () => {
     setIsModalVisible(false);
   };
+  const onChange=(all,data)=>{
+    setCurrentMonth(all.format('MMMM'));
 
+    var startDay=props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value;
+    var endDay=props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value;
+
+    setStart(moment(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
+    setEnd(moment(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
+
+    }
 return (
     <Layout className='attendance'>
     <Modal className='att-model' width={1100} title="أحداث اليوم"  visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
@@ -364,10 +374,14 @@ return (
       </span>
     </div>
     <div className='attOper'>
+    <div style={{marginLeft:'10px'}}>
+        <span>اختر شهرًا : </span>
+        <DatePicker defaultValue={moment()} onChange={onChange} picker="month" />
+      </div>
       <div className='attOperRange' style={{marginBottom:'10px'}}><span>اختر فترة : </span>
-          <RangePicker style={{width: '200px'}} onCalendarChange={changeRange} />
+          <RangePicker value={[moment(start,"YYYY-MM-DD"),moment(end,"YYYY-MM-DD")]} style={{width: '230px'}} onCalendarChange={changeRange} />
       </div>    
-      <div className='attOperBtn' style={{float: 'left'}}>
+      <div className='attOperBtn' style={{textAlign: 'left'}}>
        <Button style={{margin:'0 10px',textAlign:'center',marginLeft:'5px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
         <Button style={{backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button>
       </div>    
@@ -412,13 +426,13 @@ return (
     </div>
        </div>
     </header> 
-    <div  style={{display: 'flex',flexDirection: 'row',textAlign: 'center',padding: '10px',fontSize: '14px',borderBottom:'1px solid black'}} >
+    <div class="table-info" style={{display: 'flex',flexDirection: 'row',textAlign: 'center',padding: '10px',fontSize: '14px',borderBottom:'1px solid black'}} >
          <div style={{width: " 30%"}}>الاسم:  {props.user.name}</div>
          <div style={{width: " 20%"}}> الرقم الوظيفي:  {props.user.user_id} </div>
          <div style={{width: " 20%"}}>الوظيفة:  {props.user.job}</div>
          <div style={{width: " 30%"}}>الإدارة:  { typeof props.user.category === 'object'?props.user.category.name:props.user.category}</div>
     </div>
-    <div >
+    <div>
         <table style={{fontSize: "12px",width: " 100%",textAlign: " center",marginTop: " 20px"}}>
             <thead>
                 <tr style={{color:"#fff",backgroundColor: "#0972B6",height: "30px"}}>
@@ -432,7 +446,7 @@ return (
                      <th style={{fontWeight: "100"}}>نوع الإجازة</th>
                      <th style={{fontWeight: "100"}}>الوقت الفائض</th>
                      <th style={{fontWeight: "100"}}>مبلغ الخصم</th>
-                    <th style={{fontWeight: "100",width: " 300px"}}>ملاحظات</th>
+                     <th style={{fontWeight: "100",width: " 300px"}}>ملاحظات</th>
                 </tr>
             </thead>
             <tbody>
@@ -457,7 +471,7 @@ return (
                 <td>{item.types?item.types:''}</td>
                 <td>{item.bonusTime}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(Math.round(item.discount))+" "+curr}</td>
-                <td>{item.notes}</td>
+                <td style={{width: "300px"}}>{item.notes}</td>
               </tr>);
              })}
              <tr style={{color:"#fff",backgroundColor: "#0972B6",height: "30px"}}>

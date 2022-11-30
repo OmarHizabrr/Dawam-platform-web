@@ -47,7 +47,7 @@ export default function MainHeader() {
         notification.success({
           message:'تم تعديل كلمة السر بنجاح' ,
           placement:'bottomLeft',
-          duration:0,
+          duration:10,
         });
         console.log(res);
         setSaving(false);
@@ -216,11 +216,14 @@ export default function MainHeader() {
   </Modal>
   <div className="logo" />
   
-  <Menu className='mainHeader' theme="light" mode="horizontal" defaultSelectedKeys={['1']} >
+  <Menu style={{display:'block'}} className='mainHeader' theme="light" mode="horizontal" defaultSelectedKeys={['1']} >
 
       <Menu.Item className='profileLarge' key="1"><NavLink to={PROFILE_ROUTE} >الملف الشخصي</NavLink></Menu.Item>
-      {controlPanel()}
-    <div style={{float:'left'}}>
+
+      {id && id.role_id==1 ?
+      <Menu.Item  className='controlLarge'  key="2"><NavLink to={CONTROL_PANEL_ROUTE} >لوحة التحكم</NavLink></Menu.Item>:<></>}
+ 
+    <div style={{display: 'inline-block',float: 'left'}}>
      <span className='userAvatar'>
        <Avatar size={40} src={id?Env.HOST_SERVER_STORAGE+id.avatar:""} />
        <Dropdown  overlay={menu} trigger={['click']}>

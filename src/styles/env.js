@@ -6,8 +6,8 @@ if(offline){
     server="http://127.0.0.1:8000";
 }
 else{
-    server="https://api.alhikma-ye.com";
-   //  server="https://api.dawam.app";
+   server="https://api.alhikma-ye.com";
+  //   server="https://api.ihcro.dawam.app";
 
 }
 

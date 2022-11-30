@@ -128,13 +128,14 @@ useEffect(() => {
     var q=[];
     var l=[];
 
-    response.data.qulaifications?.map((item)=>{
+    response.data?.qulaifications?.map((item)=>{
       q.push(parseInt(item.count));
-      l.push(item.qualification);
+      l.push(item.qualification??"لا يوجد");
     });
-    
+ 
     setQData(q);
     setQlabels(l);
+    
 
     var dd=[];
     var dl=[];

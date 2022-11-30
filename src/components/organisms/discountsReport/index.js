@@ -9,6 +9,8 @@ import axios from 'axios';
 import { useCookies,CookiesProvider  } from 'react-cookie';
 import {FileExcelOutlined} from '@ant-design/icons';
 import {Env} from './../../../styles';
+import moment from 'moment';
+
 const { Content } = Layout;
 const { Text,Space } = Typography;
 const { TabPane } = Tabs;
@@ -24,23 +26,41 @@ const exportToExcel=(type,fn,dl)=>{
    excel.writeFile(wb, fn || ('كشف الخصميات.' + (type || 'xlsx')));  
   }
 }
-export default function discountsReport(){
+export default function DiscountsReport(props){
       const [filteredInfo,setFilteredInfo]=useState({});
       const [sortedInfo,setSortedInfo]=useState({});
 
       const [data,setData]=useState([]);
-      const [categories,setCategories]=useState([]);
+      const [pdata, setPData] = useState([]);
 
+      const [categories,setCategories]=useState([]);
+      const [namesFilter,setNamesFilter]=useState([]);
+      const [categoriesFilter,setCategoriesFilter]=useState([]);
       const [load,setLoad]=useState(true);
       const [count,setCount]=useState(0);
-      const [start,setStart]=useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().slice(0,10));
-      const [end,setEnd]=useState(new Date().toISOString().slice(0, 10));    
-      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
+      const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
+      const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
+          // eslint-disable-next-line react-hooks/rules-of-hooks
      useEffect(() => {
        setLoad(true);
         axios.get(Env.HOST_SERVER_NAME+'discounts-list/'+start+'/'+end)
         .then(response => {
+
+          let names=[];
+          let categories=[];
+          response.data["lists"].forEach(element => {  
+            if(!names.some(item => element.name == item.text))      
+              names.push({text:element['name'],value:element['name']});
+            if(!categories.some(item => element.category == item.text))      
+              categories.push({text:element['category'],value:element['category']});        
+        }); 
+        setNamesFilter(names);
+        setCategoriesFilter(categories);
+
           setData(response.data.lists);
+          setPData(response.data.lists);
+
           setCount(response.data.count[0].count);
           setCategories(response.data.categories);
           setLoad(false);
@@ -52,6 +72,18 @@ export default function discountsReport(){
     const handleChange = (pagination, filters, sorter) => {
         setFilteredInfo(filters);
         setSortedInfo(sorter);
+
+        if(filters){       
+          Object.keys(filters).forEach(key => {
+            if(filters[key]!=null){
+              setPData(data.filter(item => filters[key].includes(item[key])));
+            }
+            else
+              setPData(data);           
+          });               
+        }
+
+       
       };
       const changeRange=(all,date)=>{
         //const id=cookies.user;
@@ -69,6 +101,20 @@ export default function discountsReport(){
         sorter: (a, b) => a.name.length - b.name.length,
         sortOrder: sortedInfo.columnKey === 'name' && sortedInfo.order,
         ellipsis: false,
+        filters:namesFilter,
+        filterSearch: true,
+        filterMode:'tree',
+        onFilter: (value, record) => record.name.includes(value),
+      },
+      {
+        title: 'الإدارة',
+        dataIndex: 'category',
+        key: 'category',
+        sorter: (a, b) => a.category.length - b.category.length,
+        sortOrder: sortedInfo.columnKey === 'category' && sortedInfo.order,
+        filters:categoriesFilter,
+        filterMode:'tree',        
+        onFilter: (value, record) => record.category.includes(value),
       },
       {
         title: 'المسمى الوظيفي',
@@ -162,7 +208,16 @@ export default function discountsReport(){
       }
       else return 0;
     }
-
+    const onChange=(all,data)=>{
+      setCurrentMonth(all.format('MMMM'));
+  
+      var startDay=props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value;
+      var endDay=props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value;
+  
+      setStart(moment(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
+      setEnd(moment(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
+  
+      }
     var index=0;
     var tsal=0;
     var tltimes=0;
@@ -170,13 +225,18 @@ export default function discountsReport(){
     var tatimes=0;
     var tadiscounts=0;
     var ttotal=0;
+    var tttotalateTime=0;
 return (
     <Layout>
     <Card>
     <div style={{marginBottom:'10px'}}>
       <div className='discountHeader' style={{marginBottom:'10px'}}>
+      <div style={{marginLeft:'10px'}}>
+        <span>اختر شهرًا : </span>
+        <DatePicker  defaultValue={moment()} onChange={onChange} picker="month" />
+      </div> 
         <div className='discountRange' style={{marginBottom:'10px'}}><span>اختر فترة : </span>
-          <RangePicker  onCalendarChange={changeRange} />
+          <RangePicker value={[moment(start,"YYYY-MM-DD"),moment(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
         </div>
         <div className='discountBtn'>
           <Button style={{display:'block',margin:'0 10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
@@ -190,10 +250,10 @@ return (
     <div  style={{direction: "rtl",fontSize: "12px",fontFamily: "Tajawal",margin: "0"}}>
     <header style={{display: "flex",flexDirection: "row",borderColor:'#000',borderBottomStyle: "solid",borderBottomWidth:"1px"}}>
        <div style={{width: "20%"}}>
-           <img loading="eager" style={{width: "250px"}} src={logoText}/>
+           <img loading="eager" style={{width: "250px"}} src={Env.HOST_SERVER_STORAGE+props.setting.filter((item)=> item.key == 'admin.logo')[0]?.value}/>
        </div>
        <div style={{fontSize: "11px",textAlign: "center",width: "60%",display: "flex",flexDirection: "column",justifyContent: "end",paddingBottom: "10px"}}>
-           <h1 style={{fontSize: " 18px",fontWeight:700,marginBottom: " 5px",margin: "0"}}>خلاصة الغياب والتأخرات</h1>
+           <h1 style={{fontSize: " 15px",fontWeight:700,marginBottom: " 5px",margin: "0"}}>خلاصة الغياب والتأخرات لشهر {currentMonth}</h1>
            <h2 style={{fontSize: " 14px",fontWeight: " 200",margin: "0"}}>للفترة من {start} إلى {end}</h2>
        </div>     
        <div style={{width: "20%"}}>
@@ -213,26 +273,30 @@ return (
                      <th style={{fontWeight: "100"}} rowSpan="2">الاستحقاق</th>
                      <th style={{fontWeight: "100"}} colSpan="2">التأخرات</th>
                      <th style={{fontWeight: "100"}} colSpan="2">الغياب</th>
-                     <th style={{fontWeight: "100"}} rowSpan="2">إجمالي الخصم</th>
+                     <th style={{fontWeight: "100"}} colSpan="2">إجمالي الخصم</th>
                 </tr>
                 <tr style={{color:"#fff",backgroundColor: "#0972B6",height: "20px"}}>
                 <th style={{fontWeight: "100"}}>الساعات</th>
                 <th style={{fontWeight: "100"}}>الخصم</th>
                 <th style={{fontWeight: "100"}}>الأيام</th>
                 <th style={{fontWeight: "100"}}>الخصم</th>
+                <th style={{fontWeight: "100"}}>الساعات</th>
+                <th style={{fontWeight: "100"}}>المبلغ</th>
                 </tr>
             </thead>
             <tbody>
             {
              categories.map(item=>{
-              var catData=data.filter(record => record.category==item.name);
+              var catData=pdata.filter(record => record.category==item.name);
               var sal=0;
               var ltimes=0;
               var ldiscounts=0;
               var atimes=0;
               var adiscounts=0;
               var total=0;
-              
+              var ttotalateTime=0;
+
+              if(catData.length) 
               return (
             <>
               {
@@ -240,15 +304,15 @@ return (
                 sal+=parseFloat(item.salary);
 
                 //ltimes+=getMinutesTime(item.lateTime);
-                ltimes+=Math.round(getMinutesTime(item.lateTime))?0:Math.round(getMinutesTime(item.lateTime));
+                ltimes+=Math.round(getMinutesTime(item.lateTime))<0?0:Math.round(getMinutesTime(item.lateTime));
                 ldiscounts+=Math.round(item.lateTimePrice)<0?0:Math.round(item.lateTimePrice);
 
                 var atim=count-item.attendanceDays;
                 atim=atim<0?0:atim;
                 atimes+=atim;
-                var adis=Math.round(((item.salary/30)*(atim))*100)/100 ;
+                var adis=parseFloat((item.salary/30)*(atim));
                 adiscounts+=adis;
-                var tot=Math.round(item.lateTimePrice)+adis;
+                var tot=parseFloat(item.lateTimePrice)+adis;
                 total+=tot;
 
                 tsal+=parseFloat(item.salary);
@@ -257,6 +321,9 @@ return (
                 tatimes+=atim;
                 tadiscounts+=adis;
                 ttotal+=tot;
+                var totalateTime=(atim*7*60)+getMinutesTime(item.lateTime);
+                ttotalateTime+=totalateTime;
+                tttotalateTime+=totalateTime;
 
               return  (
               <tr style={{height: " 30px",backgroundColor:++index %2!=0?'#e6e6e6':'#fff'}}>
@@ -265,23 +332,24 @@ return (
                 <td style={{fontSize:'8px',width:'60px'}}>{item.job}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(item.salary)}</td>
                 <td>{item.lateTime}</td>
-                <td>{new Intl.NumberFormat('en-EN').format(Math.round(item.lateTimePrice))}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(Math.round(item.lateTimePrice/5)*5)}</td>
                 <td>{atim}</td>
-                <td>{new Intl.NumberFormat('en-EN').format(adis)}</td>
-                <td>{new Intl.NumberFormat('en-EN').format(tot)}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(Math.round(adis/5)*5)}</td>
+                <td>{parseInt(totalateTime/60)+":"+(totalateTime%60)}</td>               
+                <td>{new Intl.NumberFormat('en-EN').format(Math.round(tot/5)*5)}</td>
               </tr>
               );
-
              })
               }
               <tr  style={{height: " 30px",color:"#fff",backgroundColor: "#0972B6",}}>
                 <td colSpan={3}>{item.name}</td>               
                 <td>{new Intl.NumberFormat('en-EN').format(sal)}</td>
                 <td>{parseInt(ltimes/60)+":"+(ltimes%60)}</td>
-                <td>{new Intl.NumberFormat('en-EN').format(ldiscounts)}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(Math.round(ldiscounts/5)*5)}</td>
                 <td>{atimes}</td>
-                <td>{new Intl.NumberFormat('en-EN').format(adiscounts)}</td>
-                <td>{new Intl.NumberFormat('en-EN').format(total)}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(Math.round(adiscounts/5)*5)}</td>
+                <td>{parseInt(ttotalateTime/60)+":"+(ttotalateTime%60)}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(Math.round(total/5)*5)}</td>
               </tr>
             </>            
               );
@@ -290,10 +358,11 @@ return (
               <td colSpan={3}>{'الإجمالي العام'}</td>               
                 <td>{new Intl.NumberFormat('en-EN').format(tsal)}</td>
                 <td>{parseInt(tltimes/60)+":"+(tltimes%60)}</td>
-                <td>{new Intl.NumberFormat('en-EN').format(tldiscounts)}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(Math.round(tldiscounts/5)*5)}</td>
                 <td>{tatimes}</td>
-                <td>{new Intl.NumberFormat('en-EN').format(tadiscounts)}</td>
-                <td>{new Intl.NumberFormat('en-EN').format(ttotal)}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(Math.round(tadiscounts/5)*5)}</td>
+                <td>{parseInt(tttotalateTime/60)+":"+(tttotalateTime%60)}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(Math.round(ttotal/5)*5)}</td>
               </tr>
 
             </tbody>

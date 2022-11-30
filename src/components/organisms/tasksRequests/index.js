@@ -26,6 +26,7 @@ import {
 } from "antd";
 import { ExportOutlined, FormOutlined } from "@ant-design/icons";
 import FormItem from "antd/lib/form/FormItem";
+import { useForm } from "rc-field-form";
 const { Text } = Typography;
 
 const { RangePicker } = DatePicker;
@@ -42,19 +43,16 @@ const exportToExcel = (type, fn, dl) => {
   }
 };
 
-export default function tasksRequests() {
+export default function TasksRequests(props) {
   const [saving,setSaving]=useState(false);
 
   const [cookies, setCookie, removeCookie] = useCookies(["userId"]);
   const [filteredInfo, setFilteredInfo] = useState({});
   const [sortedInfo, setSortedInfo] = useState({});
   const [data, setData] = useState([]);
-  const [start, setStart] = useState(
-    new Date(new Date().setDate(new Date().getDate() - 30))
-      .toISOString()
-      .slice(0, 10)
-  );
-  const [end, setEnd] = useState(new Date().toISOString().slice(0, 10));
+  const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
+  const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
+  const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM')); 
   const [selected, setSelected] = useState(null);
   const [selectedLogs, setSelectedLogs] = useState(null);
 
@@ -102,6 +100,7 @@ export default function tasksRequests() {
         setCountPer(Math.round(response.data["count"][0]['done']/response.data["count"][0]['total']*100));
         setCountRest(response.data["count"][0]['total']-response.data["count"][0]['done']);
         setData(response.data["tasks"]);
+      
         let names=[];
         let categories=[];
         let vacations=[];
@@ -113,8 +112,9 @@ export default function tasksRequests() {
             if(!vacations.some(item => element.vactype == item.text))      
               vacations.push({text:element['vactype'],value:element['vactype']});         
         }); 
-        setNamesFilter([...namesFilter,...names]);
-        setCategoriesFilter([...categoriesFilter,...categories]);
+
+        setNamesFilter(names);
+        setCategoriesFilter(categories);
         setVacationsFilter([...vacationsFilter,...vacations]);     
         setLoad(false);
         setVacationsTypes(response.data['types']);
@@ -134,15 +134,22 @@ export default function tasksRequests() {
    // console.log(filters);
   };
   const processRequest = (selected) => {
+
     form.resetFields(['range_date','request_type','request_status','notes']);
-    setSelected(selected);
+    setNotes("");
+
+    form.setFieldValue('request_type',selected.vactype);
+    form.setFieldValue('range_date',[moment(selected ? selected.date_from : "", "YYYY-MM-DD HH:mm"), moment(selected ? selected.date_to : "", "YYYY-MM-DD HH:mm")]);
+
     setTotalVac(selected?.days > 0 ? (parseInt(selected?.days)+1) + " يوم " : "" + selected?.period != 0 ? selected?.period : "");
     setVacationtype(selected.vacation);
     setStartVac(selected.date_from);  
     setEndVac(selected.date_to); 
+
     setIsModalVisible(true);
     setSelectedLogs(null);
     setLogLoad(true);
+
     axios.get(Env.HOST_SERVER_NAME+'attendancelogs-between/'+selected.user_id+'/'+selected.date_from+'/'+selected.date_to).then(response=>{
       setSelectedLogs(response.data);
       setLogLoad(false);
@@ -174,6 +181,9 @@ export default function tasksRequests() {
   }
   const handleOk = () => {
     setSaving(true);
+ 
+    
+
     var values = {
       user_id: cookies.user.user_id,
       vid: selected.vid,
@@ -184,14 +194,16 @@ export default function tasksRequests() {
       note: notes,
       accepter: accepter,
     };
+    
     axios
     .post(Env.HOST_SERVER_NAME + `accept-task`, values)
     .then(function (response) {
      notification.success({
       message:"تم التحديث بنجاح" ,
       placement:'bottomLeft',
-      duration:0,
+      duration:10,
     });
+    
     setSaving(false);
     setIsModalVisible(false);
     setUpdate(update+1);
@@ -223,6 +235,7 @@ export default function tasksRequests() {
       dataIndex: "user",
       key: "user",
       filters:namesFilter,
+      filterSearch: true,
       filteredValue: filteredInfo.user || null,
       onFilter: (value, record) => record.user.includes(value),
       sorter: (a, b) => a.user.length - b.user.length,
@@ -322,8 +335,9 @@ export default function tasksRequests() {
       key: "vid",
       render: (vid, record, index) => (
         <Button
-        disabled={record.hr_manager!='في الانتظار'}
+          disabled={props.user.role_id!=1 && record.hr_manager!='في الانتظار'}
           onClick={function () {
+            setSelected(record);
             processRequest(record);
           }}
           style={{ backgroundColor: "#0972B6", borderColor: "#0972B6" }}
@@ -374,6 +388,16 @@ export default function tasksRequests() {
     },
   ];
 
+  const onChange=(all,data)=>{
+    setCurrentMonth(all.format('MMMM'));
+
+    var startDay=props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value;
+    var endDay=props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value;
+
+    setStart(moment(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
+    setEnd(moment(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
+
+    }
   return (
     <Card>
       <div
@@ -400,11 +424,17 @@ export default function tasksRequests() {
             <div style={{ color: "#828282" }}> بقي لديك {countRest} طلباً</div>
           </span>
         </div>
-    <div className="requestsRange" >  
+    <div className="requestsRange" > 
+    <div style={{marginLeft:'10px'}}>
+        <span>اختر شهرًا : </span>
+        <DatePicker  defaultValue={moment()} onChange={onChange} picker="month" />
+      </div>  
     <div style={{marginBottom:'10px',marginLeft:'5px'}}><span>اختر فترة : </span>
-    <RangePicker  onCalendarChange={changeRange} />
-    </div>   
-    <Button style={{display:'block',marginBottom:'10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
+    <RangePicker value={[moment(start,"YYYY-MM-DD"),moment(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
+    </div>
+    <div className="requestsBtn">   
+    <Button style={{display:'block',float:"left",marginBottom:'10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
+    </div>
     </div>
       </div>
       <Modal
@@ -433,7 +463,7 @@ export default function tasksRequests() {
           <FormItem name={'range_date'}>
           <RangePicker
             showTime={{ format: "HH:mm" }}
-            defaultValue={[moment(selected ? selected.date_from : "", "YYYY-MM-DD HH:mm"), moment(selected ? selected.date_to : "", "YYYY-MM-DD HH:mm")]}
+            value={[moment(selected ? selected.date_from : "", "YYYY-MM-DD HH:mm"), moment(selected ? selected.date_to : "", "YYYY-MM-DD HH:mm")]}
             format="YYYY-MM-DD HH:mm"
             onChange= {onRangeChange}
           />
@@ -444,7 +474,7 @@ export default function tasksRequests() {
         <FormItem style={{marginBottom:'0px'}} name={'request_type'} label={'نوع الطلب '}>
           <Select
             showSearch
-            defaultValue={selected? selected.vactype:""}
+            value={selected? selected.vactype:""}
             style={{ width: 150, marginBottom: "20px" }}
             placeholder="قم بتعيين نوع الطلب"
             optionFilterProp="children"

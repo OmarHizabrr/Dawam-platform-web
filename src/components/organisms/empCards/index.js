@@ -87,7 +87,8 @@ export default function EmpCards(props){
         setPhones(response.data['phones']);
         setQualifications(response.data['qualifications']);
         setPreworks(response.data['preworks']);
-        setAttachments(response.data['attachments']);        
+        setAttachments(response.data['attachments']); 
+
         var stars=[];
         response.data['lists'].forEach(function(e){
           var avg=(((response.data.count[0].count-e.attendanceDays)*(e.salary/response.data.count[0].count))+parseInt(e.lateTimePrice || 0))/e.salary;
@@ -97,11 +98,12 @@ export default function EmpCards(props){
 
         setLoad(false);
       
-      }).catch(function (error) {
+      },[]).catch(function (error) {
         console.log(error);
       });
-      axios.get(Env.HOST_SERVER_NAME+'users-info/')
+      axios.get(Env.HOST_SERVER_NAME+'users-info')
       .then(response => {
+        
         setCategories(response.data['categroies']);
         setDurations(response.data['durations']);
         setTypes(response.data['types']);
@@ -207,7 +209,6 @@ const onFinish=()=>{
   };
  var userData=userform.getFieldsValue();
 
-
   for (const key in userData) {
     if (Array.isArray(userData[key])) {
       for(const attach in userData[key]){
@@ -228,7 +229,7 @@ const onFinish=()=>{
       notification.success({
         message:'تمت العملية بنجاح' ,
         placement:'bottomLeft',
-        duration:0,
+        duration:10,
       });
       userform.resetFields();
       setIsVisibleModal(false);
@@ -264,7 +265,8 @@ var options = {
   chart: {
   type: 'donut',
 },
-labels: ["سُلف", "أقساط", "تأخرات", "غياب","جزاءات"],
+labels: ["سُلف", "أقساط", "تأخرات", "غياب","جزاءات","صافي الراتب"],
+
 responsive: [{
   breakpoint: 480,
   options: {
@@ -531,7 +533,13 @@ const openShowReport=(user)=>{
     setUserData(response.data);
     setAttCount(response.data.att_count[0].att_count);
     setLeaveCount(response.data.leave_count[0].leave_count);
-    setDiscData([parseInt(response.data.lists[0]['debt'] || 0),parseInt(response.data.lists[0]['long_debt'] || 0), parseInt(response.data.lists[0]['lateTimePrice'] || 0), parseInt(Math.round(((response.data.count[0].count-(response.data.lists[0]['attendanceDays']|| 0))*( response.data.lists[0].salary/30)))), parseInt(response.data.lists[0]['vdiscount'] || 0)]);
+    setDiscData([parseInt(response.data.lists[0]['debt'] || 0),
+    parseInt(response.data.lists[0]['long_debt'] || 0), 
+    parseInt(response.data.lists[0]['lateTimePrice'] || 0), 
+    parseInt(Math.round(((response.data.count[0].count-(response.data.lists[0]['attendanceDays']|| 0))*( response.data.lists[0].salary/30)))), 
+    parseInt(response.data.lists[0]['vdiscount'] || 0),
+    response.data.lists[0].salary - (Math.round(response.data.lists[0].debt || 0)+Math.round(((response.data.count[0].count-response.data.lists[0].attendanceDays)*(response.data.lists[0].salary/30))+parseFloat(response.data.lists[0].lateTimePrice || 0))+Math.round(response.data.lists[0].symbiosis || 0)+Math.round(response.data.lists[0].long_debt || 0))
+  ]);
     setSpiderData([Math.round(response.data.att_count[0].att_count/response.data.att_count[0].count*100) || 0,Math.round(response.data.id_count[0].id_count/response.data.id_count[0].count*100) || 0,Math.round(response.data.leave_count[0].leave_count/response.data.leave_count[0].count*100) || 0,Math.round(response.data.lists[0].attendanceDays/response.data.count[0].count*100) || 0,Math.round(response.data.vac_count[0].late_vacs/response.data.vac_count[0].count*100) || 0]);
     //console.log(response.data.lists[0].attendanceDays);
     var vdata=[];
@@ -609,6 +617,7 @@ return(
             <Text style={{textAlign:'center',fontSize:'16px',marginBottom:'5px'}}>{selectedUser?.user_name} <Badge count={selectedUser?.user_id} overflowCount={99999}  style={{ backgroundColor: '#DDDDDD',color:'#000' }} /></Text>
             <Text style={{textAlign:'center',fontSize:'16px',marginBottom:'5px'}}>{selectedUser?.category} </Text>
             <Text style={{textAlign:'center',fontSize:'16px',marginBottom:'5px'}}>{selectedUser?.job} </Text>
+            <Text style={{textAlign:'center',fontSize:'16px',marginBottom:'5px'}}>{new Intl.NumberFormat('en-EN').format(selectedUser?.salary)} </Text>          
             </div>
             <div>
               <ReactApexChart
@@ -825,7 +834,19 @@ return(
                 <Input disabled={userFormDisable} />
               </Form.Item>
               <Form.Item style={{marginLeft:'5px',flex:2}} label="الدرجة" name="level">
-                <Input disabled={userFormDisable} />
+                    <Select 
+                      disabled={userFormDisable}
+                      options={types.filter(function(e){return e.parent==23;})}
+                      optionFilterProp="children"
+                     filterOption={(input, option) =>
+                       option.props.children?.indexOf(input) >= 0 ||
+                       option.props.label?.indexOf(input) >= 0
+                     }
+                     filterSort={(optionA, optionB) =>
+                       optionA.props?.children?.localeCompare(optionB.props.children)
+                     }
+                      >
+                    </Select>
               </Form.Item>
               <Form.Item  style={{marginLeft:'5px',flex:3}} label="الإدارة" name="category_id">
                 <Select 
@@ -962,6 +983,21 @@ return(
           <Panel header="بيانات النظام" key="3">
             <div>
               <div style={{display:'flex',flexDirection:'row'}}>
+              <Form.Item style={{flex:1,marginLeft:'5px'}} label="حالة البصمة" name="fingerprint_type">
+              <Select 
+                options={types.filter(function(e){return e.parent==20;})}
+                optionFilterProp="children"
+              filterOption={(input, option) =>
+                option.props.children?.indexOf(input) >= 0 ||
+                option.props.label?.indexOf(input) >= 0
+              }
+              filterSort={(optionA, optionB) =>
+                optionA.props?.children?.localeCompare(optionB.props.children)
+              }
+                disabled={userFormDisable} >
+
+              </Select>
+              </Form.Item>
               <Form.Item style={{flex:1,marginLeft:'5px'}} label="الرقم الوظيفي" name="user_id">
                 <Input disabled={userFormDisable} />
               </Form.Item>
@@ -1152,7 +1188,7 @@ return(
         <Menu.Item key="1" onClick={function(){setSelectedUserName(user.name);openAttModal(user);}}>
         سجل الحضور
         </Menu.Item>
-        <Menu.Item key="1" onClick={function(){openTaskModal(user);}}>
+        <Menu.Item key="2" onClick={function(){openTaskModal(user);}}>
         سجل الإجازات
         </Menu.Item>
         <Menu.Divider />
@@ -1175,15 +1211,25 @@ return(
     <Text style={{textAlign:'center',fontSize:'18px',marginBottom:'5px'}}>{user.user_name} </Text>
     <div style={{textAlign:'center'}}><Badge count={user.user_id} overflowCount={99999}  style={{ backgroundColor: '#DDDDDD',color:'#000' }} /></div>
     <Rate style={{textAlign: 'center',marginBottom:'5px'}} disabled allowHalf value={starList?.filter(function (e) { return e.user_id == user.user_id; })[0]?.star} />
-    <Text style={{textAlign:'center',fontSize:'13px',color:user.leave_time==null && user.attendance_time==null?'#7E7D7C':'#000'}}>{user.leave_time==null && user.attendance_time!=null?
+    <Text style={{textAlign:'center',fontSize:'13px',color:user.leave_time==null && user.attendance_time==null?'#7E7D7C':'#000'}}>
+    
+    {
+    user.fingerprint_type==22?
+    user.leave_time==null && user.attendance_time!=null?
+
     ' متواجد الآن' :
-       'غير متواجد '+timeSince((user.last_occ))
-    } 
+       'غير متواجد '+timeSince((user.last_occ)):"معفي من البصمة"
+
+    }
+
      <Badge  style={{marginRight:'5px'}} status={
-      user.leave_time==null && user.attendance_time!=null?
+    user.fingerprint_type==22?
+    user.leave_time==null && user.attendance_time!=null?
     'success' :
-    'default'
+    'default':'blue'
+
     }  />
+
      </Text>
 </div>
   </Card>

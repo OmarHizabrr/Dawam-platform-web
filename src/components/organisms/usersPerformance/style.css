@@ -40,6 +40,8 @@ padding-right: 5px;
     .discountBtn{
         justify-content: flex-end;
         margin-bottom: 10px;
+        margin-top: 6px;
+        order: 2;
         }
         .groupTasks{
             flex-direction:column;

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useCookies,CookiesProvider  } from 'react-cookie';
 
 import './style.css';
-import {Table,Layout,Card,Progress,DatePicker,Button} from 'antd';
+import {Table,Layout,Card,Progress,DatePicker,Button,Rate} from 'antd';
 import ReactApexChart from "react-apexcharts";
 import {ExportOutlined,PrinterOutlined} from '@ant-design/icons';
 import excel from 'xlsx';
@@ -24,7 +24,8 @@ export default function deptsTable(props){
       const [today,setToday]=useState(new Date().toISOString().split('T')[0]);
       const [start,setStart]=useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().slice(0,10));
       const [end,setEnd]=useState(new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().slice(0,10));
-  
+      const [starList,setStarList]=useState([]); 
+
       const id=cookies.user;   
       const changeDate=(all,date)=>{
          setToday(date); 
@@ -43,8 +44,32 @@ export default function deptsTable(props){
         setLoad(true);
         axios.get(Env.HOST_SERVER_NAME+'categories-cards/'+today+'/'+start+'/'+end)
           .then(response => {
-           
+        
             setData(response.data.categories);
+
+            var stars=[];
+            response.data['lists'].forEach(function(e){
+              var avg=(((response.data.count[0].count-e.attendanceDays)*(e.salary/response.data.count[0].count))+parseInt(e.lateTimePrice || 0))/e.salary;
+              stars.push({'user_id':e.user_id,'category_id':e.category_id,'star':Math.round((1-avg)*10)/2});
+            });
+            const reduced = stars.reduce(function(m, d){
+              if(!m[d.category_id]){
+                m[d.category_id] = {...d, count: 1};
+                return m;
+              }
+              m[d.category_id].star += d.star;
+              m[d.category_id].count += 1;
+              return m;
+           },{});
+           const result = Object.keys(reduced).map(function(k){
+            const item  = reduced[k];
+            return {
+                category_id: item.category_id,
+                star: Math.round((item.star/item.count)),
+    
+            }
+        });
+            setStarList(result);
             setLoad(false);
           }).catch(function (error) {
             console.log(error);
@@ -67,6 +92,15 @@ export default function deptsTable(props){
         key: 'name',
         ellipsis: false,
         width:'150px',
+      },
+      {
+        title: 'تقييم الإدارة',
+        dataIndex: 'att_percent',
+        key: 'att_percent',
+        sorter: (a, b) => a.att_percent - b.att_percent,
+        sortOrder: sortedInfo.columnKey === 'att_percent' && sortedInfo.order,
+        ellipsis: false,    
+        render:(att_percent,record,index)=><Rate style={{textAlign: 'center',marginBottom:'5px'}} disabled allowHalf value={starList?.filter(function (e) { return e.category_id == record.id; })[0]?.star} />,
       },
       {
         title: 'نسبة الحضور',

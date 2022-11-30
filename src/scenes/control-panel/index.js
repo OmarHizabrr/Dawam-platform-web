@@ -28,22 +28,24 @@ import Statistics from '../../components/organisms/statistics/';
 import EmpCards from '../../components/organisms/empCards';
 import deptCards from '../../components/organisms/deptCards';
 import WagesReport from '../../components/organisms/wagesReport';
-import discountsReport from '../../components/organisms/discountsReport';
-import debtReport from '../../components/organisms/debtsReport';
-import longDebtReport from '../../components/organisms/longDebtReport';
-import transportReport from '../../components/organisms/transportReport';
+import DiscountsReport from '../../components/organisms/discountsReport';
+import DebtReport from '../../components/organisms/debtsReport';
+import LongDebtReport from '../../components/organisms/longDebtReport';
+import TransportReport from '../../components/organisms/transportReport';
 import SettingsPane from '../../components/organisms/SettingsPane';
-import tasksRecords from '../../components/organisms/tasksRecords';
-import tasksAccounts from '../../components/organisms/tasksAccounts';
+import TasksRecords from '../../components/organisms/tasksRecords';
+import TasksAccounts from '../../components/organisms/tasksAccounts';
 
-import violationsRecords from '../../components/organisms/violationsRecords';
+import ViolationsRecords from '../../components/organisms/violationsRecords';
 import connectedDevices from '../../components/organisms/connectedDevices';
 import events from '../../components/organisms/events';
-import cumTasksReport from '../../components/organisms/cumTasksReport';
-import violationsReport from '../../components/organisms/violationsReport';
-import usersPerformance from '../../components/organisms/usersPerformance';
+import CumTasksReport from '../../components/organisms/cumTasksReport';
+import ViolationsReport from '../../components/organisms/violationsReport';
+import UsersPerformance from '../../components/organisms/usersPerformance';
+import { useCookies,CookiesProvider  } from 'react-cookie';
 
 import {STATISTICS} from '../../routes';
+import { Cookies } from 'react-cookie';
 const { Content } = Layout;
 const { Text } = Typography;
 const { Sider } = Layout;
@@ -51,6 +53,7 @@ const { SubMenu } = Menu;
 
 export default function ControlPanel(props){
   const [visible, setVisible] = useState(false);
+  const [cookies, setCookie, removeCookie]=useCookies(["userId"]);
 
   let { path, url } = useRouteMatch(); 
   const showDrawer = () => {
@@ -283,17 +286,17 @@ key={'control-drawer'}
           <Route path={`${path}/dept-cards`} component={deptCards} />
           <Route path={`${path}/emp-cards`} component={()=> <EmpCards setting={props.setting}/> } />
           <Route path={`${path}/wages-report`} component={()=> <WagesReport setting={props.setting}/>} />       
-          <Route path={`${path}/discounts-reports`} component={discountsReport} />         
-          <Route path={`${path}/debts-report`} component={debtReport} /> 
-          <Route path={`${path}/tasks-records`} component={tasksRecords} /> 
-          <Route path={`${path}/tasks-accounts`} component={tasksAccounts} /> 
-          <Route path={`${path}/violations-records`} component={violationsRecords} />
-          <Route path={`${path}/cum-violation-report`} component={violationsReport} />    
-          <Route path={`${path}/cum-tasks-report`} component={cumTasksReport} />   
-          <Route path={`${path}/long-debts-report`} component={longDebtReport} />       
-          <Route path={`${path}/transport-reports`} component={transportReport} />   
+          <Route path={`${path}/discounts-reports`} component={ ()=> <DiscountsReport setting={props.setting}/>} />         
+          <Route path={`${path}/debts-report`} component={()=> <DebtReport setting={props.setting}/>} /> 
+          <Route path={`${path}/tasks-records`} component={ ()=><TasksRecords setting={props.setting}/>} /> 
+          <Route path={`${path}/tasks-accounts`} component={()=> <TasksAccounts setting={props.setting}/>} /> 
+          <Route path={`${path}/violations-records`} component={()=> <ViolationsRecords setting={props.setting} user={cookies.user} type="Admin"/>} />
+          <Route path={`${path}/cum-violation-report`} component={()=> <ViolationsReport setting={props.setting}/>} />    
+          <Route path={`${path}/cum-tasks-report`} component={()=> <CumTasksReport setting={props.setting}/>} />   
+          <Route path={`${path}/long-debts-report`} component={()=> <LongDebtReport setting={props.setting}/>} />       
+          <Route path={`${path}/transport-reports`} component={ ()=> <TransportReport setting={props.setting}/>} />   
           <Route path={`${path}/connected-devices`} component={connectedDevices} />
-          <Route path={`${path}/users-performance-rank`} component={usersPerformance} />         
+          <Route path={`${path}/users-performance-rank`} component={()=> <UsersPerformance type="Admin" setting={props.setting}/>} />         
           <Route path={`${path}/events`} component={events} />               
           <Route path={`${path}/settings`}  >
             <SettingsPane setting={props.setting}/>

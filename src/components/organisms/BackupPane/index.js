@@ -20,7 +20,6 @@ export default function Backup(props){
     const [form] = Form.useForm();
     const [load,setLoad]=useState(false);
 
-
     const onFinish=(values)=>{
         setLoad(true);
         setLoad(false);
@@ -30,7 +29,7 @@ export default function Backup(props){
       notification.success({
         message:text ,
         placement,
-        duration:0,
+        duration:10,
       });
     }
 return (

@@ -16,7 +16,7 @@ const {TextArea}=Input;
 const {Option}=Select;
 const CheckboxGroup = Checkbox.Group;
 
-export default function tasksRecords (){
+export default function TasksRecords (){
 
   const [filteredInfo, setFilteredInfo] = useState({});
   const [sortedInfo, setSortedInfo] = useState({});
@@ -249,7 +249,7 @@ const selectRecord=(e,record)=>{
            response.data.forEach(element => {  
             names.push({text:element['label'],value:element['label']});       
           }); 
-          setNamesFilter([...namesFilter,...names]);
+          setNamesFilter(names);
           }).catch(function (error) {
             console.log(error);
           });
@@ -331,7 +331,7 @@ const selectRecord=(e,record)=>{
         notification.success({
           message:text ,
           placement,
-          duration:0,
+          duration:10,
         });
       };
   const addTasks = () => {
@@ -441,7 +441,7 @@ const selectRecord=(e,record)=>{
             notification.error({
               message: <span>{'فشل ترحيل الإجازة الجماعية!'}</span>,
               placement:'bottomLeft',
-              duration:0,
+              duration:10,
             });
             
           });

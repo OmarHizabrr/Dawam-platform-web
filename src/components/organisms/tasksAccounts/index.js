@@ -13,7 +13,7 @@ const {Text}=Typography;
   const {TextArea}=Input;
   const {Option}=Select;
  
-export default function tasksAccounts (){
+export default function TasksAccounts (props){
 
   const [filteredInfo, setFilteredInfo] = useState({});
   const [sortedInfo, setSortedInfo] = useState({});
@@ -152,6 +152,7 @@ export default function tasksAccounts (){
         notification.success({
           message: <span> تم إضافة الرصيد بنجاح </span>,
           placement,
+          duration:10
         });
       };
     
@@ -237,7 +238,7 @@ return (
     <div  style={{direction: "rtl",fontSize: "12px",fontFamily: "Tajawal",margin: "0"}}>
     <header style={{display: "flex",flexDirection: "row",borderColor:'#000',borderBottomStyle: "solid",borderBottomWidth:"1px"}}>
        <div style={{width: "20%"}}>
-           <img loading="eager" style={{width: "250px"}} src={logoText}/>
+           <img loading="eager" style={{width: "250px"}} src={Env.HOST_SERVER_STORAGE+props.setting.filter((item)=> item.key == 'admin.logo')[0]?.value}/>
        </div>
        <div style={{fontSize: "11px",textAlign: "center",width: "60%",display: "flex",flexDirection: "column",justifyContent: "end",paddingBottom: "10px"}}>
            <h1 style={{fontSize: " 18px",fontWeight:700,marginBottom: " 5px",margin: "0"}}>كشف الإجازات</h1>

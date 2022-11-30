@@ -10,6 +10,11 @@ th{
 display: flex;
 flex-direction: row;
 }
+.discountRange{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}
 @media only screen and (max-width: 600px) {
 
     .discountHeader{
@@ -17,9 +22,15 @@ flex-direction: row;
     }
     .discountRange{
         order: 2;
+        flex-direction: column;
     }
     .discountBtn{
+        flex-direction: column;
         justify-content: flex-end;
         margin-bottom: 10px;
         }
+    .addbtn{
+        text-align: left;
+        margin-top:10px;
+    }
 }

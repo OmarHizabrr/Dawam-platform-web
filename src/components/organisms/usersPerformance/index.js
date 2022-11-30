@@ -6,28 +6,31 @@ import {ExportOutlined,PrinterOutlined} from '@ant-design/icons';
 import axios from 'axios';
 import excel from 'xlsx';
 import logoText from '../../../assets/images/logo-text.png';
+import {useLocation} from 'react-router-dom';
+import moment from 'moment';
 
 import {Env} from './../../../styles';
 
 const { RangePicker } = DatePicker;
 
-
-export default function usersPerformance (){
+export default function UsersPerformance (props){
+  const location = useLocation();
 
   const [filteredInfo, setFilteredInfo] = useState({});
   const [sortedInfo, setSortedInfo] = useState({});
   const [data, setData] = useState([]);
   const [pdata, setPData] = useState([]);
  
-
   const [load,setLoad]=useState(true);
-
 
   const [tstypes,setTstypes]=useState([]);
 
   const [update,setUpdate]=useState(false);
-  const [start,setStart]=useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().slice(0,10));
-  const [end,setEnd]=useState(new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().slice(0,10));  const [namesFilter,setNamesFilter]=useState([]);
+  const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
+  const [end,setEnd]=useState(moment().format('YYYY-MM-DD'));  
+  const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
+
+  const [namesFilter,setNamesFilter]=useState([]);
   const [categoriesFilter,setCategoriesFilter]=useState([]);
 
   const columns = [
@@ -41,10 +44,12 @@ export default function usersPerformance (){
       sorter: (a, b) => a.fullname.localeCompare(b.fullname),
       sortOrder: sortedInfo.columnKey === 'fullname' && sortedInfo.order,
       ellipsis: false,
-    },   
+    },
+    location.pathname!="/profile/dept-performance"?   
      {
       title: 'الإدارة',
       dataIndex: 'category',
+      
       key: 'category',
       filters: categoriesFilter,
       filteredValue: filteredInfo.category || null,
@@ -52,7 +57,7 @@ export default function usersPerformance (){
       sorter: (a, b) =>a.category.localeCompare(b.category),
       sortOrder: sortedInfo.columnKey === 'category' && sortedInfo.order,
       ellipsis: true,
-    },
+    }:{},
     {
       title: 'المسمى الوظيفي',
       width:150,
@@ -129,16 +134,25 @@ export default function usersPerformance (){
            response.data.forEach(element => {  
             names.push({text:element['label'],value:element['label']});       
           }); 
-          setNamesFilter([...namesFilter,...names]);
+          setNamesFilter(names);
           }).catch(function (error) {
             console.log(error);
           });
 
     axios.get(Env.HOST_SERVER_NAME+'users-performance-rank/'+start+'/'+end)
     .then(response => {
-      //console.log(response.data);
-      setData(response.data);
-      setPData(response.data);
+    
+      if(location.pathname="/profile/dept-performance"){
+        var dt=response.data.filter(record => record.category==props.user.category.name);
+        setData(dt);
+        setPData(dt);
+      }
+      else{
+        setData(response.data);
+        setPData(response.data);
+      }
+
+
       let categories=[];
       response.data.forEach(element => {  
           if(!categories.some(item => element.category == item.text))      
@@ -205,14 +219,27 @@ export default function usersPerformance (){
           setStart(date[0]);
           setEnd(date[1]);       
     }
-
+    const onChange=(all,data)=>{
+      setCurrentMonth(all.format('MMMM'));
+  
+      var startDay=props.setting?.filter((item)=> item.key == "admin.month_start")[0]?.value;
+      var endDay=props.setting?.filter((item)=> item.key == "admin.month_end")[0]?.value;
+  
+      setStart(moment(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
+      setEnd(moment(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
+  
+      }
 return (
   <Layout>
     <Card>
     <div className='discountHeader' >
       <div className='discountRange'  >
+      <div style={{marginLeft:'10px'}}>
+        <span>اختر شهرًا : </span>
+        <DatePicker  defaultValue={moment()} onChange={onChange} picker="month" />
+      </div>
         <div style={{marginLeft:'10px'}}><span>اختر فترة : </span>
-          <RangePicker  onCalendarChange={changeRange} />
+          <RangePicker  value={[moment(start,"YYYY-MM-DD"),moment(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
         </div>
       </div>
     <div className='discountBtn'>     
@@ -226,7 +253,7 @@ return (
     <div  style={{direction: "rtl",fontSize: "12px",fontFamily: "Tajawal",margin: "0"}}>
     <header style={{display: "flex",flexDirection: "row",borderColor:'#000',borderBottomStyle: "solid",borderBottomWidth:"1px"}}>
        <div style={{width: "20%"}}>
-           <img loading="eager" style={{width: "250px"}} src={logoText}/>
+           <img loading="eager" style={{width: "250px"}} src={Env.HOST_SERVER_STORAGE+props.setting.filter((item)=> item.key == 'admin.logo')[0]?.value}/>
        </div>
        <div style={{fontSize: "11px",textAlign: "center",width: "60%",display: "flex",flexDirection: "column",justifyContent: "end",paddingBottom: "10px"}}>
            <h1 style={{fontSize: " 18px",fontWeight:700,marginBottom: " 5px",margin: "0"}}>تقييم انضباط الموظفين</h1>

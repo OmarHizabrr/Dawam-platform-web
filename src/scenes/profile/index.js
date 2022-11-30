@@ -8,7 +8,8 @@ import moment from 'moment';
 
 import { Typography ,Layout,Breadcrumb,Card,Row,Col,Avatar,Badge,Modal,Tabs,Radio,Collapse,InputNumber,Form,Upload,Button,Rate,Input,Select,DatePicker,Space} from 'antd';
 import {
-    UserOutlined,
+  WarningOutlined,
+  StarOutlined,
     ClusterOutlined,
     TagsOutlined,
     InsertRowAboveOutlined,
@@ -33,9 +34,12 @@ import GeneralTable from '../../components/organisms/generalTable';
 import TransferTable from '../../components/organisms/transferTable';
 import AttendanceTable from '../../components/organisms/attendanceTable';
 import TasksTable from '../../components/organisms/tasksTable';
-import tasksRequests from '../../components/organisms/tasksRequests';
+import TasksRequests from '../../components/organisms/tasksRequests';
 import alertsTable from '../../components/organisms/alertsTable';
 import DeptsTable from '../../components/organisms/deptsTable';
+import ViolationsRecords from '../../components/organisms/violationsRecords';
+import UsersPerformance from '../../components/organisms/usersPerformance';
+
 import {
   Link,
   useRouteMatch,
@@ -276,7 +280,11 @@ const getCurrentTab=()=>{
     case '/profile/alerts':
         return '7';           
     case '/profile/depts-table':
-        return '8';         
+        return '8'; 
+    case '/profile/dept-violations':
+        return '9';
+    case '/profile/dept-performance':
+      return '10';         
   }
 
 }
@@ -747,8 +755,7 @@ return (
         </span>
         </Link>
       }
-      key="1"
-      
+      key="1"  
     >
     </TabPane>
     <TabPane
@@ -769,13 +776,27 @@ return (
         <Link to={`${url}/depts-table`} hidden={location.userData!=null?true:false}>
         <span>
         <ApartmentOutlined />
-سجل الإدارات        
-</span>
+          سجل الإدارات        
+        </span>
         </Link>
       }
       key="8"
     >
     </TabPane>
+    
+  { type!=3 && <TabPane
+      tab={
+        <Link to={`${url}/dept-performance`}>
+        <span>
+          <StarOutlined />
+       انضباط الموظفين 
+        </span>
+        </Link>
+      }
+      key="10"
+    >
+    </TabPane>}
+
     <TabPane
       tab={
         <Link to={`${url}/attendance-table`} >
@@ -791,6 +812,7 @@ return (
     </TabPane>
    { 
    true &&
+
    <TabPane
       tab={
         <Link to={`${url}/transfer-table`}>
@@ -804,6 +826,7 @@ return (
     >
     </TabPane>
 }
+
     <TabPane
       tab={
         <Link to={`${url}/tasks-table`}>
@@ -816,7 +839,23 @@ return (
       key="5"
     >
     </TabPane>
+
 {requestPane()}
+
+{ <TabPane
+      tab={
+        <Link to={`${url}/dept-violations`}>
+        <span>
+          <WarningOutlined />
+       المخالفات 
+        </span>
+        </Link>
+      }
+      key="9"
+    >
+    </TabPane>}
+
+
     <TabPane
       tab={
         <Link to={`${url}/alerts`} hidden={location.userData!=null?true:false}>
@@ -843,7 +882,7 @@ return (
   >  
         <Switch>
           <Route path={path} exact>
-            <SummaryData userData={user}  star={star} />
+            <SummaryData  setting={props.setting} userData={user}  star={star} />
           </Route>
           <Route path={`${path}/general-table`}>
             <GeneralTable setting={props.setting}/>
@@ -852,9 +891,13 @@ return (
             <DeptsTable setting={props.setting}/>
           </Route>
           <Route path={`${path}/attendance-table`} component={() => <AttendanceTable setting={props.setting} user={cookies.user} />} />
-          <Route path={`${path}/transfer-table`} component={TransferTable} />
+          <Route path={`${path}/transfer-table`} component={() => <TransferTable setting={props.setting} user={cookies.user} />} />
           <Route path={`${path}/tasks-table`} component={() => <TasksTable setting={props.setting} user={cookies.user} />} />
-          <Route path={`${path}/tasks-requests`} component={tasksRequests} />
+          <Route path={`${path}/tasks-requests`} component={() => <TasksRequests setting={props.setting} user={cookies.user} />} />
+          <Route path={`${path}/dept-violations`} component={() => <ViolationsRecords setting={props.setting} type="Manager" user={cookies.user} />} />
+
+          <Route path={`${path}/dept-performance`} component={() => <UsersPerformance setting={props.setting} type="Manager" user={cookies.user} />} />
+
           <Route path={`${path}/alerts`} component={alertsTable} />
           <Redirect to="" />
         </Switch>

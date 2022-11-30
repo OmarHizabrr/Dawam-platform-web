@@ -3,11 +3,13 @@ import React, { useState, useEffect } from 'react';
 import excel from 'xlsx';
 import logoText from '../../../assets/images/logo-text.png';
 import './style.css';
-import { Typography ,Layout,Tabs,Table, Button,Modal, DatePicker, Select,Card } from 'antd';
-import {SwapOutlined,FormOutlined,ExportOutlined,PrinterOutlined} from '@ant-design/icons';
+import { Typography ,Layout,Tabs,Table, Button,Modal, DatePicker, Select,Card ,Dropdown,Menu,Switch,Input} from 'antd';
+import {SettingOutlined,FormOutlined,ExportOutlined,PrinterOutlined} from '@ant-design/icons';
 import axios from 'axios';
 import { useCookies,CookiesProvider  } from 'react-cookie';
 import {FileExcelOutlined} from '@ant-design/icons';
+import moment from 'moment';
+
 import {Env} from './../../../styles';
 const { Content } = Layout;
 const { Text,Space } = Typography;
@@ -30,32 +32,44 @@ export default function wagesReport(props){
       const [sortedInfo,setSortedInfo]=useState({});
       const [isModalVisible,setIsModalVisible]=useState(false);
       const [namesFilter,setNamesFilter]=useState([]);
-      const [data,setData]=useState([]);   
+      const [categoriesFilter,setCategoriesFilter]=useState([]);
+
+      const [data,setData]=useState([]);
+      const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
+      const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+
       const [pdata, setPData] = useState([]);
  
       const [categories,setCategories]=useState([]);
       const [load,setLoad]=useState(true);
       const [count,setCount]=useState(0);
-      const [start,setStart]=useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().slice(0,10));
-      const [end,setEnd]=useState(new Date().toISOString().slice(0, 10));    
+
+      const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
+      const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
+
       // eslint-disable-next-line react-hooks/rules-of-hooks
-      let round=props.setting.filter((item)=> item.key == 'admin.round')[0]?.value*1;
+    let round=props.setting.filter((item)=> item.key == 'admin.round')[0]?.value*1;
      useEffect(() => {
        setLoad(true);
        
         axios.get(Env.HOST_SERVER_NAME+'wages-list/'+start+'/'+end)
         .then(response => {
           let names=[];
+          let categories=[];
           response.data["lists"].forEach(element => {  
             if(!names.some(item => element.name == item.text))      
-              names.push({text:element['name'],value:element['name']});        
+              names.push({text:element['name'],value:element['name']});
+            if(!categories.some(item => element.category == item.text))      
+              categories.push({text:element['category'],value:element['category']});        
         }); 
-        setNamesFilter([...namesFilter,...names]);
-          setCount(response.data.count[0].count);
-          setData(response.data.lists);
-          setPData(response.data.lists);
-          setCategories(response.data.categories);
-          setLoad(false);
+        setNamesFilter(names);
+        setCategoriesFilter(categories);
+        setCount(response.data.count[0].count);
+        console.log(response.data.lists);
+        setData(response.data.lists);
+        setPData(response.data.lists);
+        setCategories(response.data.categories);
+        setLoad(false);
         }).catch(function (error) {
           console.log(error);
         });;
@@ -83,7 +97,16 @@ export default function wagesReport(props){
         setStart(date[0]);
         setEnd(date[1]);       
       }
+    const onChange=(all,data)=>{
+      setCurrentMonth(all.format('MMMM'));
 
+      var startDay=props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value;
+      var endDay=props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value;
+
+      setStart(moment(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
+      setEnd(moment(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
+
+      }
     const columns = [
       {
         title: 'الاسم',
@@ -94,8 +117,18 @@ export default function wagesReport(props){
         ellipsis: false,
         filters:namesFilter,
         filterSearch: true,
-
+        filterMode:'tree',
         onFilter: (value, record) => record.name.includes(value),
+      },
+      {
+        title: 'الإدارة',
+        dataIndex: 'category',
+        key: 'category',
+        sorter: (a, b) => a.category.length - b.category.length,
+        sortOrder: sortedInfo.columnKey === 'category' && sortedInfo.order,
+        filters:categoriesFilter,
+        filterMode:'tree',        
+        onFilter: (value, record) => record.category.includes(value),
       },
       {
         title: 'المسمى الوظيفي',
@@ -130,7 +163,7 @@ export default function wagesReport(props){
         sortOrder: sortedInfo.columnKey === 'attendanceDays' && sortedInfo.order,
         key: 'attendanceDays',
         ellipsis: true,
-        render:(ab,rec,ind)=>new Intl.NumberFormat('en-EN').format(Math.round(((count-ab)*(rec.salary/30))+parseFloat(rec.lateTimePrice))),
+        render:(ab,rec,ind)=>new Intl.NumberFormat('en-EN').format(rec.fingerprint_type=='22'?Math.round(((count-ab)*(rec.salary/30))+parseFloat(rec.lateTimePrice)):0),
       },
       {
         title: 'تكافل',
@@ -192,6 +225,38 @@ export default function wagesReport(props){
         mywindow.close();// change window to mywindow
     };  
     }
+
+    const buildMenu=()=>{
+      var menuItems=[];
+      var list=data;
+    //  list.sort((a, b) => a.name.localeCompare(b.name));
+      list.forEach(element => {
+
+      menuItems.push(
+
+      <Menu.Item onClick={e => e.preventDefault()}>
+        {element.name}
+      <Switch size="small" defaultChecked />
+      <Input />
+      </Menu.Item>
+      
+      );
+
+     });
+      return menuItems;
+    }
+    const menu = (
+      <Menu>
+        {buildMenu()}
+      </Menu>
+    );
+    const preprintSetting=()=>{
+    //  console.log(data);
+      let list=data;
+     // list.filter((item)=> item.user_id == 95)[0].stopped=1;
+     
+
+    }
     var index=0;
     var tsal=0;
     var tdebts=0;
@@ -207,16 +272,23 @@ return (
     <Card>
     <div style={{marginBottom:'10px'}}>
       <div className='discountHeader' style={{marginBottom:'10px'}}>
+      <div style={{marginLeft:'10px'}}>
+        <span>اختر شهرًا : </span>
+        <DatePicker defaultValue={moment()} onChange={onChange} picker="month" />
+      </div>
         <div className='discountRange' style={{marginBottom:'10px'}}><span>اختر فترة : </span>
-          <RangePicker  onCalendarChange={changeRange} />
+          <RangePicker value={[moment(start,"YYYY-MM-DD"),moment(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
         </div>
         <div className='discountBtn'>
           <Button style={{display:'block',margin:'0 10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
           <Button style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button>
+          <Dropdown overlay={menu} placement="bottomLeft" trigger='click'>
+            <Button style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){preprintSetting()}} type='primary'><SettingOutlined /></Button>       
+          </Dropdown>
         </div>
       </div>
     </div>
-    <Table loading={load}  style={{textAlign:'center!important'}} columns={columns} scroll={{x: '1000px' }} onRow={(record, rowIndex) => {return{className:record.status};}} dataSource={data} onChange={handleChange} />
+    <Table loading={load} rowKey={(record) => record.user_id} pagination={false} style={{textAlign:'center!important'}} columns={columns} scroll={{x: '1000px' }} onRow={(record, rowIndex) => {return{className:record.status};}} dataSource={data} onChange={handleChange} />
     </Card>
     <div id="att-report" style={{display:'none'}}>
     <div  style={{direction: "rtl",fontSize: "12px",fontFamily: "Tajawal",margin: "0"}}>
@@ -225,7 +297,7 @@ return (
            <img loading="eager" style={{width: "250px"}} src={Env.HOST_SERVER_STORAGE+props.setting.filter((item)=> item.key == 'admin.logo')[0]?.value}/>
        </div>
        <div style={{fontSize: "11px",textAlign: "center",width: "60%",display: "flex",flexDirection: "column",justifyContent: "end",paddingBottom: "10px"}}>
-           <h1 style={{fontSize: " 18px",fontWeight:700,marginBottom: " 5px",margin: "0"}}>كشف الإعانات</h1>
+           <h1 style={{fontSize: " 18px",fontWeight:700,marginBottom: " 5px",margin: "0"}}>كشف الإعانات لشهر {currentMonth}</h1>
            <h2 style={{fontSize: " 14px",fontWeight: " 200",margin: "0"}}>للفترة من {start} إلى {end}</h2>
        </div>     
        <div style={{width: "20%"}}>
@@ -246,7 +318,6 @@ return (
                      <th style={{fontWeight: "100"}} colSpan="6">الاستقطاعات</th>
                      <th style={{fontWeight: "100"}} rowSpan="2" colSpan={"2"}> صافي<br/>الاستحقاق </th>
                      <th style={{fontWeight: "100"}} rowSpan="2">التوقيع</th>
-
                 </tr>
                 <tr style={{color:"#fff",backgroundColor: "#0972B6",height: "25px"}}>
                 <th style={{fontWeight: "100"}}>سُلف</th>
@@ -278,10 +349,12 @@ return (
               catData.map(item=>{
                 sal+=parseFloat(item.salary);
                 debts+=(item.debt*1);
-                var ab=Math.round(((count*1-item.attendanceDays*1)*(item.salary/30))+parseFloat(item.lateTimePrice*1));
+                
+                var ab=item.fingerprint_type=='22'? Math.round( (((count*1-item.attendanceDays*1)*(parseInt(item.salary)/30)) + parseFloat(item.lateTimePrice) )/5 )*5:0;
                 ab=ab<0?0:parseFloat(ab);
+                
                 abs+=parseFloat(ab);
-               
+                
                 sym+=parseFloat(item.symbiosis);
                 ldebts+=(item.long_debt*1);
                 vio+=(item.vdiscount*1);

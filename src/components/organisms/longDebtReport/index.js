@@ -12,7 +12,7 @@ const {Text}=Typography;
   const {TextArea}=Input;
   const {Option}=Select;
  
-export default function longDebtReport (){
+export default function LongDebtReport (){
 
   const [filteredInfo, setFilteredInfo] = useState({});
   const [sortedInfo, setSortedInfo] = useState({});
@@ -40,7 +40,7 @@ export default function longDebtReport (){
   const [pdebtDate,setPDebtDate]=useState(null);
   const [buttonLoading,setButtonLoading]=useState(false);
   const [selected, setSelected] = useState([]);
-  const [duration, setDuration] = useState(0);
+  const [duration, setDuration] = useState(10);
   const [load,setLoad]=useState(true);
 
   const [form] = Form.useForm();
@@ -131,7 +131,7 @@ export default function longDebtReport (){
       notification.success({
         message:'تمت العملية بنجاح' ,
         placement:'bottomLeft',
-        duration:0,
+        duration:10,
       });
       form.resetFields();
       setIsVisibleModal(false);      
@@ -140,7 +140,7 @@ export default function longDebtReport (){
       notification.error({
         message:'فشلت العملية ' ,
         placement:'bottomLeft',
-        duration:0,
+        duration:10,
       });
       setLoadForm(false);
     });
@@ -418,7 +418,7 @@ return (
             ))}
             <Form.Item>
               <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
-                إضافة قرض
+                إضافة قرض فردي
               </Button>
             </Form.Item>
           </>

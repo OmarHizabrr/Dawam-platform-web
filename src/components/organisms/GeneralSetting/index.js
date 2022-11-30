@@ -60,7 +60,7 @@ export default function GeneralSetting(props){
       notification.success({
         message:text ,
         placement,
-        duration:0,
+        duration:10,
       });
     }
 return (

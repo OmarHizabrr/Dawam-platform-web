@@ -3,6 +3,7 @@ import './style.css';
 import axios from 'axios';
 import {Typography,Row,Col,Avatar,Button,Card, Spin, Form,Input, Layout,Badge,Radio, Rate } from 'antd';
 
+import moment from 'moment';
 
 import { useCookies,CookiesProvider  } from 'react-cookie';
 import {useLocation} from 'react-router-dom';
@@ -24,9 +25,9 @@ export default function summaryData (props) {
   const [cookies, setCookie, removeCookie]=useCookies(["userId"]);
   const location = useLocation();
 
-  const [start,setStart]=useState(new Date(new Date().setDate(new Date().getDate() - 31)).toISOString().slice(0,10));
-  const [end,setEnd]=useState(new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().slice(0,10));
-  
+  const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
+  const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
+
   const [data,setData]=useState([]);
   const [serData,setSerData]=useState([]);
   const [salSpin,setSalSpin]=useState(true);
@@ -193,7 +194,8 @@ function getMinutesTime(amPmString) {
   useEffect(() => {       
     axios.get(Env.HOST_SERVER_NAME+'salary-info/'+id.user_id+'/'+start+'/'+end)
     .then(response => {
-      setData(response.data);     
+      setData(response.data); 
+          
       setSerData([parseInt(response.data.lists[0]['debt'] || 0),parseInt(response.data.lists[0]['long_debt'] || 0), parseInt(response.data.lists[0]['lateTimePrice'] || 0), parseInt(Math.round(((response.data.count[0].count-(response.data.lists[0]['attendanceDays']|| 0))*( response.data.lists[0].salary/30)))), parseInt(response.data.lists[0]['vdiscount'] || 0) ,
       response.data.lists[0].salary - (Math.round(response.data.lists[0].debt || 0)+Math.round(((response.data.count[0].count-response.data.lists[0].attendanceDays)*(response.data.lists[0].salary/30))+parseFloat(response.data.lists[0].lateTimePrice || 0))+Math.round(response.data.lists[0].symbiosis || 0)+Math.round(response.data.lists[0].long_debt || 0)) ]);
       setSalSpin(false);
@@ -255,7 +257,7 @@ function getMinutesTime(amPmString) {
       <div className="taggedInfo"><Text><ClusterOutlined /> {user.category.name} </Text></div>
       <div className="taggedInfo"><Text><TagsOutlined />{user.job}</Text></div>
       <div className="taggedInfo" style={{marginTop:'10px'}}>
-        <Rate disabled allowHalf value={Math.round(props.star*10)/2} />
+        <Rate disabled allowHalf value={Math.round(props.star*10)/2} /> {Math.round(props.star*100)}%
       </div>
     </Col>
     <Col xs={24} sm={24} md={8} lg={8} xl={8} style={{textAlign:'center',marginBottom:'-50px'}}>

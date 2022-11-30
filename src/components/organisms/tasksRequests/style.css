@@ -23,9 +23,13 @@ td,th{
     .requestsRange{
         order:1;
         align-items: end;
+        flex-direction: column;
+        align-items: flex-start;
     }
     .reauestsProgress{
         order: 2;
     }
-
+    .requestsBtn{
+        width: 100%;
+    }
 }
