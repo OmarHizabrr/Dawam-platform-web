@@ -1,4 +1,3 @@
-import axios from 'axios';
 
 const offline=false;
 var server="";
@@ -7,7 +6,7 @@ if(offline){
 }
 else{
    server="https://api.alhikma-ye.com";
-  //   server="https://api.ihcro.dawam.app";
+   //  server="https://api.ihcro.dawam.app";
 
 }
 

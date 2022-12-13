@@ -1,21 +1,21 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import  { useState, useEffect } from 'react';
+
 import excel from 'xlsx';
-import logoText from '../../../assets/images/logo-text.png';
 import './style.css';
-import { Typography ,Layout,Tabs,Table, Button,Modal, DatePicker, Select,Card ,Dropdown,Menu,Switch,Input} from 'antd';
-import {SettingOutlined,FormOutlined,ExportOutlined,PrinterOutlined} from '@ant-design/icons';
+import { Typography ,Layout,Tabs,Table, Button,Modal, DatePicker, Spin,Select,Card ,Space,Form,Dropdown,Menu,Switch,Input} from 'antd';
+import {SettingOutlined,MinusCircleOutlined,PlusOutlined,FormOutlined,ExportOutlined,PrinterOutlined} from '@ant-design/icons';
 import axios from 'axios';
-import { useCookies,CookiesProvider  } from 'react-cookie';
-import {FileExcelOutlined} from '@ant-design/icons';
 import moment from 'moment';
 
 import {Env} from './../../../styles';
 const { Content } = Layout;
-const { Text,Space } = Typography;
+const { Text } = Typography;
 const { TabPane } = Tabs;
 const { Option } = Select; 
 const {RangePicker}=DatePicker;
+const {TextArea}=Input;
 
 const exportToExcel=(type,fn,dl)=>{
 
@@ -33,10 +33,14 @@ export default function wagesReport(props){
       const [isModalVisible,setIsModalVisible]=useState(false);
       const [namesFilter,setNamesFilter]=useState([]);
       const [categoriesFilter,setCategoriesFilter]=useState([]);
+      const [tstypes,setTstypes]=useState([]);
+      const [loadUsers, setLoadUsers]=useState(false);
+      const [isVisibleModal,setIsVisibleModal]=useState(false);
 
       const [data,setData]=useState([]);
       const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
       const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+      const [loadForm, setLoadForm]=useState(false);
 
       const [pdata, setPData] = useState([]);
  
@@ -46,6 +50,7 @@ export default function wagesReport(props){
 
       const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
       const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
+      const [form] = Form.useForm();
 
       // eslint-disable-next-line react-hooks/rules-of-hooks
     let round=props.setting.filter((item)=> item.key == 'admin.round')[0]?.value*1;
@@ -56,18 +61,24 @@ export default function wagesReport(props){
         .then(response => {
           let names=[];
           let categories=[];
+          let ts=[];
           response.data["lists"].forEach(element => {  
-            if(!names.some(item => element.name == item.text))      
+            if(!names.some(item => element.name == item.text)){      
               names.push({text:element['name'],value:element['name']});
+              ts.push({label:element['name'],value:element['user_id']});
+            }
             if(!categories.some(item => element.category == item.text))      
               categories.push({text:element['category'],value:element['category']});        
         }); 
         setNamesFilter(names);
         setCategoriesFilter(categories);
+        console.log(ts);
+        setTstypes(ts);
         setCount(response.data.count[0].count);
-        console.log(response.data.lists);
         setData(response.data.lists);
         setPData(response.data.lists);
+        
+
         setCategories(response.data.categories);
         setLoad(false);
         }).catch(function (error) {
@@ -89,9 +100,8 @@ export default function wagesReport(props){
               setPData(data);           
           });               
         }
-
-       
       };
+
     const changeRange=(all,date)=>{
         //const id=cookies.user;
         setStart(date[0]);
@@ -225,7 +235,13 @@ export default function wagesReport(props){
         mywindow.close();// change window to mywindow
     };  
     }
-
+    const showUsersDebt=()=>{
+      setLoadUsers(true);
+      form.setFieldsValue({'users':pdata});  
+      setIsVisibleModal(true);
+      setLoadUsers(false);
+      
+     }
     const buildMenu=()=>{
       var menuItems=[];
       var list=data;
@@ -234,10 +250,10 @@ export default function wagesReport(props){
 
       menuItems.push(
 
-      <Menu.Item onClick={e => e.preventDefault()}>
+      <Menu.Item  onClick={e => e.preventDefault()}>
         {element.name}
-      <Switch size="small" defaultChecked />
-      <Input />
+      <Switch style={{margin:'0 5px'}} size="small" defaultChecked />
+      <Input style={{width:'150px'}}/>
       </Menu.Item>
       
       );
@@ -252,11 +268,16 @@ export default function wagesReport(props){
     );
     const preprintSetting=()=>{
     //  console.log(data);
-      let list=data;
+      setIsVisibleModal(true);
+      
      // list.filter((item)=> item.user_id == 95)[0].stopped=1;
-     
-
     }
+    const settingBefore=()=>{
+      console.log(form.getFieldsValue());
+      setPData(form.getFieldsValue().users);
+      setIsVisibleModal(false);
+    }
+
     var index=0;
     var tsal=0;
     var tdebts=0;
@@ -281,10 +302,65 @@ return (
         </div>
         <div className='discountBtn'>
           <Button style={{display:'block',margin:'0 10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
-          <Button style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button>
-          <Dropdown overlay={menu} placement="bottomLeft" trigger='click'>
-            <Button style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){preprintSetting()}} type='primary'><SettingOutlined /></Button>       
-          </Dropdown>
+          <Button style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6",marginLeft:'10px'}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button>
+          <Button loading={loadUsers} style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){showUsersDebt()}} type='primary'><SettingOutlined /></Button>       
+          <Modal confirmLoading={loadForm} width={900} title="إعدادات قبل الطباعة " visible={isVisibleModal}  onOk={function(){ settingBefore();}} onCancel={function(){setIsVisibleModal(false);}}>
+      <Form form={form}>
+      <Form.List name="users">
+        {(fields, { add, remove }) => {
+          return <>
+            {
+            fields.map(({ key, name, ...restField }) => (
+              <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
+                <Form.Item
+                  {...restField}
+                  name={[name, 'id']}
+                  style={{display:'none'}}
+                >
+                  <Input   />
+                </Form.Item>
+                <Form.Item 
+                 {...restField} 
+                 name={[name, 'user_id']} label="اسم الموظف" rules={[{ required: true, message: 'Missing area' }]}>
+                  <Select style={{ width: 250 }} showSearch  optionFilterProp="children"
+                         notFoundContent={<Spin style={{textAlign:'center'}}></Spin>}
+                          filterOption={(input, option) =>
+                           option.props.children?.indexOf(input) >= 0 ||
+                           option.props.value?.indexOf(input) >= 0 ||
+                            option.props.label?.indexOf(input) >= 0
+                          }
+                        filterSort={(optionA, optionB) =>
+                           optionA.props?.children?.localeCompare(optionB.props.children)
+                        }>
+                        {tstypes.map(item => (
+                          <Option key={item.value} value={item.value}>
+                            {item.label}
+                          </Option>
+                        ))}
+                      </Select>
+                  </Form.Item>
+                  <Form.Item
+                  {...restField}
+                  name={[name, 'stopped']}
+                  label={'توقيف الراتب'}
+                  rules={[{ required: true, message: 'هذا الحقل مطلوب' }]}
+                >
+                  <Switch   />
+                </Form.Item> 
+                <Form.Item
+                  {...restField}
+                  name={[name, 'note']}
+                  label={'ملاحظات'}
+                >
+                  <TextArea style={{width:'150px'}}  placeholder="ملاحظات" />
+                </Form.Item>               
+              </Space>
+            ))}
+          </>
+        }}
+      </Form.List> 
+      </Form>
+    </Modal>  
         </div>
       </div>
     </div>
@@ -360,9 +436,9 @@ return (
                 vio+=(item.vdiscount*1);
                 var toD=Math.round(item.debt)+ab+Math.round(item.symbiosis)+Math.round(item.long_debt)+Math.round(item.vdiscount);
                 totD+=toD;
-                var tot=item.salary-toD;
+                var tot=item.stopped?0:item.salary-toD;
                 total+=tot;
-                var tor=Math.round(tot/round)*round;
+                var tor=item.stopped?0:Math.round(tot/round)*round;
                 totr+=tor;
 
                  tsal+=parseFloat(item.salary);
@@ -388,7 +464,7 @@ return (
                   <td>{new Intl.NumberFormat('en-EN').format(toD)}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(tot)}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(tor)}</td>
-                  <td><pre>             </pre></td>
+                  <td><pre>{item.note?item.note:'             '}</pre></td>
                 </tr>);
              })
               }
@@ -419,7 +495,7 @@ return (
                 <td>{new Intl.NumberFormat('en-EN').format(ttotD)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(ttotal)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(ttotr)}</td>                                
-                <td><pre>             </pre></td>
+                <td><pre>{'             '}</pre></td>
               </tr>
             </tbody>
         </table>
@@ -435,5 +511,7 @@ return (
  </div>
     </Layout>
 );
+
+
     
  }

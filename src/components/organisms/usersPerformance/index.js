@@ -141,8 +141,8 @@ export default function UsersPerformance (props){
 
     axios.get(Env.HOST_SERVER_NAME+'users-performance-rank/'+start+'/'+end)
     .then(response => {
-    
-      if(location.pathname="/profile/dept-performance"){
+     console.log(response.data);
+      if(location.pathname=="/profile/dept-performance"){
         var dt=response.data.filter(record => record.category==props.user.category.name);
         setData(dt);
         setPData(dt);

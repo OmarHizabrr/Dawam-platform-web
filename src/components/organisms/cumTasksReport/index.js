@@ -35,30 +35,37 @@ export default function CumTasksReport (props){
   const [end,setEnd]=useState(moment().format('YYYY-MM-DD'));  
   const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));  
   const [categories,setCategories]=useState([]);
+  const [pdata, setPData] = useState([]);
 
+  const [namesFilter,setNamesFilter]=useState([]);
+  const [categoriesFilter,setCategoriesFilter]=useState([]);
  
   const getVacDuration=(user_id,vac_name)=>{
+
     for(var i = 0; i < data.length; i++)
       if(data[i].uid == user_id && data[i].vac_name == vac_name ) return data[i].vac_duration;  
       return 0;
   }
+
   const getOrganizedVacations=()=>{
 
     if(data.length>0 && empNames.length>0 && tasksTypes.length>0){
+
     var vacData='[';
     empNames.map((user,index)=>{
 
-    vacData+='{'+'"empName":"'+user.label+'","user_id":"'+user.value+'","category":"'+data?.filter(record => record.uid==user.value)[0]?.category+'",';
+    vacData+='{'+'"empName":"'+user.label+'","user_id":"'+user.value+'","category":"'+data?.filter(record => record.uid==user.value)[0]?.category+'","job":"'+data?.filter(record => record.uid==user.value)[0]?.job+'",';
 
     var vacDetails="";
     tasksTypes.map((task)=>{
       vacDetails+='"'+task.label+'":"'+getVacDuration(user.value,task.label)+'",';    
     });
+
     vacData+=vacDetails.substring(0, vacDetails.length - 1);
     vacData+='},';   
     });  
- 
     return JSON.parse(vacData.substring(0, vacData.length - 1)+']');
+
   }
   else return [];
   }
@@ -70,14 +77,28 @@ export default function CumTasksReport (props){
         title: 'اسم الموظف',
         dataIndex: 'empName',
         key: 'empName',
-        sorter: (a, b) => a.empName.localeCompare(b.empName),
+        sorter: (a, b) => a.empName.length - b.empName.length,
         sortOrder: sortedInfo.columnKey === 'empName' && sortedInfo.order,
         ellipsis: false,
-      },   
+        filters:namesFilter,
+        filterSearch: true,
+        filterMode:'tree',
+        onFilter: (value, record) => record.empName.includes(value),
+      }, 
+      {
+        title: 'الإدارة',
+        dataIndex: 'category',
+        key: 'category',
+        sorter: (a, b) => a.category.length - b.category.length,
+        sortOrder: sortedInfo.columnKey === 'category' && sortedInfo.order,
+        filters:categoriesFilter,
+        filterMode:'tree',        
+        onFilter: (value, record) => record.category.includes(value),
+      },  
        {
-        title: 'الرقم الوظيفي',
-        dataIndex: 'user_id',
-        key: 'user_id',
+        title: 'الوظيفة',
+        dataIndex: 'job',
+        key: 'job',
         ellipsis: true,
       },   
     ];
@@ -96,8 +117,12 @@ export default function CumTasksReport (props){
   
 
     useEffect(() => {
+      var emp;
+      var tasks;
+      var records;
       axios.get(Env.HOST_SERVER_NAME+'get-emp-names')
           .then(response => {
+            emp=response.data;
             setEmpNames(response.data);
           }).catch(function (error) {
             console.log(error);
@@ -105,17 +130,62 @@ export default function CumTasksReport (props){
           
           axios.get(Env.HOST_SERVER_NAME+'get-tasks-types-re')
             .then(response => {
+                tasks=response.data;
                 setTasksTypes(response.data);
             }).catch(function (error) {
             console.log(error);            
           });
           setLoad(true);
+
     if(end!='')
     axios.get(Env.HOST_SERVER_NAME+'get-cum-tasks/'+start+'/'+end)
     .then(response => {
-      console.log(response.data);
+      
+      if(response.data.tasks?.length > 0 && emp?.length>0 && tasks?.length>0){
+
+        var vacData='[';
+        emp.map((user,index)=>{
+    
+        vacData+='{'+'"empName":"'+user.label+'","user_id":"'+user.value+'","category":"'+response.data.tasks?.filter(record => record.uid==user.value)[0]?.category+'","job":"'+response.data.tasks?.filter(record => record.uid==user.value)[0]?.job+'",';
+    
+        var vacDetails="";
+        tasks.map((task)=>{
+         
+          var dur=response.data.tasks?.filter(record => record.uid==user.value && record.vac_name==task.label);
+          if(dur.length>0)
+            dur=dur[0].vac_duration;
+          else
+            dur=0;
+
+          vacDetails+='"'+task.label+'":"'+dur+'",';
+        });
+        
+
+        vacData+=vacDetails.substring(0, vacDetails.length - 1);
+        vacData+='},'; 
+        });
+        
+       // console.log(vacData.substring(0, vacData.length - 1)+']');
+       var json=JSON.parse(vacData.substring(0, vacData.length - 1)+']');
+        records=json;
+        setData(json);
+        setPData(json);
+      }
+
+      let names=[];
+      let categories=[];
+      records.forEach(element => {  
+        if(!names.some(item => element.name == item.text))      
+          names.push({text:element['empName'],value:element['empName']});
+        if(!categories.some(item => element.category == item.text))      
+          categories.push({text:element['category'],value:element['category']});
+        }); 
+        setNamesFilter(names);
+        setCategoriesFilter(categories);
+
       setCategories(response.data.categories);
-      setData(response.data.tasks);
+      //setData(response.data.tasks);
+
       setLoad(false);
     }).catch(function (error) {
       console.log(error);
@@ -124,12 +194,22 @@ export default function CumTasksReport (props){
    
 // console.log(getColumnsVac());
       
-  const  handleChange = (pagination, filters, sorter) => {
-        console.log('Various parameters', pagination, filters, sorter);
-          setSortedInfo(sorter);
-          setFilteredInfo(filters);
-      };
-      const printReport=()=>{
+const handleChange = (pagination, filters, sorter) => {
+  setFilteredInfo(filters);
+  setSortedInfo(sorter);
+
+  if(filters){       
+    Object.keys(filters).forEach(key => {
+      if(filters[key]!=null){
+        setPData(data.filter(item => filters[key].includes(item[key])));
+      }
+      else
+        setPData(data);           
+    });               
+  }
+};
+
+  const printReport=()=>{
         var report=document.getElementById('att-report');
         var mywindow = window.open('');
         mywindow.document.write("<html><head><title></title> <style>@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500&display=swap'); body{font-family:Tajawal;font-size:12px;margin:0}  </style>");
@@ -143,7 +223,7 @@ export default function CumTasksReport (props){
           mywindow.close();// change window to mywindow
       };
     }
-      const exportToExcel=(type,fn,dl)=>{
+  const exportToExcel=(type,fn,dl)=>{
         var elt = document.getElementsByClassName('print-table')[0];
         if(elt){
          var wb = excel.utils.table_to_book(elt, { sheet: "sheet1" });
@@ -208,7 +288,7 @@ export default function CumTasksReport (props){
       
           }
 
-          function getMinutesTime(amPmString) {
+      function getMinutesTime(amPmString) {
 
             if(amPmString){
               var d = amPmString.split(':'); 
@@ -238,7 +318,7 @@ return (
         </div>
       </div>
     </div>   
-    <Table loading={load} columns={getColumnsVac()} scroll={{x: '1000px' }} dataSource={getOrganizedVacations()} onChange={handleChange} />
+    <Table loading={load} columns={getColumnsVac()} scroll={{x: '1000px' }} dataSource={data} onChange={handleChange} />
     <div id="att-report" style={{display:'none'}}>
     <div  style={{direction: "rtl",fontSize: "12px",fontFamily: "Tajawal",margin: "0"}}>
     <header style={{display: "flex",flexDirection: "row",borderColor:'#000',borderBottomStyle: "solid",borderBottomWidth:"1px"}}>
@@ -261,8 +341,11 @@ return (
             <thead>
                 <tr style={{color:"#fff",backgroundColor: "#0972B6",height: "25px"}}>
                      <th style={{fontWeight: "100"}} rowSpan="2">م</th>
-                     {getColumnsVac().map(item=>(
-                      <th style={{fontWeight: "100"}}>{item.title}</th>
+                     <th style={{fontWeight: "100"}} rowSpan="2">اسم الموظف</th>
+                     <th style={{fontWeight: "100"}} rowSpan="2">الوظيفة</th>
+
+                     {tasksTypes.map(item=>(
+                      <th style={{fontWeight: "100"}}>{item.label}</th>
                      ))}              
                      <th style={{fontWeight: "100"}} rowSpan="2">ملاحظات</th>
                 </tr>
@@ -272,8 +355,8 @@ return (
              
             categories.map(item=>{
 
-              var catData=getOrganizedVacations()?.filter(record => record.category==item.name);
-
+              var catData=pdata?.filter(record => record.category==item.name);
+             
               var ttasksTypes=Array(tasksTypes.length).fill(0);
 
           if(catData.length) 
@@ -286,7 +369,7 @@ return (
               <tr style={{height: " 25px",backgroundColor:index %2==0?'#e6e6e6':'#fff'}}>
                 <td>{index++}</td>
                 <td>{item.empName}</td>
-                <td>{item.user_id}</td>
+                <td>{item.job}</td>
                 {tasksTypes.map((task,index)=>{
 
                   var taskAmount=item[task.label]?.replace(/(\d{1,2}:\d{2}):\d{2}/, "$1");

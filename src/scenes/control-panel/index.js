@@ -279,7 +279,7 @@ key={'control-drawer'}
       onClick: showDrawer,
     })}    
     <Switch>
-      {props.userData.role_id==2 && <Redirect to='/profile'  />}
+      {props.userData.control_panel==0 && <Redirect to='/profile'  />}
           <Route path={path} exact>
             <Statistics/>
           </Route>

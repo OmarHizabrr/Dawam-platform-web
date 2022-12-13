@@ -56,6 +56,11 @@ export default function TasksRequests(props) {
   const [selected, setSelected] = useState(null);
   const [selectedLogs, setSelectedLogs] = useState(null);
 
+  const [givenTasks, setGivenTasks] = useState(null);
+  const [restTasks, setRestTasks] = useState(null);
+
+  const [givenLoad, setGivenLoad] = useState(true);
+
   const [statusType, setStatusType] = useState(null);
   const [accepter, setAccepter] = useState(null);
   const [notes, setNotes] = useState(null);
@@ -134,7 +139,7 @@ export default function TasksRequests(props) {
    // console.log(filters);
   };
   const processRequest = (selected) => {
-
+    setGivenLoad(true);
     form.resetFields(['range_date','request_type','request_status','notes']);
     setNotes("");
 
@@ -157,6 +162,19 @@ export default function TasksRequests(props) {
       console.log(error);
       setLogLoad(false);
     });
+     setGivenTasks(null);
+     setRestTasks(null);
+    axios.get(Env.HOST_SERVER_NAME+'given-tasks/'+selected.user_id+'/'+start+'/'+end).then(response=>{
+      
+      setGivenTasks(response.data.vacs.filter(record => record.id== selected.vacation)[0]?.cumHours);
+      setRestTasks(response.data.tasksAmount.filter(record => record.vid== selected.vacation)[0]?.rest.replace(/(\d{1,2}:\d{2}):\d{2}/, "$1"));
+
+      setGivenLoad(false);
+    }).catch(function (error) {
+      console.log(error);
+      setGivenLoad(false);
+    });
+    
   };
 
   const handleCancel = () => {
@@ -335,7 +353,7 @@ export default function TasksRequests(props) {
       key: "vid",
       render: (vid, record, index) => (
         <Button
-          disabled={props.user.role_id!=1 && record.hr_manager!='في الانتظار'}
+          disabled={ props.user.role_id!=1 && record.hr_manager!='في الانتظار'}
           onClick={function () {
             setSelected(record);
             processRequest(record);
@@ -490,9 +508,7 @@ export default function TasksRequests(props) {
           >
             {vacationsTypes?.map(function(item){return (<Option key={item.id}  value={item.id}>{item.name}</Option>)})}           
           </Select>
-          </FormItem>
-          
-
+        </FormItem>
         <FormItem style={{marginBottom:'0px'}} name={'request_status'} label={'حالة الطلب'}>
           <Select
             showSearch
@@ -514,7 +530,8 @@ export default function TasksRequests(props) {
           </Select>
           </FormItem>
             </div>
-          <div id="gantt">
+          <div style={{marginBottom:'10px'}}>
+            <div>الممنوحة: <span style={{fontWeight:'600',color:'#f00',marginLeft:'30px'}}>{givenTasks??0}</span>      المتبقية: <span style={{fontWeight:'600',color:'#f00'}}>{restTasks??0}</span> </div>
           </div>
           <FormItem name={'notes'}>
           <TextArea

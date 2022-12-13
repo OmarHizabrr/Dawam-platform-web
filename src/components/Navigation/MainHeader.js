@@ -14,7 +14,6 @@ import {
   CONTROL_PANEL_ROUTE  ,
   PROFILE_ROUTE,
 } from './../../routes';
-import DropdownButton from 'antd/lib/dropdown/dropdown-button';
 const { Header, Sider, Content } = Layout;
 const { Link } = Typography;
 
@@ -220,7 +219,7 @@ export default function MainHeader() {
 
       <Menu.Item className='profileLarge' key="1"><NavLink to={PROFILE_ROUTE} >الملف الشخصي</NavLink></Menu.Item>
 
-      {id && id.role_id==1 ?
+      {id && id.control_panel==1 ?
       <Menu.Item  className='controlLarge'  key="2"><NavLink to={CONTROL_PANEL_ROUTE} >لوحة التحكم</NavLink></Menu.Item>:<></>}
  
     <div style={{display: 'inline-block',float: 'left'}}>

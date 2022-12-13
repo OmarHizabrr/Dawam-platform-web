@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import React,{ useState, useEffect }  from 'react';
 import './style.css';
-import { DatePicker,Table, Button,Card,Input,Select,Typography,Form, Modal,Spin,notification,InputNumber} from 'antd';
+import { DatePicker,Table, Button,Card,Input,Select,Typography,Form,Space, Modal,Spin,notification,InputNumber} from 'antd';
 import {DeleteOutlined,MinusCircleOutlined, PlusOutlined ,FormOutlined,ExportOutlined,PrinterOutlined} from '@ant-design/icons';
 import axios from 'axios';
 import excel from 'xlsx';
@@ -19,6 +19,7 @@ export default function TasksAccounts (props){
   const [sortedInfo, setSortedInfo] = useState({});
   const [data, setData] = useState([]);
   const [load,setLoad]=useState(true);
+  const [tstypes,setTstypes]=useState([]);
 
   const [isTextInput,setIsTextInput]=useState(false);
   const [selectedIndex,setSelectedIndex]=useState(null);
@@ -30,7 +31,8 @@ export default function TasksAccounts (props){
   const [selectedName,setSelectedName]=useState(null);
   const [start,setStart]=useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().slice(0,10));
   const [end,setEnd]=useState(new Date().toISOString().slice(0, 10));
-  
+  const [loadUsers, setLoadUsers]=useState(false);
+
 
  
   const getVacDuration=(user_id,vac_name)=>{
@@ -94,6 +96,7 @@ export default function TasksAccounts (props){
       axios.get(Env.HOST_SERVER_NAME+'get-emp-names')
           .then(response => {
             setEmpNames(response.data);
+            setTstypes(response.data);
           }).catch(function (error) {
             console.log(error);
           });
@@ -159,10 +162,23 @@ export default function TasksAccounts (props){
   const handleCancel = () => {
         setIsModalVisible(false);
       };
-
+   const showUsersDebt=()=>{
+        setLoadUsers(true);
+        axios.get(Env.HOST_SERVER_NAME+'get-users-long-debts/')
+            .then(response => {
+              setLoadUsers(false);
+              form.setFieldsValue({'tasks':response.data});          
+            }).catch(function (error) {
+              console.log(error);
+              setLoadUsers(false);
+            });
+       };
   const [form] = Form.useForm();
       
   const onFinish = () => {
+
+        console.log(form.getFieldsValue());
+
         setSaving(true);        
         axios.post(Env.HOST_SERVER_NAME+'add-balance-tasks',form.getFieldsValue())
         .then(response => {
@@ -179,51 +195,87 @@ export default function TasksAccounts (props){
   var index=1;
 return (
     <Card>
-      <Modal confirmLoading={saving} title="إضافة رصيد إجازة موظف" visible={isModalVisible} onCancel={handleCancel} onOk={onFinish} >
-        <Form form={form}>
-        <Form.Item name="user_id" label="اسم الموظف" rules={[{ required: true, message: 'Missing area' }]}>
-        <Select 
-          options={empNames} 
-          //onChange={handleFormChange} 
-          showSearch 
-          notFoundContent={<Spin style={{textAlign:'center'}}></Spin>}
-          optionFilterProp="children"
-          filterOption={(input, option) =>
-           option.props.children?.indexOf(input) >= 0 ||
-           option.props.value?.indexOf(input) >= 0 ||
-           option.props.label?.indexOf(input) >= 0
-          }
-          filterSort={(optionA, optionB) =>
-           optionA.props?.children?.localeCompare(optionB.props.children)
-          }
-         />
-        </Form.Item>
-        <Form.Item label="نوع الإجازة" name='task_id' rules={[{ required: true, message: 'ادخل نوع الإجازة' }]}>
-            <Select  showSearch  optionFilterProp="children"
-              notFoundContent={<Spin style={{textAlign:'center'}}></Spin>}
-              filterOption={(input, option) =>
-                  option.props.children?.indexOf(input) >= 0 ||
-                  option.props.value?.indexOf(input) >= 0 ||
-                  option.props.label?.indexOf(input) >= 0
-                  }
-              filterSort={(optionA, optionB) =>
-                  optionA.props?.children?.localeCompare(optionB.props.children)
-              }>
-              {tasksTypes.map(item => (
-                <Option key={item.value} value={item.value}>
-                   {item.label}
-                </Option>
-              ))}
-            </Select>
-        </Form.Item>
-        <Form.Item label="المدة بالدقائق" name='amount' rules={[{ required: true, message: 'ادخل المدة' }]}>
-            <InputNumber  />
-        </Form.Item>
-        <Form.Item label="ملاحظات" name='note' rules={[{ required: true, message: 'ادخل الملاحظات' }]}>
-            <TextArea />
-        </Form.Item>
-        </Form>
+      <Modal confirmLoading={saving} title="إضافة رصيد إجازة موظف" visible={isModalVisible} width={1100} onCancel={handleCancel} onOk={onFinish} >
+      <Form form={form}>
+      <Button loading={loadUsers} onClick={function(){ showUsersDebt();}} style={{marginRight:'20px',marginBottom: '24px'}} type='primary'>جلب الموظفين</Button>  
+      <Form.List name="tasks">
+        {(fields, { add, remove }) => {
+          return <>
+            {
+            fields.map(({ key, name, ...restField }) => (
+              <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
+                <Form.Item 
+                 {...restField} 
+                 name={[name, 'user_id']} label="اسم الموظف" rules={[{ required: true, message: 'Missing area' }]}>
+                  <Select style={{ width: 250 }} showSearch  optionFilterProp="children"
+                         notFoundContent={<Spin style={{textAlign:'center'}}></Spin>}
+                          filterOption={(input, option) =>
+                           option.props.children?.indexOf(input) >= 0 ||
+                           option.props.value?.indexOf(input) >= 0 ||
+                            option.props.label?.indexOf(input) >= 0
+                          }
+                        filterSort={(optionA, optionB) =>
+                           optionA.props?.children?.localeCompare(optionB.props.children)
+                        }>
+                        {tstypes.map(item => (
+                          <Option key={item.value} value={item.value}>
+                            {item.label}
+                          </Option>
+                        ))}
+                      </Select>
+                </Form.Item>
+                <Form.Item 
+                 {...restField} 
+                 name={[name, 'task_id']} label="نوع الإجازة" rules={[{ required: true, message: 'Missing area' }]}>
+                  <Select style={{ width: 100 }} showSearch  optionFilterProp="children"
+                         notFoundContent={<Spin style={{textAlign:'center'}}></Spin>}
+                          filterOption={(input, option) =>
+                           option.props.children?.indexOf(input) >= 0 ||
+                           option.props.value?.indexOf(input) >= 0 ||
+                            option.props.label?.indexOf(input) >= 0
+                          }
+                        filterSort={(optionA, optionB) =>
+                           optionA.props?.children?.localeCompare(optionB.props.children)
+                        }>
+                        {tasksTypes.map(item => (
+                          <Option key={item.value} value={item.value}>
+                            {item.label}
+                          </Option>
+                        ))}
+                      </Select>
+                  </Form.Item>  
+                <Form.Item
+                  {...restField}
+                  name={[name, 'amount']}
+                  label={'الرصيد بالدقائق'}
+                  rules={[{ required: true, message: 'هذا الحقل مطلوب' }]}
+                >
+                  <InputNumber  placeholder="الرصيد بالدقائق" />
+                </Form.Item> 
+
+                <Form.Item
+                  {...restField}
+                  name={[name, 'note']}
+                  label={'ملاحظات'}
+                  rules={[{ required: true, message: 'هذا الحقل مطلوب' }]}
+                >
+                  <TextArea  placeholder="ملاحظات" />
+                </Form.Item>  
+
+                <MinusCircleOutlined onClick={() => remove(name)} />
+              </Space>
+            ))}
+            <Form.Item>
+              <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+              إضافة رصيد
+              </Button>
+            </Form.Item>
+          </>
+        }}
+      </Form.List> 
+      </Form>
       </Modal>
+      
       <div style={{marginBottom:'10px'}}>
       <div className='discountHeader' style={{marginBottom:'10px'}}>
         <div className='discountBtn'>
@@ -241,8 +293,7 @@ return (
            <img loading="eager" style={{width: "250px"}} src={Env.HOST_SERVER_STORAGE+props.setting.filter((item)=> item.key == 'admin.logo')[0]?.value}/>
        </div>
        <div style={{fontSize: "11px",textAlign: "center",width: "60%",display: "flex",flexDirection: "column",justifyContent: "end",paddingBottom: "10px"}}>
-           <h1 style={{fontSize: " 18px",fontWeight:700,marginBottom: " 5px",margin: "0"}}>كشف الإجازات</h1>
-           <h2 style={{fontSize: " 14px",fontWeight: " 200",margin: "0"}}>للفترة من {start} إلى {end}</h2>
+           <h1 style={{fontSize: " 18px",fontWeight:700,marginBottom: " 5px",margin: "0"}}>كشف أرصدة الإجازات</h1>
        </div>     
        <div style={{width: "20%"}}>
 

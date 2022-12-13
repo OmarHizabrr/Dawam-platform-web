@@ -170,6 +170,7 @@ export default function Profile(props){
     
     axios.get(Env.HOST_SERVER_NAME+'user-type/'+props.userData.id)
       .then(response => {
+        console.log(response.data);
         setType(response.data);
       }).catch(function (error) {
         console.log(error);

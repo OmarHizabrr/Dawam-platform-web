@@ -44,7 +44,7 @@ export default function deptsTable(props){
         setLoad(true);
         axios.get(Env.HOST_SERVER_NAME+'categories-cards/'+today+'/'+start+'/'+end)
           .then(response => {
-        
+
             setData(response.data.categories);
 
             var stars=[];
@@ -110,7 +110,7 @@ export default function deptsTable(props){
         sortOrder: sortedInfo.columnKey === 'att_percent' && sortedInfo.order,
         ellipsis: false,
         width:'100px',
-        render:(att_percent,record,index)=><Progress className='attPerc' type="circle" width={50} percent={att_percent} strokeColor="#52c41a" />,
+        render:(att_percent,record,index)=><Progress className='attPerc' type="circle" width={50} percent={att_percent??0} strokeColor="#52c41a" />,
       },
       {
         title: 'عدد الموظفين',

@@ -1,8 +1,9 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import React,{ useState, useEffect }  from 'react';
 import './style.css';
-import { DatePicker,Table, Button,Modal,Card,Input,Select,Typography,notification,Form,Space,Spin,InputNumber} from 'antd';
-import {PlusOutlined,FormOutlined,LoadingOutlined,MinusCircleOutlined} from '@ant-design/icons';
+import { DatePicker,Table,Popconfirm, Button,Modal,Card,Input,Select,Typography,notification,Form,Space,Spin,InputNumber} from 'antd';
+import {PlusOutlined,PrinterOutlined,FormOutlined,LoadingOutlined,DeleteOutlined,MinusCircleOutlined} from '@ant-design/icons';
+import moment from 'moment';
 
 import axios from 'axios';
 import {Env} from './../../../styles';
@@ -12,7 +13,7 @@ const {Text}=Typography;
   const {TextArea}=Input;
   const {Option}=Select;
  
-export default function LongDebtReport (){
+export default function LongDebtReport (props){
 
   const [filteredInfo, setFilteredInfo] = useState({});
   const [sortedInfo, setSortedInfo] = useState({});
@@ -31,6 +32,8 @@ export default function LongDebtReport (){
   const [loadForm, setLoadForm]=useState(false);
   const [loadUsers, setLoadUsers]=useState(false);
   const [isVisibleModal,setIsVisibleModal]=useState(false);
+  const [visible, setVisible] = React.useState(false);
+  const [confirmLoading, setConfirmLoading] = React.useState(false);
 
   const [isPModalVisible,setIsPModalVisible]=useState(false);
   const [isAModalVisible,setIsAModalVisible]=useState(false);
@@ -42,13 +45,25 @@ export default function LongDebtReport (){
   const [selected, setSelected] = useState([]);
   const [duration, setDuration] = useState(10);
   const [load,setLoad]=useState(true);
-
+  const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
+  const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
+  const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
+  const [categories,setCategories]=useState([]);
+  const [pdata, setPData] = useState([]);
+  const [namesFilter,setNamesFilter]=useState([]);
+  const [categoriesFilter,setCategoriesFilter]=useState([]);
   const [form] = Form.useForm();
-
+  const [updateForm] = Form.useForm();
+  const [update, setUpdate] = useState(0);
   const  deleteDebt = (record) => {
     axios.delete(Env.HOST_SERVER_NAME+'delete-long-debt/'+record.id)
       .then(response => {
-        alert('لقد قمت بحذف القرض الخاص بـ'+record.name);
+        notification.success({
+          message:'تمت العملية بنجاح' ,
+          placement:'bottomLeft',
+          duration:10,
+        });
+        setUpdate(update+1);
       }).catch(function (error) {
         console.log(error);
       });
@@ -61,6 +76,10 @@ export default function LongDebtReport (){
       sorter: (a, b) => a.name.length - b.name.length,
       sortOrder: sortedInfo.columnKey === 'name' && sortedInfo.order,
       ellipsis: false,
+      filters:namesFilter,
+      filterSearch: true,
+      filterMode:'tree',
+      onFilter: (value, record) => record.name.includes(value),
     },   
      {
       title: 'الإدارة',
@@ -69,45 +88,57 @@ export default function LongDebtReport (){
       sorter: (a, b) => a.category.length - b.category.length,
       sortOrder: sortedInfo.columnKey === 'category' && sortedInfo.order,
       ellipsis: true,
+      filters:categoriesFilter,
+      filterMode:'tree',        
+      onFilter: (value, record) => record.category.includes(value),
     },
     {
       title: 'مبلغ القرض',
-      dataIndex: 'onHem',
-      key: 'onHem',
-      sorter: (a, b) => a.onHem - b.onHem,
-      sortOrder: sortedInfo.columnKey === 'onHem' && sortedInfo.order,
+      dataIndex: 'amount',
+      key: 'amount',
+      sorter: (a, b) => a.amount - b.amount,
+      sortOrder: sortedInfo.columnKey === 'amount' && sortedInfo.order,
       ellipsis: false,
     },
     {
-      title: 'المدفوع',
-      dataIndex: 'forHem',
-      key: 'forHem',
-      sorter: (a, b) => a.forHem - b.forHem,
-      sortOrder: sortedInfo.columnKey === 'forHem' && sortedInfo.order,
+      title: 'التفاصيل',
+      dataIndex: 'note',
+      key: 'note',
+      sorter: (a, b) => a.note - b.note,
+      sortOrder: sortedInfo.columnKey === 'note' && sortedInfo.order,
       ellipsis: false,
     },
-     {
-      title: 'المتبقي',
-      dataIndex: 'forHem',
-      key: 'forHem',
-      sorter: (a, b) => a.forHem.length - b.forHem.length,
-      sortOrder: sortedInfo.columnKey === 'forHem' && sortedInfo.order,
-      ellipsis: false,
-      render:(forHem,record,index)=>record.onHem-record.forHem,
-    },   
     {
-      title: "تسديد القرض",
+      title: "الأحداث",
       dataIndex: "",
       key: "",
       render: (_, record, index) => (
+        <>
         <Button
           onClick={function () {
-            processRequest(record);
+           
           }}
           type="primary"
           shape="round"
           icon={<FormOutlined />}
         ></Button>
+    <Popconfirm
+      key={record.id}
+      title={'هل أنت متأكد من حذف القرض '}
+      visible={visible && selectedIndex==record.id}
+      onConfirm={function(){deleteDebt(record);}}
+      okButtonProps={{loading:confirmLoading }}
+      onCancel={function(){setVisible(false);}}
+    ></Popconfirm>
+        <Button
+        style={{marginRight:'20px', backgroundColor: "#fff", borderColor: "#ff0000",color:"#f00" }}
+        onClick={function () {setVisible(true);setSelectedIndex(record.id)}}
+
+        type="primary"
+        shape="round"
+        icon={<DeleteOutlined />}
+      ></Button>
+      </>
       ),
     },
   
@@ -133,6 +164,7 @@ export default function LongDebtReport (){
         placement:'bottomLeft',
         duration:10,
       });
+      setUpdate(update+1);
       form.resetFields();
       setIsVisibleModal(false);      
     }).catch(function (error) {
@@ -216,6 +248,37 @@ export default function LongDebtReport (){
       placement,
     });
   };
+  const printReport=()=>{
+    var report=document.getElementById('att-report');
+    //var report=document.body;
+   var mywindow = window.open('');
+    mywindow.document.write("<html><head><title></title> <style>@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500&display=swap'); body{font-family:Tajawal;font-size:12px;margin:0}  </style>");
+    mywindow.document.write('</head><body dir="rtl" style="font-size:12px;" >');
+    mywindow.document.write(report.innerHTML);
+    mywindow.document.write('</body></html>');
+
+    mywindow.document.close();
+     mywindow.onload = function() { // wait until all resources loaded 
+      mywindow.focus(); // necessary for IE >= 10
+      mywindow.print();  // change window to mywindow
+      mywindow.close();// change window to mywindow
+  };  
+  }
+  const onChange=(all,data)=>{
+    setCurrentMonth(all.format('MMMM'));
+
+    var startDay=props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value;
+    var endDay=props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value;
+
+    setStart(moment(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
+    setEnd(moment(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
+
+    }
+  const changeRange=(all,date)=>{
+      //const id=cookies.user;
+      setStart(date[0]);
+      setEnd(date[1]);       
+    }
   const openLoadingNotification = (placement,text) => {
     notification.open({
       key:'loadingAdd',
@@ -228,10 +291,23 @@ export default function LongDebtReport (){
   
     };
       useEffect(() => {
-        axios.get(Env.HOST_SERVER_NAME+'get-long-debts')
+        axios.get(Env.HOST_SERVER_NAME+'get-long-debts/'+start+'/'+end)
           .then(response => {
-            setData(response.data);
-           setAData(response.data);
+            let names=[];
+            let categories=[];
+            response.data.debts.forEach(element => {  
+              if(!names.some(item => element.name == item.text))      
+                names.push({text:element['name'],value:element['name']});
+              if(!categories.some(item => element.category == item.text))      
+                categories.push({text:element['category'],value:element['category']});        
+          }); 
+          setNamesFilter(names);
+          setCategoriesFilter(categories);
+
+
+            setData(response.data.debts);
+            setPData(response.data.debts);
+            setCategories(response.data.categories);
            setLoad(false);
           }).catch(function (error) {
             console.log(error);
@@ -242,12 +318,13 @@ export default function LongDebtReport (){
           }).catch(function (error) {
             console.log(error);
           });
-      },[]);
+      },[start,end,update]);
 
       const processRequest = (selected) => {
+        
         setSelected(selected);
-        setPAmountValue(selected.onHem-selected.forHem);
-        setIsPModalVisible(true);
+        updateForm.setFieldsValue({'id':selected.id,'user_id':selected.user_id,'amount':selected.amount,'debt_date': moment(selected.debt_date,"YYYY-MM-DD") ,'note':selected.note});
+        setIsModalVisible(true);
       };
       const openEdit=(index)=>{
           setIsTextInput(true);
@@ -330,7 +407,6 @@ export default function LongDebtReport (){
         axios
           .post(Env.HOST_SERVER_NAME + `pay-debt`, values)
           .then(function (response) {
-            console.log(response);
             if (response.status == "201") {     
               setDuration(1);        
               openNotification('success','bottomLeft','loadingAdd',3000,<span> تم تسديد القرض الخاص بـ  <span style={{fontWeight:'bold'}}>{empName} </span>  بنجاح. </span>);
@@ -355,9 +431,37 @@ export default function LongDebtReport (){
     const onDateChange=(date,dateString)=>{
        setDebtDate(dateString);
     }
+    const onFinish=()=>{
+      setButtonLoading(true);
+      console.log(updateForm.getFieldsValue());
+     axios.post(Env.HOST_SERVER_NAME+'update-long-debt',updateForm.getFieldsValue())
+          .then(response => {
+            console.log(response.data);
+            notification.success({
+              message:'تمت العملية بنجاح' ,
+              placement:'bottomLeft',
+              duration:10,
+            });
+            setUpdate(update+1);
+            setButtonLoading(false);
+            setIsModalVisible(false);
+          }).catch(function (error) {
+            console.log(error);
+            notification.error({
+              message:'فشلت العملية ' ,
+              placement:'bottomLeft',
+              duration:10,
+            });
+            setButtonLoading(false);
+
+          });
+    }
+    var index=0;
+    var tsal=0;
+    var tam=0;
 return (
     <Card>
-    <Modal confirmLoading={loadForm} width={900} title="إضافة قروض قصيرة" visible={isVisibleModal}  onOk={function(){ addDebts();}} onCancel={function(){setIsVisibleModal(false);}}>
+    <Modal confirmLoading={loadForm} width={900} title="إضافة قروض " visible={isVisibleModal}  onOk={function(){ addDebts();}} onCancel={function(){setIsVisibleModal(false);}}>
       <Form form={form}>
       <div>ادخل تاريخ القرض:</div>   
       <Form.Item style={{display:'inline-block'}}  name={'debt_date'}>
@@ -408,10 +512,10 @@ return (
                 <Form.Item
                   {...restField}
                   name={[name, 'note']}
-                  label={'ملاحظات'}
+                  label={'التفاصيل'}
                   rules={[{ required: true, message: 'هذا الحقل مطلوب' }]}
                 >
-                  <TextArea style={{width:'150px'}}  placeholder="ملاحظات" />
+                  <TextArea style={{width:'150px'}}  placeholder="التفاصيل" />
                 </Form.Item>               
                 <MinusCircleOutlined onClick={() => remove(name)} />
               </Space>
@@ -424,10 +528,18 @@ return (
           </>
         }}
       </Form.List> 
-
       </Form>
     </Modal>  
-      <Modal title="إضافة قرض" loading={buttonLoading} visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
+      <Modal title="تعديل قرض" confirmLoading={buttonLoading} visible={isModalVisible} onOk={onFinish} onCancel={handleCancel}>
+       <Form form={updateForm} onFinish={onFinish}>
+       <Form.Item
+        name="id"
+        hidden={true}
+        style={{display:"none"}}
+        >
+          <Input />
+       </Form.Item>
+       <Form.Item label="اسم الموظف" name="user_id" >
         <Select
           showSearch
           style={{ width: 300 }}
@@ -445,26 +557,120 @@ return (
            optionA.props?.children?.localeCompare(optionB.props.children)
         }
         ></Select>
-        <Input onChange={function(e){setAmountValue(e.target.value);}} placeholder="مبلغ القرض" style={{marginTop:'10px',width:300}} />
-        <div style={{marginTop:'10px',width:300}}> <DatePicker placeholder="تاريخ الاقتراض" onChange={onDateChange} /> </div>
-        <TextArea onChange={function(e){setMAmountValue(e.target.value);}} placeholder="ملاحظات" style={{marginTop:'10px',width:300}} />
+        </Form.Item>
+        <Form.Item label="مبلغ القرض" name="amount" >
+        <Input onChange={function(e){setAmountValue(e.target.value);}}  style={{marginTop:'10px',width:300}} />
+        </Form.Item>
+        <Form.Item label="تاريخ الاقتراض" name="debt_date" >
+           <DatePicker  onChange={onDateChange} /> 
+          </Form.Item>
+        <Form.Item label="التفاصيل" name="note" >
+          <TextArea onChange={function(e){setMAmountValue(e.target.value);}}  style={{marginTop:'10px',width:300}} />
+        </Form.Item>
+        </Form>
       </Modal>
-      <Modal title="تسديد قرض" visible={isPModalVisible} onOk={handlePOk} onCancel={handlePCancel}>
-        <div style={{marginBottom:'10px'}}>الموظف: {selected?selected.name:""}</div>
-        <div>الإدارة: {selected?selected.category:""}</div>
-        <Input onChange={function(e){setPAmountValue(e.target.value);}} defaultValue={selected?selected.onHem-selected.forHem:""} placeholder="مبلغ السداد" style={{marginTop:'10px',width:300}} />
-        <div style={{marginTop:'10px',width:300}}> <DatePicker placeholder="تاريخ السداد" onChange={function(date,dateString){setPDebtDate(dateString);}} /> </div>
-        <TextArea onChange={function(e){setPMAmountValue(e.target.value);}} placeholder="ملاحظات" style={{marginTop:'10px',width:300}} />
-      </Modal>
-      <Modal width={1000} title=" تسديد قرض جماعي" visible={isAModalVisible} onOk={handleAOk} onCancel={handleACancel}>
-          <Table columns={acolumns}  dataSource={adata} onChange={function(){handleAChange();}} />
-      </Modal>
-    <div style={{float:'left',marginBottom:'20px'}}>
-      <Button style={{backgroundColor:'#FAA61A',borderColor:'#FAA61A',color:'#fff',marginLeft:'20px'}} onClick={function(){ setIsModalVisible(true);}} ><PlusOutlined /> قرض جديد </Button>
-      <Button style={{backgroundColor:'#FAA61A',borderColor:'#FAA61A',color:'#fff',marginLeft:'20px'}} onClick={function(){ setIsVisibleModal(true);}} ><PlusOutlined /> قرض قصير </Button>
-      <Button style={{marginLeft:'20px'}} onClick={function(){ setIsAModalVisible(true);}} type='primary'><FormOutlined /> تسديد جماعي </Button>
-    </div>
+<div className='discountHeader' style={{marginBottom:'20px'}}>
+<div className='discountBtn' style={{display:'flex',flex:1,flexDirection:'row',justifyContent:'flex-end'}}>     
+<div className='discountRange' >
+<div style={{marginLeft:'10px'}}>
+  <span>اختر شهرًا : </span>
+  <DatePicker  defaultValue={moment()} onChange={onChange} picker="month" />
+</div>
+  <div style={{marginLeft:'10px'}}><span>اختر فترة : </span>
+      <RangePicker value={[moment(start,"YYYY-MM-DD"),moment(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
+  </div>
+  <div className='addbtn'>
+  <Button style={{backgroundColor:'#FAA61A',borderColor:'#FAA61A',color:'#fff',marginLeft:'20px'}} onClick={function(){ setIsVisibleModal(true);}} ><PlusOutlined /> إضافة قرض </Button>
+  <Button style={{backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button> 
+  </div>
+
+</div>
+
+</div>   
+</div>
     <Table scroll={{x: '1000px' }}  loading={load} columns={columns}  dataSource={data} onChange={handleChange} />
+    <div id="att-report" style={{display:'none'}}>
+    <div  style={{direction: "rtl",fontSize: "12px",fontFamily: "Tajawal",margin: "0"}}>
+    <header style={{display: "flex",flexDirection: "row",borderColor:'#000',borderBottomStyle: "solid",borderBottomWidth:"1px"}}>
+       <div style={{width: "20%"}}>
+           <img loading="eager" style={{width: "250px"}} src={Env.HOST_SERVER_STORAGE+props.setting.filter((item)=> item.key == 'admin.logo')[0]?.value}/>
+       </div>
+       <div style={{fontSize: "11px",textAlign: "center",width: "60%",display: "flex",flexDirection: "column",justifyContent: "end",paddingBottom: "10px"}}>
+           <h1 style={{fontSize: " 18px",fontWeight:700,marginBottom: " 5px",margin: "0"}}>كشف القروض لشهر {currentMonth}</h1>
+           <h2 style={{fontSize: " 14px",fontWeight: " 200",margin: "0"}}>للفترة من {start} إلى {end}</h2>
+       </div>     
+       <div style={{width: "20%"}}>
+
+       </div>
+    </header> 
+    <div  style={{display: 'flex',flexDirection: 'row',textAlign: 'center',fontSize: '14px',borderBottom:'1px solid black'}} >
+    </div>
+    <div >
+        <table style={{fontSize: "12px",width: " 100%",textAlign: " center",marginTop: " 20px"}}>
+            <thead>
+                <tr style={{color:"#fff",backgroundColor: "#0972B6",height: "30px"}}>
+                <th style={{fontWeight: "100"}} rowSpan="2">م</th>              
+                     <th style={{fontWeight: "100"}} >الاسم</th>
+                     <th style={{fontWeight: "100"}} >الوظيفة</th>
+                     <th style={{fontWeight: "100"}} >الراتب</th>
+                     <th style={{fontWeight: "100"}} >القرض</th>
+                     <th style={{fontWeight: "100"}} >ملاحظات</th>
+                </tr>
+            </thead>
+            <tbody>  
+            {
+             categories.map(item=>{
+              var catData=pdata.filter(record => record.category==item.name);
+              var sal=0;
+              var am=0;
+
+              if(catData.length) 
+              return (
+            <>
+              {
+              catData.map(item=>{
+                sal+=parseFloat(item.salary);
+                am+=item.amount*1;
+                tsal+=parseFloat(item.salary);
+                tam+=item.amount*1;
+              return  (<tr style={{height: "30px",backgroundColor:++index %2!=0?'#e6e6e6':'#fff'}}>
+                  <td>{index}</td>
+                  <td>{item.name}</td>
+                  <td >{item.job}</td>
+                 <td>{new Intl.NumberFormat('en-EN').format(item.salary)}</td>
+                  <td>{new Intl.NumberFormat('en-EN').format(item.amount)}</td>
+                  <td><pre>             </pre></td>
+                </tr>);
+
+             })
+              }
+              <tr  style={{height: " 30px",color:"#fff",backgroundColor: "#0972B6",}}>
+                <td colSpan={3}>{item.name}</td>               
+                <td>{new Intl.NumberFormat('en-EN').format(sal)}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(am)}</td>                               
+                <td><pre>             </pre></td>
+              </tr>
+            </>            
+              );
+              })}
+              <tr  style={{height: " 30px",color:"#fff",backgroundColor: "#0972B6",}}>
+                <td colSpan={3}>{'الإجمالي العام'}</td>               
+                <td>{new Intl.NumberFormat('en-EN').format(tsal)}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(tam)}</td>                               
+                <td><pre>             </pre></td>
+              </tr>
+            </tbody>
+        </table>
+    </div>
+    <div style={{display: "flex",flexDirection: "row",marginTop: "20px",textAlign: "center"}}>
+       <div style={{width: "50%",fontWeight: "900"}}>المختص</div>
+       <div style={{width: "50%",fontWeight: "900"}}>مدير الشؤون</div>
+     </div>  
+     <div style={{marginTop: " 20px",width: "85%",backgroundColor: "#e6e6e61",padding: "5px 0",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px"}}>
+         <div style={{backgroundColor: " #0972B6",width: " 95%",height: " 15px",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px",color: " #fff",paddingRight: " 20px"}}>نظام دوام | {new Date().toLocaleString('en-IT')} </div>
+     </div>
+ </div> 
+ </div>
     </Card>
 );
 

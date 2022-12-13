@@ -10,13 +10,12 @@ import AttendanceTable from './../attendanceTable';
 import TasksTable from './../tasksTable';
 import ReactApexChart from "react-apexcharts";
 
-import { Card, Avatar,Layout,Row,Col,Upload ,Typography,Badge,Dropdown,Rate,Menu,Skeleton,Space,InputNumber,Select,Modal, Button,Form,Input,notification, DatePicker,Collapse,Progress,Spin} from 'antd';
+import { Card, Avatar,Layout,Row,Col,Upload,Checkbox ,Typography,Switch,Badge,Dropdown,Rate,Menu,Skeleton,Space,InputNumber,Select,Modal, Button,Form,Input,notification, DatePicker,Collapse,Progress,Spin} from 'antd';
 import './style.css';
 import { NavHashLink as NavLink } from 'react-router-hash-link';
 import { PlusOutlined,UploadOutlined, TagsOutlined,ClockCircleOutlined, ClusterOutlined ,MoreOutlined,MinusCircleOutlined,PrinterOutlined,FileOutlined} from '@ant-design/icons';
 import {
     BrowserRouter as Router,
-    Switch,
     Route,
     Redirect,
     Link,
@@ -27,6 +26,7 @@ const { Meta } = Card;
 const { Text } = Typography;
 const { Panel } = Collapse;
 const { RangePicker } = DatePicker;
+const {Option}=Select;
 
 export default function EmpCards(props){ 
     let { path, url } = useRouteMatch(); 
@@ -208,6 +208,7 @@ const onFinish=()=>{
     },
   };
  var userData=userform.getFieldsValue();
+  userData.control_panel=userData.control_panel?1:0;
 
   for (const key in userData) {
     if (Array.isArray(userData[key])) {
@@ -222,7 +223,7 @@ const onFinish=()=>{
       formData.append(key, userData[key]);
     }
   }
-  
+
   axios.post(Env.HOST_SERVER_NAME+'users/add',formData).then(res => {
     console.log(res.data);
     if(res.status==200){
@@ -457,8 +458,9 @@ const openTaskModal=(user)=>{
   setIsTVisibleModal(true);
 }
 const openShowUser=(user)=>{
- // console.log(Object.keys(user).map((key) => [Number(key), user[key]]));
- setSelectedUser(user);
+
+  user.control_panel= parseInt(user.control_panel);
+  setSelectedUser(user);
  var birth=user.birth_date;
  var assign=user.assignment_date;
   userform.setFieldsValue(user);
@@ -980,24 +982,9 @@ return(
       </Form.List>          
            </div>
           </Panel>
-          <Panel header="بيانات النظام" key="3">
+          <Panel header="بيانات النظام والصلاحيات" key="3">
             <div>
               <div style={{display:'flex',flexDirection:'row'}}>
-              <Form.Item style={{flex:1,marginLeft:'5px'}} label="حالة البصمة" name="fingerprint_type">
-              <Select 
-                options={types.filter(function(e){return e.parent==20;})}
-                optionFilterProp="children"
-              filterOption={(input, option) =>
-                option.props.children?.indexOf(input) >= 0 ||
-                option.props.label?.indexOf(input) >= 0
-              }
-              filterSort={(optionA, optionB) =>
-                optionA.props?.children?.localeCompare(optionB.props.children)
-              }
-                disabled={userFormDisable} >
-
-              </Select>
-              </Form.Item>
               <Form.Item style={{flex:1,marginLeft:'5px'}} label="الرقم الوظيفي" name="user_id">
                 <Input disabled={userFormDisable} />
               </Form.Item>
@@ -1006,6 +993,41 @@ return(
               </Form.Item>
               <Form.Item style={{flex:1,marginLeft:'5px'}} label="كلمة المرور" name="password">
                 <Input.Password disabled={userFormDisable} />
+              </Form.Item>
+              </div>
+              <div style={{display:'flex',flexDirection:'row'}}>
+              <Form.Item style={{flex:1,marginLeft:'5px'}} label="حالة البصمة" name="fingerprint_type">
+                  <Select 
+                    options={types.filter(function(e){return e.parent==20;})}
+                    optionFilterProp="children"
+                  filterOption={(input, option) =>
+                    option.props.children?.indexOf(input) >= 0 ||
+                    option.props.label?.indexOf(input) >= 0
+                  }
+                  filterSort={(optionA, optionB) =>
+                    optionA.props?.children?.localeCompare(optionB.props.children)
+                  }
+                    disabled={userFormDisable} >
+                    
+                  </Select>
+              </Form.Item>
+              <Form.Item style={{flex:1,marginLeft:'5px'}} label="صلاحية المستخدم" name="role_id">
+                  <Select 
+                    optionFilterProp="children"
+                  filterOption={(input, option) =>
+                    option.props.children?.indexOf(input) >= 0 ||
+                    option.props.label?.indexOf(input) >= 0
+                  }
+                  filterSort={(optionA, optionB) =>
+                    optionA.props?.children?.localeCompare(optionB.props.children)
+                  }
+                    disabled={userFormDisable} >
+                    <Option value="2">مستخدم عادي</Option>
+                    <Option value="1">مدير</Option>
+                  </Select>
+              </Form.Item>
+              <Form.Item style={{flex:1,marginLeft:'5px'}} label="الوصول للوحة التحكم" valuePropName="checked"  name="control_panel">
+                <Checkbox />
               </Form.Item>
               </div>
             </div>
@@ -1178,7 +1200,13 @@ return(
   <Modal centered={true} className='task-modal' width={1200} title={"سجل إجازات | "+selectedUserName} visible={isTVisibleModal}  onOk={function(){ }} onCancel={function(){setIsTVisibleModal(false);setSelectedUser(null);}}>
       <TasksTable setting={props.setting} user={selectedUser} key={isTVisibleModal}></TasksTable>
   </Modal>
-<Row gutter={[{xs: 2, sm: 16, md: 24, lg: 32 },{xs:2, sm: 16, md: 24, lg: 32 }]} style={{padding:20}}>
+<Row style={{margin:'15px 10px'}}>
+<Col span={24} style={{backgroundColor:'#fff',borderRadius:'10px',padding:'10px'}}>
+  
+<Button style={{float:'left',backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button>
+</Col>
+</Row>
+<Row gutter={[{xs: 2, sm: 16, md: 24, lg: 32 },{xs:2, sm: 16, md: 24, lg: 32 }]} style={{padding:'0 20px'}}>
 {listData}
 {data.map(user=>{
  return <Col xs={24} sm={12} md={12} lg={8} xl={6} style={{padding:'10px',marginBottom: '-30px'}}  span={6}>
@@ -1188,7 +1216,7 @@ return(
         <Menu.Item key="1" onClick={function(){setSelectedUserName(user.name);openAttModal(user);}}>
         سجل الحضور
         </Menu.Item>
-        <Menu.Item key="2" onClick={function(){openTaskModal(user);}}>
+        <Menu.Item key="2" onClick={function(){setSelectedUserName(user.name);openTaskModal(user);}}>
         سجل الإجازات
         </Menu.Item>
         <Menu.Divider />

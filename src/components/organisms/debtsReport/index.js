@@ -7,6 +7,7 @@ import axios from 'axios';
 import {Env} from './../../../styles';
 import excel from 'xlsx';
 import logoText from '../../../assets/images/logo-text.png';
+import moment from 'moment';
 
 const {Text}=Typography;
 
@@ -28,33 +29,38 @@ export default function DebtsReport (props){
   const [tstypes,setTstypes]=useState([]);
   const [loadUsers, setLoadUsers]=useState(false);
   const [loadForm, setLoadForm]=useState(false);
-  const [start,setStart]=useState(new Date(new Date().setDate(new Date().getDate() - 15)).toISOString().slice(0,10));
-  const [end,setEnd]=useState(new Date().toISOString().slice(0, 10)); 
+  const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
+  const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
+  const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
+  const [namesFilter,setNamesFilter]=useState([]);
+  const [categoriesFilter,setCategoriesFilter]=useState([]);
   const [categories,setCategories]=useState([]);
+  const [pdata, setPData] = useState([]);
 
   const [form] = Form.useForm();
   const columns = [
-  /* {
-     render:()=>(
-       <Checkbox></Checkbox>
-     ),
-     ellipsis:false,
-   },*/
+
     {
-      title: 'اسم الموظف',
+      title: 'الاسم',
       dataIndex: 'name',
       key: 'name',
       sorter: (a, b) => a.name.length - b.name.length,
       sortOrder: sortedInfo.columnKey === 'name' && sortedInfo.order,
       ellipsis: false,
-    },   
-     {
+      filters:namesFilter,
+      filterSearch: true,
+      filterMode:'tree',
+      onFilter: (value, record) => record.name.includes(value),
+    },
+    {
       title: 'الإدارة',
       dataIndex: 'category',
       key: 'category',
       sorter: (a, b) => a.category.length - b.category.length,
       sortOrder: sortedInfo.columnKey === 'category' && sortedInfo.order,
-      ellipsis: true,
+      filters:categoriesFilter,
+      filterMode:'tree',        
+      onFilter: (value, record) => record.category.includes(value),
     },
     {
       title: 'تاريخ السلفة',
@@ -124,10 +130,24 @@ export default function DebtsReport (props){
      excel.writeFile(wb, fn || ('كشف السلف.' + (type || 'xlsx')));  
     }
   }
-      useEffect(() => {
+  useEffect(() => {
         axios.get(Env.HOST_SERVER_NAME+'get-monthly-debts'+'/'+start+'/'+end)
           .then(response => {
+           
+            let names=[];
+          let categories=[];
+          response.data["debts"].forEach(element => {  
+            if(!names.some(item => element.name == item.text))      
+              names.push({text:element['name'],value:element['name']});
+            if(!categories.some(item => element.category == item.text))      
+              categories.push({text:element['category'],value:element['category']});        
+        }); 
+        setNamesFilter(names);
+        setCategoriesFilter(categories);
+
             setData(response.data.debts);
+            setPData(response.data.debts);
+
             setCategories(response.data.categories);
             setLoad(false);
           }).catch(function (error) {
@@ -136,15 +156,16 @@ export default function DebtsReport (props){
           axios.get(Env.HOST_SERVER_NAME+'get-emp-names')
           .then(response => {
            setTstypes(response.data);
+           
           }).catch(function (error) {
             console.log(error);
           });
       },[start,end]);
-      const openEdit=(index)=>{
+  const openEdit=(index)=>{
           setIsTextInput(true);
           setSelectedIndex(index);
       }
-      const updateDebt=(id,newValue)=>{
+  const updateDebt=(id,newValue)=>{
         axios.get(Env.HOST_SERVER_NAME+'update-debts-amount/'+id+'/'+newValue)
           .then(response => {
             setIsTextInput(false);
@@ -155,10 +176,30 @@ export default function DebtsReport (props){
           });
       }
   const handleChange = (pagination, filters, sorter) => {
-        setFilteredInfo(filters);
-        setSortedInfo(sorter);
+    setFilteredInfo(filters);
+    setSortedInfo(sorter);
+
+    if(filters){       
+      Object.keys(filters).forEach(key => {
+        if(filters[key]!=null){
+          setPData(data.filter(item => filters[key].includes(item[key])));
+        }
+        else
+          setPData(data);           
+      });               
+    }
+
       };
- 
+  const onChange=(all,data)=>{
+        setCurrentMonth(all.format('MMMM'));
+  
+        var startDay=props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value;
+        var endDay=props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value;
+  
+        setStart(moment(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
+        setEnd(moment(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
+  
+  }
   const  addDebts = () => {
     setLoadForm(true);
     axios.post(Env.HOST_SERVER_NAME+'add-all-debts',form.getFieldsValue())
@@ -279,8 +320,12 @@ return (
       </Form>
     </Modal>
     <div className='attOper'>
+      <div style={{marginLeft:'10px'}}>
+        <span>اختر شهرًا : </span>
+        <DatePicker defaultValue={moment()} onChange={onChange} picker="month" />
+      </div>
       <div className='attOperRange' style={{marginBottom:'10px',marginLeft:'10px'}}><span>اختر فترة : </span>
-          <RangePicker style={{width: '200px'}} onCalendarChange={changeRange} />
+          <RangePicker value={[moment(start,"YYYY-MM-DD"),moment(end,"YYYY-MM-DD")]} style={{width: '200px'}} onCalendarChange={changeRange} />
       </div>    
       <div className='attOperBtn' style={{float: 'left'}}>
     <Button  style={{backgroundColor:'#FAA61A',borderColor:'#FAA61A',color:'#fff',marginLeft:'20px'}} onClick={function(){setIsVisibleModal(true);}} type='primary'><FormOutlined /> سلفة جماعية </Button>
@@ -298,7 +343,7 @@ return (
            <img loading="eager" style={{width: "250px"}} src={Env.HOST_SERVER_STORAGE+props.setting.filter((item)=> item.key == 'admin.logo')[0]?.value}/>
        </div>
        <div style={{fontSize: "11px",textAlign: "center",width: "60%",display: "flex",flexDirection: "column",justifyContent: "end",paddingBottom: "10px"}}>
-           <h1 style={{fontSize: " 18px",fontWeight:700,marginBottom: " 5px",margin: "0"}}>كشف السلف</h1>
+           <h1 style={{fontSize: " 18px",fontWeight:700,marginBottom: " 5px",margin: "0"}}>كشف السلف لشهر {currentMonth}</h1>
            <h2 style={{fontSize: " 14px",fontWeight: " 200",margin: "0"}}>للفترة من {start} إلى {end}</h2>
        </div>     
        <div style={{width: "20%"}}>
@@ -323,9 +368,11 @@ return (
             <tbody>  
             {
              categories.map(item=>{
-              var catData=data.filter(record => record.category==item.name);
+              var catData=pdata.filter(record => record.category==item.name);
               var sal=0;
               var am=0;
+
+              if(catData.length) 
               return (
             <>
               {
