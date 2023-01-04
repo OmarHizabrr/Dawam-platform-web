@@ -37,7 +37,7 @@ export default function GeneralSetting(props){
          formData.append('month_start',values['month_start']);
          formData.append('month_end',values['month_end']);
          formData.append('backend_link',values['backend_link']);
-      
+         formData.append('general_manager',values['general_manager']);
        
        axios.post(Env.HOST_SERVER_NAME+'general-setting',formData)
         .then(res=>{
@@ -55,6 +55,7 @@ export default function GeneralSetting(props){
       'month_start':props.setting.filter((item)=> item.key == 'admin.month_start')[0]?.value,
       'month_end':props.setting.filter((item)=> item.key == 'admin.month_end')[0]?.value,
       'backend_link':props.setting.filter((item)=> item.key == 'admin.backend_link')[0]?.value,
+      'general_manager':props.setting.filter((item)=> item.key == 'admin.general_manager')[0]?.value,
     });
     const openNotification = (placement,text) => {
       notification.success({
@@ -91,7 +92,10 @@ return (
             </Form.Item> 
             <Form.Item name={'month_end'} label={'نهاية الشهر'}>
                 <InputNumber  min={1} max={31} />
-            </Form.Item> 
+            </Form.Item>
+            <Form.Item name={'general_manager'} label={'مسمى المدير العام'}>
+                <Input/>
+            </Form.Item>  
             </Col>
           </Row>
           <div style={{width:'100%'}}>

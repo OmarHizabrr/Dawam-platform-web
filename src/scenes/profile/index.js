@@ -75,8 +75,13 @@ export default function Profile(props){
   const [preworks,setPreworks]=useState([]);
   const [attachments,setAttachments]=useState([]);
   const [userFormDisable,setUserFormDisable]=useState(true);
+  const [setting,setSetting]=useState([]);
+
   const [start,setStart]=useState(new Date(new Date().setDate(new Date().getDate() - 31)).toISOString().slice(0,10));
   const [end,setEnd]=useState(new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().slice(0,10));
+// const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
+// const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
+
   const [star,setStar]=useState(0); 
   const [spiderData,setSpiderData]=useState([]);
 
@@ -137,7 +142,9 @@ export default function Profile(props){
          //-----------------------------       
        }
   useEffect(() => {
+
    
+
     axios.get(Env.HOST_SERVER_NAME+'salary-info/'+user.user_id+'/'+start+'/'+end)
     .then(response => {   
  
@@ -170,14 +177,13 @@ export default function Profile(props){
     
     axios.get(Env.HOST_SERVER_NAME+'user-type/'+props.userData.id)
       .then(response => {
-        console.log(response.data);
         setType(response.data);
       }).catch(function (error) {
         console.log(error);
       });
     
 
-  },[]);
+  },[start,end]);
 
   const config = {
     options: {
@@ -235,8 +241,9 @@ export default function Profile(props){
    }
 
 const requestPane=()=>{
-  if(type!=3){
-  return(    <TabPane
+  if( (props.userData && props.userData?.role_id==1) || (type && type!=3 ) || (props.userData?.general_manager==1) ) {
+  return(
+  <TabPane
     tab={
       <Link to={`${url}/tasks-requests`}>
       <span>
@@ -812,7 +819,7 @@ return (
     >
     </TabPane>
    { 
-   true &&
+   (props.setting && props.setting.filter((item)=> item.key == "admin.transports")[0]?.value==1) &&
 
    <TabPane
       tab={
@@ -856,7 +863,6 @@ return (
     >
     </TabPane>}
 
-
     <TabPane
       tab={
         <Link to={`${url}/alerts`} hidden={location.userData!=null?true:false}>
@@ -883,7 +889,7 @@ return (
   >  
         <Switch>
           <Route path={path} exact>
-            <SummaryData  setting={props.setting} userData={user}  star={star} />
+            <SummaryData spiderData={spiderData} setting={setting} userData={user} star={star} />
           </Route>
           <Route path={`${path}/general-table`}>
             <GeneralTable setting={props.setting}/>

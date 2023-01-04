@@ -41,6 +41,7 @@ function App() {
   const id=cookies.user;
 
   useEffect(() => {   
+   
      axios.get(Env.HOST_SERVER_NAME+'setting')
      .then(response => {
         setSetting(response.data);
@@ -142,6 +143,7 @@ function App() {
     );
   } else {
     routes = (
+     
       <Layout  theme="light"  style={{textAlign:'right',fontFamily:'jannatR',height:'100%'}}>
       <MainHeader></MainHeader>
       <Layout>    

@@ -140,7 +140,7 @@ export default function DiscountsReport(props){
         sorter: (a, b) => a.attendanceDays - b.attendanceDays,
         sortOrder: sortedInfo.columnKey === 'attendanceDays' && sortedInfo.order,
         ellipsis: true,
-        render:(attendanceDays)=> count-attendanceDays,
+        render:(attendanceDays,record,_)=> record.fingerprint_type=='22'?count-attendanceDays:0,
       },
       {
         title: 'خصميات الغياب',
@@ -149,7 +149,7 @@ export default function DiscountsReport(props){
         sorter: (a, b) => ((a.salary/30)*(count-a.attendanceDays)) - ((b.salary/30)*(count-b.attendanceDays)),
         sortOrder: sortedInfo.columnKey === 'absencePrice' && sortedInfo.order,
         ellipsis: true,
-        render:(attendanceDays,row)=>Math.round(((row.salary/30)*(count-row.attendanceDays))*100)/100 ,
+        render:(attendanceDays,row)=>row.fingerprint_type=='22'?Math.round(((row.salary/30)*(count-row.attendanceDays))*100)/100 :0,
       },
       {
         title: 'التأخرات',
@@ -167,6 +167,7 @@ export default function DiscountsReport(props){
       },
         sortOrder: sortedInfo.columnKey === 'lateTime' && sortedInfo.order,
         ellipsis: true,
+        render:(lateTime,row)=>row.fingerprint_type=='22'?lateTime:0,
       },
       {
         title: 'خصميات التأخرات',
@@ -175,7 +176,7 @@ export default function DiscountsReport(props){
         sorter: (a, b) => a.lateTimePrice - b.lateTimePrice,
         sortOrder: sortedInfo.columnKey === 'lateTimePrice' && sortedInfo.order,
         ellipsis: false,
-        render:(lateTimePrice)=>Math.round(lateTimePrice)        
+        render:(lateTimePrice,row)=>row.fingerprint_type=='22'?Math.round(lateTimePrice):0,        
       },
     ];
     const printReport=()=>{
@@ -248,6 +249,10 @@ return (
     </Card>
     <div id="att-report"style={{display:'none'}}>
     <div  style={{direction: "rtl",fontSize: "12px",fontFamily: "Tajawal",margin: "0"}}>
+    <table style={{fontSize: "11px",width: " 100%",textAlign: " center",marginTop: " 20px"}}>
+    <thead>
+    <tr style={{border:'none'}}>
+    <th colSpan={13}>  
     <header style={{display: "flex",flexDirection: "row",borderColor:'#000',borderBottomStyle: "solid",borderBottomWidth:"1px"}}>
        <div style={{width: "20%"}}>
            <img loading="eager" style={{width: "250px"}} src={Env.HOST_SERVER_STORAGE+props.setting.filter((item)=> item.key == 'admin.logo')[0]?.value}/>
@@ -263,9 +268,9 @@ return (
     <div  style={{display: 'flex',flexDirection: 'row',textAlign: 'center',fontSize: '14px',borderBottom:'1px solid black'}} >
 
     </div>
-    <div >
-        <table style={{fontSize: "11px",width: " 100%",textAlign: " center",marginTop: " 20px"}}>
-            <thead>
+
+    </th>
+    </tr>
                 <tr style={{color:"#fff",backgroundColor: "#0972B6",height: "30px"}}>
                 <th style={{fontWeight: "100"}} rowSpan="2">م</th>              
                      <th style={{fontWeight: "100"}} rowSpan="2">الاسم</th>
@@ -301,6 +306,11 @@ return (
             <>
               {
               catData.map(item=>{
+
+                item.lateTimePrice=item.fingerprint_type=='22'? item.lateTimePrice:0;
+                item.lateTime=item.fingerprint_type=='22'? item.lateTime:0;
+                item.attendanceDays=item.fingerprint_type=='22'? item.attendanceDays:count;
+
                 sal+=parseFloat(item.salary);
 
                 //ltimes+=getMinutesTime(item.lateTime);
@@ -341,7 +351,7 @@ return (
               );
              })
               }
-              <tr  style={{height: " 30px",color:"#fff",backgroundColor: "#0972B6",}}>
+              <tr style={{height: " 30px",color:"#fff",backgroundColor: "#0972B6",}}>
                 <td colSpan={3}>{item.name}</td>               
                 <td>{new Intl.NumberFormat('en-EN').format(sal)}</td>
                 <td>{parseInt(ltimes/60)+":"+(ltimes%60)}</td>
@@ -366,13 +376,20 @@ return (
               </tr>
 
             </tbody>
-        </table>
-    </div>
-    <div style={{display: "flex",flexDirection: "row",marginTop: "20px",textAlign: "center"}}>
-       <div style={{width: "50%",fontWeight: "900"}}>المختص</div>
-       <div style={{width: "50%",fontWeight: "900"}}>مدير الشؤون</div>
-     </div>  
-     <div style={{marginTop: " 20px",width: "85%",backgroundColor: "#e6e6e61",padding: "5px 0",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px"}}>
+    <tfoot>
+      <tr>
+        <th colSpan={13}>
+          <div style={{display: "flex",flexDirection: "row",textAlign: "center"}}>
+            <div style={{width: "50%",fontWeight: "900"}}>شؤون الموظفين</div>
+            <div style={{width: "50%",fontWeight: "900"}}>مدير الشؤون الإدارية</div>
+            <div style={{width: "50%",fontWeight: "900"}}>المحاسب</div>
+            <div style={{width: "50%",fontWeight: "900"}}>المسؤول المالي</div>
+          </div>
+        </th>
+      </tr>
+    </tfoot>
+    </table> 
+     <div style={{marginTop: "50px",width: "85%",backgroundColor: "#e6e6e61",padding: "5px 0",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px"}}>
          <div style={{backgroundColor: " #0972B6",width: " 95%",height: " 15px",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px",color: " #fff",paddingRight: " 20px"}}>نظام دوام | {new Date().toLocaleString('en-IT')} </div>
      </div>
  </div> 
@@ -381,3 +398,4 @@ return (
 );
     
  }
+

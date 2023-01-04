@@ -38,6 +38,8 @@ export default function tasksTable(props) {
 
   const [startVac,setStartVac]=useState("");
   const [type,setType]=useState(null);
+  const [userType,setUserType]=useState(null);
+
   const [endVac,setEndVac]=useState("");
   const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
   const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
@@ -76,8 +78,13 @@ export default function tasksTable(props) {
   const [form] = Form.useForm();
   const [uform] = Form.useForm();
 
-  //const user=cookies.user;
   useEffect(() => {
+    axios.get(Env.HOST_SERVER_NAME+'user-type/'+props.user?.id)
+      .then(response => {
+       setUserType(response.data);
+      }).catch(function (error) {
+        console.log(error);
+      });
 
     axios.get(Env.HOST_SERVER_NAME+'get-tasks-types')
     .then(response => {
@@ -391,26 +398,61 @@ export default function tasksTable(props) {
           },
         },
         {
-          title: 'الحالة',
-          dataIndex: 'status',
-          key: 'status',
+          title: "مدير الإدارة",
+          hidden: userType!=3 ,
+          dataIndex: "dept_manager",
+          key: "dept_manager",
           filters: [
-            { text: 'معتمدة', value: 'معتمدة' },
-            { text: 'في الانتظار', value: 'في الانتظار' },
-            { text: 'مرفوضة', value: 'مرفوضة' },
+            { text: "معتمدة", value: "معتمدة" },
+            { text: "في الانتظار", value: "في الانتظار" },
+            { text: "مرفوضة", value: "مرفوضة" },
           ],
-          filteredValue: filteredInfo.status || null,
-          onFilter: (value, record) => record.status.includes(value),
-          sorter: (a, b) => a.status.length - b.status.length,
-          sortOrder: sortedInfo.columnKey === 'status' && sortedInfo.order,
-          ellipsis: true,
+          filteredValue: filteredInfo.dept_manager || null,
+          onFilter: (value, record) => record.dept_manager.includes(value),
+          sorter: (a, b) => a.dept_manager.length - b.dept_manager.length,
+          sortOrder: sortedInfo.columnKey === "dept_manager" && sortedInfo.order,
+          ellipsis: false,
+          render:(el)=>el=="معتمدة"?<CheckCircleOutlined style={{fontSize:'25px',color:'#0972B6'}} />:el=="في الانتظار"?<MinusCircleOutlined style={{fontSize:'25px',color:'#FFDD1C'}}/>:<CloseCircleOutlined style={{fontSize:'25px',color:'#f00'}}/>,
+        },
+        {
+          title: props.setting.filter((item)=> item.key == "admin.general_manager")[0]?.value,
+          dataIndex: "gerenal_sec",
+          key: "gerenal_sec",
+          className: "gensec",
+          filters: [
+            { text: "معتمدة", value: "معتمدة" },
+            { text: "في الانتظار", value: "في الانتظار" },
+            { text: "مرفوضة", value: "مرفوضة" },
+          ],
+          filteredValue: filteredInfo.gerenal_sec || null,
+          onFilter: (value, record) => record.gerenal_sec.includes(value),
+          sorter: (a, b) => a.gerenal_sec.length - b.gerenal_sec.length,
+          sortOrder: sortedInfo.columnKey === "gerenal_sec" && sortedInfo.order,
+          ellipsis: false,
+          render:(el)=>el=="معتمدة"?<CheckCircleOutlined style={{fontSize:'25px',color:'#0972B6'}} />:el=="في الانتظار"?<MinusCircleOutlined style={{fontSize:'25px',color:'#FFDD1C'}}/>:<CloseCircleOutlined style={{fontSize:'25px',color:'#f00'}}/>,
+        },
+        {
+          title: "شؤون الموظفين",
+          dataIndex: "hr_manager",
+          key: "hr_manager",
+          filters: [
+            { text: "معتمدة", value: "معتمدة" },
+            { text: "في الانتظار", value: "في الانتظار" },
+            { text: "مرفوضة", value: "مرفوضة" },
+          ],
+          filteredValue: filteredInfo.hr_manager || null,
+          onFilter: (value, record) => record.hr_manager.includes(value),
+          sorter: (a, b) => a.hr_manager.length - b.hr_manager.length,
+          sortOrder: sortedInfo.columnKey === "hr_manager" && sortedInfo.order,
+          ellipsis: false,
+          render:(el)=>el=="معتمدة"?<CheckCircleOutlined style={{fontSize:'25px',color:'#0972B6'}} />:el=="في الانتظار"?<MinusCircleOutlined style={{fontSize:'25px',color:'#FFDD1C'}}/>:<CloseCircleOutlined style={{fontSize:'25px',color:'#f00'}}/>,
         },
         {
           title: "",
           width:100,
           render: (vid, record, index) => (
             <Button
-              disabled={record.manager_accept!='في الانتظار' || record.status!='في الانتظار'}
+              disabled={record.dept_manager!='في الانتظار' || record.gerenal_sec!='في الانتظار' || record.hr_manager!='في الانتظار'}
               onClick={function () {uform.setFieldsValue({notes:record.description,date_range:[moment(record.date_from,"YYYY-MM-DD HH:mm") , moment(record.date_to, "YYYY-MM-DD HH:mm")],task_type:record.vac_id});setVacId(record.id);setVacType(record.vac_id);setDatefromValue(record.date_from);setDatetoValue(record.date_to);setNotes(record.description);setSelectedLogs(null);setIsUModalVisible(true);}}
               className={'edit-btn'}
               style={{ backgroundColor: "#fff", borderColor: "#0972B6",color:"#0972B6" }}
@@ -434,7 +476,7 @@ export default function tasksTable(props) {
           onCancel={handlePCancel}
         >
             <Button
-              disabled={record.status!='في الانتظار'}
+              disabled={record.dept_manager!='في الانتظار' || record.gerenal_sec!='في الانتظار' || record.hr_manager!='في الانتظار'}
               onClick={function () {showPopconfirm(record.id);}}
               className={'delete-btn'}
               style={{ backgroundColor: "#fff", borderColor: "#ff0000",color:"#f00" }}
@@ -446,7 +488,7 @@ export default function tasksTable(props) {
           ),
         }
   
-      ];
+      ].filter(item => !item.hidden);
       const dcolumns = [
         {
           title: 'التاريخ',
@@ -649,7 +691,7 @@ return (
                      <th colSpan={2} style={{fontWeight: "100"}}>الإجمالي</th>
                      <th rowSpan={2} style={{fontWeight: "100"}}>نوع الإجازة/المهمة</th>
                      <th rowSpan={2} style={{fontWeight: "100"}}>التفاصيل</th>
-                     <th rowSpan={2} style={{fontWeight: "100",width:'90px'}}>المسؤول المباشر</th>
+                     <th rowSpan={2} style={{fontWeight: "100",width:'90px'}}>{userType!=3?props.setting.filter((item)=> item.key == "admin.general_manager")[0]?.value:'مدير الإدارة'}</th>
                      <th rowSpan={2} style={{fontWeight: "100",width:'90px'}}>الشؤون</th>
                 </tr>
                 <tr style={{color:"#fff",backgroundColor: "#0972B6",height: "30px"}}>
@@ -675,8 +717,8 @@ return (
                 <td style={{backgroundColor: index%2==0?'#e6e6e6':'#fff'}} rowSpan={2}>{item.period?.replace(/(\d{1,2}:\d{2}):\d{2}/, "$1")}</td>
                 <td style={{backgroundColor: index%2==0?'#e6e6e6':'#fff'}} rowSpan={2}>{item.name}</td>
                 <td style={{width:'150px',backgroundColor: index%2==0?'#e6e6e6':'#fff'}} rowSpan={2}>{item.description}</td>
-                <td style={{backgroundColor: index%2==0?'#e6e6e6':'#fff'}} rowSpan={2}>{item.manager_accept=='في الانتظار'?"":item.manager_accept}</td>
-                <td style={{backgroundColor: index%2==0?'#e6e6e6':'#fff'}} rowSpan={2}>{item.status=='في الانتظار'?"":item.status}</td>
+                <td style={{backgroundColor: index%2==0?'#e6e6e6':'#fff'}} rowSpan={2}>{userType!=3? (item.gerenal_sec=='في الانتظار'?"":item.gerenal_sec) : (item.dept_manager=='في الانتظار'?"":item.dept_manager)}</td>
+                <td style={{backgroundColor: index%2==0?'#e6e6e6':'#fff'}} rowSpan={2}>{item.hr_manager=='في الانتظار'?"":item.hr_manager}</td>
               </tr>
               <tr style={{height: " 25px"}}>
                 <td style={{backgroundColor: index%2==0?'#e6e6e6':'#fff'}}>إلى</td>
@@ -725,6 +767,8 @@ return (
     </div>
     <div style={{display: "flex",flexDirection: "row",marginTop: "20px",textAlign: "center"}}>
        <div style={{width: "50%",fontWeight: "900"}}>الموظف</div>
+       <div style={{width: "50%",fontWeight: "900"}}>المسؤول المباشر</div>
+       <div style={{width: "50%",fontWeight: "900"}}>مدير الإدارة</div>
        <div style={{width: "50%",fontWeight: "900"}}>المختص</div>
        <div style={{width: "50%",fontWeight: "900"}}>مدير الشؤون</div>
      </div>  

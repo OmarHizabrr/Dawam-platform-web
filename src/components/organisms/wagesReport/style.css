@@ -58,3 +58,11 @@ td{
             margin-bottom: 10px;
             }
     }
+
+    td, th {
+        page-break-inside: avoid !important;
+    }
+
+    @media print {
+        td, th,tr {page-break-inside: avoid;}
+      }

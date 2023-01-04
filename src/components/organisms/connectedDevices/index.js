@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import excel from 'xlsx';
 import axios from 'axios';
 import './style.css';
-//import ZKLib from 'node-zklib';
+import ZKLib from 'node-zklib';
+
 import logoText from '../../../assets/images/logo-text.png';
 import {Env} from '../../../styles';
 import { useCookies,CookiesProvider  } from 'react-cookie';
@@ -11,9 +12,11 @@ import './style.css';
 import { DatePicker, Space,Form,Table, Button,Modal,Card,Radio,Input,Select,Progress,Tag,Typography } from 'antd';
 import {ExportOutlined,FormOutlined,PrinterOutlined} from '@ant-design/icons';
 const {Text}=Typography;
-  const {Option}=Select;
-  const { RangePicker } = DatePicker;
-  const {TextArea}=Input;
+const {Option}=Select;
+const { RangePicker } = DatePicker;
+const {TextArea}=Input;
+
+//const ZKLib = require('./zklib');
 
 export default function connectedDevices() {
   
@@ -29,7 +32,8 @@ export default function connectedDevices() {
   const [load,setLoad]=useState(true);
   const [connected,setConnected]=useState(true);
   const user=cookies.user;
-  var ZK;
+
+
   useEffect(() => {
     setLoad(true);
     axios.get(Env.HOST_SERVER_NAME+'connected-devices')
@@ -113,19 +117,23 @@ export default function connectedDevices() {
       const handleCancel=()=>{
         setIsModalVisible(false);
       }
-     const testConnection= async ()=>{
-            const ZKLib = require('node-zklib')
-            let zkInstance = new ZKLib('192.168.0.201', 4370, 10000, 4000);
-            try {
-                // Create socket to machine 
-                await zkInstance.createSocket();
-                console.log(await zkInstance.getInfo());
-            } catch (e) {
-                console.log(e)
-                if (e.code === 'EADDRINUSE') {
-                }
-            }              
-     }
+  const testConnection= async ()=>{
+   
+
+    let zkInstance = new ZKLib('192.168.0.201', 4370, 10000, 4000);
+    try {
+        // Create socket to machine 
+        await zkInstance.createSocket()
+        // It's really useful to check the status of device 
+        console.log(await zkInstance.getInfo())
+    } catch (e) {
+        console.log(e)
+        if (e.code === 'EADDRINUSE') {
+        }
+    }
+
+    }
+
 return (
     <Card>
     <div style={{display:'flex',flexDirection:'row',justifyContent:'flex-end'}}>   

@@ -208,7 +208,7 @@ export default function wagesReport(props){
         key: 'totDiscount',
         sortOrder: sortedInfo.columnKey === 'totDiscount' && sortedInfo.order,
         ellipsis: false,
-        render:(_,item,ind)=>new Intl.NumberFormat('en-EN').format(Math.round(item.debt)+Math.round(((count-item.attendanceDays)*(item.salary/30))+parseFloat(item.lateTimePrice))+Math.round(item.symbiosis)+Math.round(item.long_debt)),
+        render:(_,item,ind)=>item.fingerprint_type=='22'?(new Intl.NumberFormat('en-EN').format(Math.round(item.debt)+Math.round(((count-item.attendanceDays)*(item.salary/30))+parseFloat(item.lateTimePrice))+Math.round(item.symbiosis)+Math.round(item.long_debt))):0,
       },
       {
         title: 'صافي الاستحقاق',
@@ -366,8 +366,12 @@ return (
     </div>
     <Table loading={load} rowKey={(record) => record.user_id} pagination={false} style={{textAlign:'center!important'}} columns={columns} scroll={{x: '1000px' }} onRow={(record, rowIndex) => {return{className:record.status};}} dataSource={data} onChange={handleChange} />
     </Card>
-    <div id="att-report" style={{display:'none'}}>
+    <div id="att-report" style={{display:'none'}} >
     <div  style={{direction: "rtl",fontSize: "12px",fontFamily: "Tajawal",margin: "0"}}>
+    <table style={{fontSize: "11px",width: " 100%",textAlign: " center"}}>
+    <thead>
+    <tr style={{border:'none'}}>
+    <th colSpan={14}>  
     <header style={{display: "flex",flexDirection: "row",borderColor:'#000',borderBottomStyle: "solid",borderBottomWidth:"1px"}}>
        <div style={{width: "20%"}}>
            <img loading="eager" style={{width: "250px"}} src={Env.HOST_SERVER_STORAGE+props.setting.filter((item)=> item.key == 'admin.logo')[0]?.value}/>
@@ -380,17 +384,17 @@ return (
 
        </div>
     </header> 
-    <div  style={{display: 'flex',flexDirection: 'row',textAlign: 'center',fontSize: '14px',borderBottom:'1px solid black'}} >
+    <div  style={{display: 'flex',marginBottom:'20px',flexDirection: 'row',textAlign: 'center',fontSize: '14px',borderBottom:'1px solid black'}} >
 
     </div>
-    <div >
-        <table style={{fontSize: "11px",width: " 100%",textAlign: " center",marginTop: " 20px"}}>
-            <thead>
+    </th>
+    </tr>
                 <tr style={{color:"#fff",backgroundColor: "#0972B6",height: "25px"}}>
                 <th style={{fontWeight: "100"}} rowSpan="2">م</th>              
                      <th style={{fontWeight: "100"}} rowSpan="2">الاسم</th>
-                     <th style={{fontWeight: "100",width:'60px'}} rowSpan="2">الوظيفة</th>
-                     <th style={{fontWeight: "100"}} rowSpan="2">الاستحقاق</th>
+                     <th style={{fontWeight: "100",width:'50px'}} rowSpan="2">الوظيفة</th>
+                     <th style={{fontWeight: "100",fontSize:'8px'}} rowSpan="2">الاستحقاق</th>
+                     <th style={{fontWeight: "100"}} rowSpan="2">البدلات</th>
                      <th style={{fontWeight: "100"}} colSpan="6">الاستقطاعات</th>
                      <th style={{fontWeight: "100"}} rowSpan="2" colSpan={"2"}> صافي<br/>الاستحقاق </th>
                      <th style={{fontWeight: "100"}} rowSpan="2">التوقيع</th>
@@ -453,9 +457,11 @@ return (
 
               return  (<tr style={{height: "30px",backgroundColor:++index %2!=0?'#e6e6e6':'#fff'}}>
                   <td>{index}</td>
-                  <td style={{fontSize:'10px'}}>{item.name}</td>
-                  <td style={{fontSize: "8px",width:'60px'}}>{item.job}</td>
+                  <td style={{fontSize:'9px'}}>{item.name}</td>
+                  <td style={{fontSize: "7px",width:'50px'}}>{item.job}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(item.salary)}</td>
+                  <td>{new Intl.NumberFormat('en-EN').format(item.salary)}</td>
+
                   <td>{new Intl.NumberFormat('en-EN').format(item.debt)}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(ab)}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(Math.round(parseFloat(item.symbiosis)))}</td>
@@ -468,9 +474,11 @@ return (
                 </tr>);
              })
               }
-              <tr  style={{height: " 30px",color:"#fff",backgroundColor: "#0972B6",}}>
+              <tr  style={{height: " 30px",color:"#fff",backgroundColor: "#0972B6",fontSize:'8px!important'}}>
                 <td colSpan={3}>{item.name}</td>               
                 <td>{new Intl.NumberFormat('en-EN').format(sal)}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(sal)}</td>
+
                 <td>{new Intl.NumberFormat('en-EN').format(debts)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(abs)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(sym)}</td>
@@ -487,6 +495,8 @@ return (
             <tr  style={{height: " 30px",color:"#fff",backgroundColor: "#0972B6",}}>
                 <td colSpan={3}>{'الإجمالي العام'}</td>               
                 <td>{new Intl.NumberFormat('en-EN').format(tsal)}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(tsal)}</td>
+
                 <td>{new Intl.NumberFormat('en-EN').format(tdebts)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(tabs)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(tsym)}</td>
@@ -498,13 +508,21 @@ return (
                 <td><pre>{'             '}</pre></td>
               </tr>
             </tbody>
-        </table>
-    </div>
-    <div style={{display: "flex",flexDirection: "row",marginTop: "20px",textAlign: "center"}}>
-       <div style={{width: "50%",fontWeight: "900"}}>المختص</div>
-       <div style={{width: "50%",fontWeight: "900"}}>مدير الشؤون</div>
-     </div>  
-     <div style={{marginTop: " 20px",width: "85%",backgroundColor: "#e6e6e61",padding: "5px 0",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px"}}>
+    <tfoot>
+      <tr>
+        <th colSpan={14}>
+          <div style={{display: "flex",flexDirection: "row",marginTop: "20px",textAlign: "center"}}>
+            <div style={{width: "50%",fontWeight: "900"}}>شؤون الموظفين</div>
+            <div style={{width: "50%",fontWeight: "900"}}>مدير الشؤون الإدارية</div>
+            <div style={{width: "50%",fontWeight: "900"}}>المحاسب</div>
+            <div style={{width: "50%",fontWeight: "900"}}>المسؤول المالي</div>
+          </div>
+        </th>
+      </tr>
+    </tfoot>
+    </table>
+    
+     <div style={{marginTop: "50px",width: "85%",backgroundColor: "#e6e6e61",padding: "5px 0",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px"}}>
          <div style={{backgroundColor: " #0972B6",width: " 95%",height: " 15px",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px",color: " #fff",paddingRight: " 20px"}}>نظام دوام | {new Date().toLocaleString('en-IT')} </div>
      </div>
  </div> 

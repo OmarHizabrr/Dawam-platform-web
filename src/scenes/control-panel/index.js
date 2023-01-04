@@ -35,6 +35,7 @@ import TransportReport from '../../components/organisms/transportReport';
 import SettingsPane from '../../components/organisms/SettingsPane';
 import TasksRecords from '../../components/organisms/tasksRecords';
 import TasksAccounts from '../../components/organisms/tasksAccounts';
+import TypesTable from '../../components/organisms/typesTable';
 
 import ViolationsRecords from '../../components/organisms/violationsRecords';
 import connectedDevices from '../../components/organisms/connectedDevices';
@@ -69,19 +70,16 @@ export default function ControlPanel(props){
     setCollapased(!collapsed); 
   };
  return(
-    <Layout className="site-layout">
-      <Drawer
+<Layout className="site-layout">
+<Drawer
       className='control-drawer'
-placement={'right'}
-closable={false}
-onClose={onClose}
-visible={visible}
-key={'control-drawer'}
->
-<Menu
-  mode="inline"
-  defaultSelectedKeys={['1']}
->
+      placement={'right'}
+      closable={false}
+      onClose={onClose}
+      visible={visible}
+      key={'control-drawer'}
+    >
+    <Menu mode="inline" defaultSelectedKeys={['1']} >
     {React.createElement(collapsed ? MenuUnfoldOutlined : MenuFoldOutlined, {
       className: 'trigger',
       onClick: toggle,
@@ -132,12 +130,8 @@ key={'control-drawer'}
         </Menu.Item>
   </SubMenu> 
   <SubMenu key="6" icon={<CarryOutOutlined />} title="الإجازات والمهام">
-       <Menu.Item key="sub7">
-        <Link to={`${url}/tasks-records`}  > ترحيل الإجازات    </Link>
-        </Menu.Item>
-        <Menu.Item key="sub8">
-        <Link to={`${url}/cum-tasks-report`}  > تقرير الإجازات  </Link>
-        </Menu.Item>
+       <Menu.Item key="sub7"> <Link to={`${url}/tasks-records`}  > ترحيل الإجازات    </Link>  </Menu.Item>
+        <Menu.Item key="sub8"> <Link to={`${url}/cum-tasks-report`}  > تقرير الإجازات  </Link> </Menu.Item>
   </SubMenu>
   <SubMenu key="9" icon={<WarningOutlined />} title="المخالفات والإنذارات">
        <Menu.Item key="sub11">
@@ -173,11 +167,8 @@ key={'control-drawer'}
   </Menu.Item>
 </Menu>
 </Drawer>
-    <Sider className='control-menu site-layout-background' trigger={null} collapsible collapsed={collapsed}>
-<Menu
-  mode="inline"
-  defaultSelectedKeys={['1']}
->
+<Sider className='control-menu site-layout-background' trigger={null} collapsible collapsed={collapsed}>
+<Menu  mode="inline" defaultSelectedKeys={['1']} >
     {React.createElement(collapsed ? MenuUnfoldOutlined : MenuFoldOutlined, {
       className: 'trigger',
       onClick: toggle,
@@ -214,6 +205,7 @@ key={'control-drawer'}
         </Link>
         </Menu.Item>
         <Menu.Item key="sub4">الدوام الإضافي</Menu.Item>
+        <Menu.Item key="sub8"> <Link to={`${url}/cum-tasks-report`}  > تقرير الإجازات  </Link>  </Menu.Item>
   </SubMenu> 
   <SubMenu key="5" icon={<DollarCircleOutlined />} title="السلف والقروض">
        <Menu.Item key="sub5">
@@ -228,15 +220,9 @@ key={'control-drawer'}
         </Menu.Item>
   </SubMenu> 
   <SubMenu key="6" icon={<CarryOutOutlined />} title="الإجازات والمهام">
-       <Menu.Item key="sub7">
-        <Link to={`${url}/tasks-records`}  > ترحيل الإجازات    </Link>
-        </Menu.Item>
-        <Menu.Item key="sub16">
-        <Link to={`${url}/tasks-accounts`}  > أرصدة الإجازات    </Link>
-        </Menu.Item>
-        <Menu.Item key="sub8">
-        <Link to={`${url}/cum-tasks-report`}  > تقرير الإجازات  </Link>
-        </Menu.Item>
+        <Menu.Item key="sub17"> <Link to={`${url}/types/tasks`}> أنواع الإجازات    </Link> </Menu.Item>
+       <Menu.Item key="sub7"> <Link to={`${url}/tasks-records`} > ترحيل الإجازات    </Link> </Menu.Item>
+        <Menu.Item key="sub16"> <Link to={`${url}/tasks-accounts`}  > أرصدة الإجازات    </Link>  </Menu.Item>
   </SubMenu>
   <SubMenu key="9" icon={<WarningOutlined />} title="المخالفات والإنذارات">
        <Menu.Item key="sub11">
@@ -290,6 +276,7 @@ key={'control-drawer'}
           <Route path={`${path}/debts-report`} component={()=> <DebtReport setting={props.setting}/>} /> 
           <Route path={`${path}/tasks-records`} component={ ()=><TasksRecords setting={props.setting}/>} /> 
           <Route path={`${path}/tasks-accounts`} component={()=> <TasksAccounts setting={props.setting}/>} /> 
+          <Route path={`${path}/types/:category`} component={()=> <TypesTable  setting={props.setting}/>} /> 
           <Route path={`${path}/violations-records`} component={()=> <ViolationsRecords setting={props.setting} user={cookies.user} type="Admin"/>} />
           <Route path={`${path}/cum-violation-report`} component={()=> <ViolationsReport setting={props.setting}/>} />    
           <Route path={`${path}/cum-tasks-report`} component={()=> <CumTasksReport setting={props.setting}/>} />   

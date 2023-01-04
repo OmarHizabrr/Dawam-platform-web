@@ -40,14 +40,15 @@ export default function alertsTable (){
           sorter: (a, b) => a.text.length - b.text.length,
           sortOrder: sortedInfo.columnKey === 'text' && sortedInfo.order,
           ellipsis: true,
-        },  
+        },
         {
-            title: 'الرابط',
-            dataIndex: 'link',
-            key: 'link',
-            ellipsis: true,
-            render:(l)=>(<a href={l}>فتح</a>),
-          },   
+          title: 'تاريخ التنبيه',
+          dataIndex: 'created_at',
+          key: 'created_at',
+          sorter: (a, b) => a.created_at.length - b.created_at.length,
+          sortOrder: sortedInfo.columnKey === 'created_at' && sortedInfo.order,
+          ellipsis: true,
+        }   
       ];
       const changeRange=(all,date)=>{
         //const id=cookies.user;

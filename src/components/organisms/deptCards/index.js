@@ -21,6 +21,9 @@ export default function deptCards(props){
     const [data,setData]=useState([]);
     const [load,setLoad]=useState(true);
     const [isVisibleModal,setIsVisibleModal]=useState(false);
+    const [isDVisibleModal,setIsDVisibleModal]=useState(false);
+    const [ddept,setDDept]=useState([]);
+
     const [userFormDisable,setUserFormDisable]=useState(true);
     const [today,setToday]=useState(new Date().toISOString().split('T')[0]);
     const [starList,setStarList]=useState([]); 
@@ -89,6 +92,29 @@ export default function deptCards(props){
 
      },[start,end,update]);
 
+  const deleteDept=()=>{
+
+      setModalLoad(true);
+      axios.delete(Env.HOST_SERVER_NAME+'departments/remove/'+ddept.id)
+          .then(response => {
+            setModalLoad(false);
+            notification.success({
+              message:'تمت العملية بنجاح' ,
+              placement:'bottomLeft',
+              duration:10,
+            });
+            setIsDVisibleModal(false);
+            setUpdate(update+1);
+          }).catch(function (error) {
+            setModalLoad(false);
+            notification.error({
+              message:'فشلت العملية ' ,
+              placement:'bottomLeft',
+              duration:10,
+            });
+            console.log(error);
+          });
+    }
     const menu = (
       <Menu>
         <Menu.Item key="0">
@@ -209,6 +235,9 @@ return(
 
   </Form>
 </Modal>  
+<Modal confirmLoading={modalLoad} title="حذف إدارة" open={isDVisibleModal} onOk={deleteDept} onCancel={()=>{setIsDVisibleModal(false)}}>
+    <p>هل متأكد من حذف الإدارة {ddept.name} ؟</p>
+  </Modal>
 <Row gutter={[ {xs: 10, sm: 16, md: 24, lg: 32 },{xs: 10, sm: 16, md: 24, lg: 32 }]} style={{padding:20}}>
 {listData}
 {data.map(category=>{
@@ -219,7 +248,8 @@ return(
 
         <Menu.Item key="1"  onClick={function(){userform.resetFields();setUserFormDisable(true);openShowUser(category);}}>عرض البيانات</Menu.Item>
         <Menu.Item key="2"  onClick={function(){userform.resetFields();setUserFormDisable(false);openShowUser(category);}}>تعديل البيانات</Menu.Item>    
-        
+        <Menu.Divider />
+        <Menu.Item key="3"  onClick={function(){setIsDVisibleModal(true);setDDept(category)}}>حذف</Menu.Item>
         </Menu>} 
   trigger={['click']} > 
    <a style={{float:'left',fontSize:'20px'}} className="ant-dropdown-link" onClick={e => e.preventDefault()}>

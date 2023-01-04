@@ -45,7 +45,8 @@ export default function EmpCards(props){
     const [today,setToday]=useState(new Date().toISOString().split('T')[0]);
     const [isVisibleModal,setIsVisibleModal]=useState(false);
     const [isRVisibleModal,setIsRVisibleModal]=useState(false);
-
+    const [isDVisibleModal,setIsDVisibleModal]=useState(false);
+    const [duser,setDUser]=useState([]);
     const [isAVisibleModal,setIsAVisibleModal]=useState(false);
     const [isTVisibleModal,setIsTVisibleModal]=useState(false);
     const [start,setStart]=useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().slice(0,10));
@@ -111,6 +112,7 @@ export default function EmpCards(props){
         console.log(error);
       });
      },[]);
+
      function callback(key) {
      // console.log(key);
     }
@@ -193,7 +195,8 @@ export default function EmpCards(props){
       else
       return `منذ ${count} ${count > 2 && count <= 10 ?interval?.label:sinterval?.label}`;
     }
-    const listData = [];
+  const listData = [];
+  
 for (let i = 0; i < 16; i++) {
   listData.push(<Col style={{padding:'10px',display:load?'':'none'}}  span={6}>
   <Skeleton loading={load}  avatar active={load}></Skeleton>
@@ -209,7 +212,7 @@ const onFinish=()=>{
   };
  var userData=userform.getFieldsValue();
   userData.control_panel=userData.control_panel?1:0;
-
+  userData.general_manager=userData.general_manager?1:0;
   for (const key in userData) {
     if (Array.isArray(userData[key])) {
       for(const attach in userData[key]){
@@ -244,7 +247,6 @@ const onFinish=()=>{
 }).catch(err =>{ console.log(err);
   alert("فشل إضافة موظف");
   setModalLoad(false);
-
 }); 
 }
 var options = {
@@ -460,6 +462,7 @@ const openTaskModal=(user)=>{
 const openShowUser=(user)=>{
 
   user.control_panel= parseInt(user.control_panel);
+  user.general_manager= parseInt(user.general_manager);
   setSelectedUser(user);
  var birth=user.birth_date;
  var assign=user.assignment_date;
@@ -598,6 +601,30 @@ const openShowReport=(user)=>{
   setEnd(date[1]);
   getUserData(selectedUser); 
 }
+
+const deleteUser=()=>{
+
+  setModalLoad(true);
+  axios.delete(Env.HOST_SERVER_NAME+'users/remove/'+duser.id)
+      .then(response => {
+        setModalLoad(false);
+        notification.success({
+          message:'تمت العملية بنجاح' ,
+          placement:'bottomLeft',
+          duration:10,
+        });
+        setIsDVisibleModal(false);
+      }).catch(function (error) {
+        setModalLoad(false);
+        notification.error({
+          message:'فشلت العملية ' ,
+          placement:'bottomLeft',
+          duration:10,
+        });
+        console.log(error);
+      });
+}
+
 return(
 <Layout>
     <Button
@@ -996,7 +1023,7 @@ return(
               </Form.Item>
               </div>
               <div style={{display:'flex',flexDirection:'row'}}>
-              <Form.Item style={{flex:1,marginLeft:'5px'}} label="حالة البصمة" name="fingerprint_type">
+              <Form.Item style={{flex:2,marginLeft:'5px'}} label="حالة البصمة" name="fingerprint_type">
                   <Select 
                     options={types.filter(function(e){return e.parent==20;})}
                     optionFilterProp="children"
@@ -1011,7 +1038,7 @@ return(
                     
                   </Select>
               </Form.Item>
-              <Form.Item style={{flex:1,marginLeft:'5px'}} label="صلاحية المستخدم" name="role_id">
+              <Form.Item style={{flex:2,marginLeft:'5px'}} label="صلاحية المستخدم" name="role_id">
                   <Select 
                     optionFilterProp="children"
                   filterOption={(input, option) =>
@@ -1026,7 +1053,10 @@ return(
                     <Option value="1">مدير</Option>
                   </Select>
               </Form.Item>
-              <Form.Item style={{flex:1,marginLeft:'5px'}} label="الوصول للوحة التحكم" valuePropName="checked"  name="control_panel">
+              <Form.Item style={{flex:1,marginLeft:'5px'}} label="لوحة التحكم" valuePropName="checked"  name="control_panel">
+                <Checkbox />
+              </Form.Item>
+              <Form.Item style={{flex:1,marginLeft:'5px'}} label="المدير العام" valuePropName="checked"  name="general_manager">
                 <Checkbox />
               </Form.Item>
               </div>
@@ -1200,6 +1230,11 @@ return(
   <Modal centered={true} className='task-modal' width={1200} title={"سجل إجازات | "+selectedUserName} visible={isTVisibleModal}  onOk={function(){ }} onCancel={function(){setIsTVisibleModal(false);setSelectedUser(null);}}>
       <TasksTable setting={props.setting} user={selectedUser} key={isTVisibleModal}></TasksTable>
   </Modal>
+
+  <Modal confirmLoading={modalLoad} title="حذف موظف" open={isDVisibleModal} onOk={deleteUser} onCancel={()=>{setIsDVisibleModal(false)}}>
+    <p>هل متأكد من حذف الموظف {duser.name} ؟</p>
+  </Modal>
+
 <Row style={{margin:'15px 10px'}}>
 <Col span={24} style={{backgroundColor:'#fff',borderRadius:'10px',padding:'10px'}}>
   
@@ -1224,6 +1259,9 @@ return(
         <Menu.Item key="4"  onClick={function(){userform.resetFields();setUserFormDisable(false);openShowUser(user);}}>تعديل البيانات</Menu.Item>
         <Menu.Divider />
         <Menu.Item key="5"  onClick={function(){setIsRVisibleModal(true);openShowReport(user);}}>التقرير التفصيلي</Menu.Item>
+        <Menu.Divider />
+        <Menu.Item key="6"  onClick={function(){setIsDVisibleModal(true);setDUser(user)}}>حذف</Menu.Item>
+
       </Menu>} 
   trigger={['click']} > 
    <a style={{float:'left',fontSize:'20px'}} className="ant-dropdown-link" onClick={e => e.preventDefault()}>

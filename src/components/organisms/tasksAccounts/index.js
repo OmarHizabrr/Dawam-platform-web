@@ -2,7 +2,7 @@
 import React,{ useState, useEffect }  from 'react';
 import './style.css';
 import { DatePicker,Table, Button,Card,Input,Select,Typography,Form,Space, Modal,Spin,notification,InputNumber} from 'antd';
-import {DeleteOutlined,MinusCircleOutlined, PlusOutlined ,FormOutlined,ExportOutlined,PrinterOutlined} from '@ant-design/icons';
+import {SwapOutlined,MinusCircleOutlined, PlusOutlined ,FormOutlined,ExportOutlined,PrinterOutlined} from '@ant-design/icons';
 import axios from 'axios';
 import excel from 'xlsx';
 import logoText from '../../../assets/images/logo-text.png';
@@ -20,9 +20,11 @@ export default function TasksAccounts (props){
   const [data, setData] = useState([]);
   const [load,setLoad]=useState(true);
   const [tstypes,setTstypes]=useState([]);
+  const [types,setTypes]=useState([]);
+  const [namesFilter,setNamesFilter]=useState([]);
 
   const [isTextInput,setIsTextInput]=useState(false);
-  const [selectedIndex,setSelectedIndex]=useState(null);
+  const [statment,setStatment]=useState(null);
   const [amountValue,setAmountValue]=useState(null);
   const [isModalVisible,setIsModalVisible]=useState(false);
   const [saving,setSaving]=useState(false);
@@ -32,9 +34,8 @@ export default function TasksAccounts (props){
   const [start,setStart]=useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().slice(0,10));
   const [end,setEnd]=useState(new Date().toISOString().slice(0, 10));
   const [loadUsers, setLoadUsers]=useState(false);
+  const [update,setUpdate]=useState(false);
 
-
- 
   const getVacDuration=(user_id,vac_name)=>{
     for(var i = 0; i < data.length; i++)
       if(data[i].user_id == user_id && data[i].vac_name == vac_name ) return data[i].rest.replace(/(\d{1,2}:\d{2}):\d{2}/, "$1");  
@@ -58,7 +59,18 @@ export default function TasksAccounts (props){
   }
   else return [];
   }
-  
+  const showAccount=(user_id)=>{
+    setIsModalVisible(true);
+    axios.get(Env.HOST_SERVER_NAME+'get-tasks-statment/'+user_id)
+    .then(response => {
+      console.log(response.data);
+      form.setFieldsValue({'tasks':response.data});
+
+    }).catch(function (error) {
+    console.log(error);            
+    });
+
+  }
   const getColumnsVac=()=>{
     if(tasksTypes.length>0){
     const ncolumns = [
@@ -69,11 +81,15 @@ export default function TasksAccounts (props){
         sorter: (a, b) => a.empName.localeCompare(b.empName),
         sortOrder: sortedInfo.columnKey === 'empName' && sortedInfo.order,
         ellipsis: false,
+        filters:namesFilter,
+        filterSearch: true,
+        filterMode:'tree',
+        onFilter: (value, record) => record.name.includes(value),
       },   
        {
-        title: 'الرقم الوظيفي',
-        dataIndex: 'user_id',
-        key: 'user_id',
+        title: 'الوظيفة',
+        dataIndex: 'job',
+        key: 'job',
         ellipsis: true,
       },
           
@@ -86,17 +102,34 @@ export default function TasksAccounts (props){
    nc.map((col)=>{
      ncolumns.push(col);
    });
+   ncolumns.push(   
+    {
+     title: 'الأحداث',
+     dataIndex: 'user_id',
+     key: 'user_id',
+     ellipsis: true,
+     render: (user_id, record, index) => (
+      <Button
+        onClick={function () {
+          showAccount(user_id);
+        }}
+        type="primary"
+        shape="round"
+        icon={<SwapOutlined />}
+      ></Button>
+      ),
+   });
    return ncolumns;
   }
   else return [];
   }
   
-
-    useEffect(() => {
+  useEffect(() => {
       axios.get(Env.HOST_SERVER_NAME+'get-emp-names')
           .then(response => {
             setEmpNames(response.data);
             setTstypes(response.data);
+            
           }).catch(function (error) {
             console.log(error);
           });
@@ -111,12 +144,22 @@ export default function TasksAccounts (props){
   if(end!='')
     axios.get(Env.HOST_SERVER_NAME+'get-rest-tasks/'+start+'/'+end)
     .then(response => {
-      setData(response.data);
+      let names=[];
+      console.log(response.data);
+      response.data["tasks"].forEach(element => {  
+        if(!names.some(item => element.fullname == item.text)){      
+          names.push({text:element['fullname'],value:element['fullname']});
+        }       
+    }); 
+    names=names.sort((a, b) =>  a.name.localeCompare(b.name));
+    setNamesFilter(names);
+      setData(response.data['tasks']);
+      setTypes(response.data['types']);
       setLoad(false);
     }).catch(function (error) {
       console.log(error);
     });
-   },[start,end]);
+   },[start,end,update]);
         
   const  handleChange = (pagination, filters, sorter) => {
         console.log('Various parameters', pagination, filters, sorter);
@@ -161,6 +204,7 @@ export default function TasksAccounts (props){
     
   const handleCancel = () => {
         setIsModalVisible(false);
+        form.resetFields();
       };
    const showUsersDebt=()=>{
         setLoadUsers(true);
@@ -176,14 +220,14 @@ export default function TasksAccounts (props){
   const [form] = Form.useForm();
       
   const onFinish = () => {
-
-        console.log(form.getFieldsValue());
-
+        
         setSaving(true);        
         axios.post(Env.HOST_SERVER_NAME+'add-balance-tasks',form.getFieldsValue())
         .then(response => {
             setSaving(false);
             setIsModalVisible(false);
+            form.resetFields();
+            setUpdate(update+1);
            openNotification('bottomLeft',selectedName);
           }).catch(function (error) {
            alert('يوجد مشكلة في الاتصال بالسرفر!');
@@ -192,10 +236,10 @@ export default function TasksAccounts (props){
           
         };
       
-  var index=1;
+var index=1;
 return (
     <Card>
-      <Modal confirmLoading={saving} title="إضافة رصيد إجازة موظف" visible={isModalVisible} width={1100} onCancel={handleCancel} onOk={onFinish} >
+      <Modal confirmLoading={saving} title="إضافة رصيد إجازة موظف" visible={isModalVisible} width={1300} onCancel={handleCancel} onOk={onFinish} >
       <Form form={form}>
       <Button loading={loadUsers} onClick={function(){ showUsersDebt();}} style={{marginRight:'20px',marginBottom: '24px'}} type='primary'>جلب الموظفين</Button>  
       <Form.List name="tasks">
@@ -204,6 +248,13 @@ return (
             {
             fields.map(({ key, name, ...restField }) => (
               <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
+                <Form.Item
+                  {...restField}
+                  name={[name, 'id']}
+                  hidden
+                >
+                  <Input  placeholder="الرصيد بالدقائق" />
+                </Form.Item> 
                 <Form.Item 
                  {...restField} 
                  name={[name, 'user_id']} label="اسم الموظف" rules={[{ required: true, message: 'Missing area' }]}>
@@ -243,7 +294,23 @@ return (
                           </Option>
                         ))}
                       </Select>
-                  </Form.Item>  
+                </Form.Item>
+                <Form.Item 
+                 {...restField} 
+                 name={[name, 'type']} label="نوع الرصيد" rules={[{ required: true, message: 'Missing area' }]}>
+                  <Select style={{ width: 100 }} showSearch  optionFilterProp="children"
+                        options={types.filter(function(e){return e.parent==34;})}
+                         notFoundContent={<Spin style={{textAlign:'center'}}></Spin>}
+                          filterOption={(input, option) =>
+                           option.props.children?.indexOf(input) >= 0 ||
+                           option.props.value?.indexOf(input) >= 0 ||
+                            option.props.label?.indexOf(input) >= 0
+                          }
+                        filterSort={(optionA, optionB) =>
+                           optionA.props?.children?.localeCompare(optionB.props.children)
+                        }
+                        />
+                </Form.Item>   
                 <Form.Item
                   {...restField}
                   name={[name, 'amount']}
@@ -281,6 +348,7 @@ return (
         <div className='discountBtn'>
           <Button style={{marginLeft:'5px',marginRight:'5px',border:'none',backgroundColor:'#FAA61A',color:'#fff'}} onClick={function(){  setIsModalVisible(true);}} ><FormOutlined /> </Button>
           <Button style={{display:'block',margin:'0 10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
+          <Button style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6",marginLeft:'10px'}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /> تقرير السنوية</Button>
           <Button style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button>
         </div>
       </div>

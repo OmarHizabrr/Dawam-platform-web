@@ -109,14 +109,15 @@ export default function LongDebtReport (props){
       ellipsis: false,
     },
     {
-      title: "الأحداث",
+      title: "",
       dataIndex: "",
       key: "",
       render: (_, record, index) => (
         <>
         <Button
           onClick={function () {
-           
+            setIsModalVisible(true);
+            updateForm.setFieldsValue({'id':record.id,'user_id':record.user_id,'amount':record.amount,'debt_date':moment(record.debt_date,'YYYY-MM-DD'),'note':record.note});
           }}
           type="primary"
           shape="round"
@@ -154,7 +155,7 @@ export default function LongDebtReport (props){
           setLoadUsers(false);
         });
    };
-   const  addDebts = () => {
+   const addDebts = () => {
     setLoadForm(true);
     axios.post(Env.HOST_SERVER_NAME+'add-all-long-debts',form.getFieldsValue())
     .then(response => {
@@ -177,69 +178,6 @@ export default function LongDebtReport (props){
       setLoadForm(false);
     });
   };
-  const acolumns = [
-    {
-      title: 'اسم الموظف',
-      dataIndex: 'name',
-      key: 'name',
-      filters: [
-        { text: 'Joe', value: 'Joe' },
-        { text: 'Jim', value: 'Jim' },
-      ],
-      filteredValue: afilteredInfo.name || null,
-      onFilter: (value, record) => record.name.includes(value),
-      sorter: (a, b) => a.name.length - b.name.length,
-      sortOrder: asortedInfo.columnKey === 'name' && asortedInfo.order,
-      ellipsis: false,
-    },   
-     {
-      title: 'الإدارة',
-      dataIndex: 'category',
-      key: 'category',
-      filters: [
-        { text: 'London', value: 'London' },
-        { text: 'New York', value: 'New York' },
-      ],
-      filteredValue: afilteredInfo.category || null,
-      onFilter: (value, record) => record.category.includes(value),
-      sorter: (a, b) => a.category.length - b.category.length,
-      sortOrder: asortedInfo.columnKey === 'category' && asortedInfo.order,
-      ellipsis: true,
-    },
-    {
-      title: 'مبلغ القرض',
-      dataIndex: 'onHem',
-      key: 'onHem',
-      sorter: (a, b) => a.onHem - b.onHem,
-      sortOrder: sortedInfo.columnKey === 'onHem' && sortedInfo.order,
-      ellipsis: false,
-    },
-    {
-      title: 'مبلغ السداد',
-      dataIndex: 'onHem',
-      key: 'onHem',
-      sorter: (a, b) => a.onHem - b.onHem,
-      sortOrder: sortedInfo.columnKey === 'onHem' && sortedInfo.order,
-      ellipsis: false,
-      render:(forHem,record,index)=>record.onHem-record.forHem,
-    },
-    {
-      title: 'تاريخ السداد',
-      dataIndex: '',
-      key: '',
-      ellipsis: false,
-      render:()=>{
-        var today=new Date();
-        return today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
-      },
-    },
-     {
-      title: 'ملاحظات',
-      dataIndex: '',
-      key: '',
-      ellipsis: false,
-    },    
-  ];
   const openNotification = (type,placement,key,dur,text) => {
     notification[type]({
       key:key,
@@ -456,9 +394,11 @@ export default function LongDebtReport (props){
 
           });
     }
+
     var index=0;
     var tsal=0;
     var tam=0;
+
 return (
     <Card>
     <Modal confirmLoading={loadForm} width={900} title="إضافة قروض " visible={isVisibleModal}  onOk={function(){ addDebts();}} onCancel={function(){setIsVisibleModal(false);}}>
@@ -530,8 +470,8 @@ return (
       </Form.List> 
       </Form>
     </Modal>  
-      <Modal title="تعديل قرض" confirmLoading={buttonLoading} visible={isModalVisible} onOk={onFinish} onCancel={handleCancel}>
-       <Form form={updateForm} onFinish={onFinish}>
+    <Modal title="تعديل قرض" confirmLoading={buttonLoading} visible={isModalVisible} onOk={onFinish} onCancel={handleCancel}>
+      <Form form={updateForm}>
        <Form.Item
         name="id"
         hidden={true}
@@ -568,7 +508,7 @@ return (
           <TextArea onChange={function(e){setMAmountValue(e.target.value);}}  style={{marginTop:'10px',width:300}} />
         </Form.Item>
         </Form>
-      </Modal>
+    </Modal>
 <div className='discountHeader' style={{marginBottom:'20px'}}>
 <div className='discountBtn' style={{display:'flex',flex:1,flexDirection:'row',justifyContent:'flex-end'}}>     
 <div className='discountRange' >

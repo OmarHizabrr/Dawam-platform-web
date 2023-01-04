@@ -8,25 +8,21 @@ import moment from 'moment';
 import { useCookies,CookiesProvider  } from 'react-cookie';
 import {useLocation} from 'react-router-dom';
 import {
-
   ClusterOutlined,
   TagsOutlined,
-
 } from '@ant-design/icons';
 import {Env} from './../../../styles';
 
 import ReactApexChart from "react-apexcharts";
 const {Text} = Typography;
 
-
-
 /* eslint-disable react-hooks/rules-of-hooks */
 export default function summaryData (props) {
   const [cookies, setCookie, removeCookie]=useCookies(["userId"]);
   const location = useLocation();
 
-  const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
-  const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
+  const [start,setStart]=useState(null);     
+  const [end,setEnd]=useState(null);  
 
   const [data,setData]=useState([]);
   const [serData,setSerData]=useState([]);
@@ -162,7 +158,7 @@ export default function summaryData (props) {
     series: [
       {
         name: "النسبة",
-        data: spiderData,
+        data: props.spiderData,
       },
     ]
   };
@@ -177,7 +173,7 @@ export default function summaryData (props) {
   const  handleSizeChange = e => {
     setFilter([{name:'أسامة جليل',data:[90,60,70,80]}]);
   }
-  function getTwentyFourHourTime(amPmString) { 
+function getTwentyFourHourTime(amPmString) { 
     var d = new Date("1/7/2022 " + amPmString); 
     return d.getHours() + ':' + d.getMinutes(); 
 }
@@ -191,7 +187,24 @@ function getMinutesTime(amPmString) {
   }
   else return 0;
 }
-  useEffect(() => {       
+
+useEffect(() => {
+
+    if(props.setting.length){  
+    setStart(props.setting?moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'):null);
+    setEnd(props.setting?moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'):null);
+  }
+  else{
+    var setting;
+    axios.get(Env.HOST_SERVER_NAME+'setting')
+    .then(response => {
+       setting=response.data;
+       setStart(moment(moment().format('YYYY-MM')+"-"+setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
+       setEnd(moment(moment().format('YYYY-MM')+"-"+setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));   
+    }).catch(function (error) {
+      console.log(error);
+    }); 
+  }
     axios.get(Env.HOST_SERVER_NAME+'salary-info/'+id.user_id+'/'+start+'/'+end)
     .then(response => {
       setData(response.data); 
@@ -199,8 +212,6 @@ function getMinutesTime(amPmString) {
       setSerData([parseInt(response.data.lists[0]['debt'] || 0),parseInt(response.data.lists[0]['long_debt'] || 0), parseInt(response.data.lists[0]['lateTimePrice'] || 0), parseInt(Math.round(((response.data.count[0].count-(response.data.lists[0]['attendanceDays']|| 0))*( response.data.lists[0].salary/30)))), parseInt(response.data.lists[0]['vdiscount'] || 0) ,
       response.data.lists[0].salary - (Math.round(response.data.lists[0].debt || 0)+Math.round(((response.data.count[0].count-response.data.lists[0].attendanceDays)*(response.data.lists[0].salary/30))+parseFloat(response.data.lists[0].lateTimePrice || 0))+Math.round(response.data.lists[0].symbiosis || 0)+Math.round(response.data.lists[0].long_debt || 0)) ]);
       setSalSpin(false);
-
-      setSpiderData([Math.round(response.data.att_count[0].att_count/response.data.att_count[0].count*100) || 0,Math.round(response.data.id_count[0].id_count/response.data.id_count[0].count*100) || 0,Math.round(response.data.leave_count[0].leave_count/response.data.leave_count[0].count*100) || 0,Math.round(response.data.lists[0].attendanceDays/response.data.count[0].count*100) || 0,Math.round(response.data.vac_count[0].late_vacs/response.data.vac_count[0].count*100) || 0]);
 
       var dates=[];
       var atts=[];
@@ -230,8 +241,8 @@ function getMinutesTime(amPmString) {
     }).catch(function (error) {
       console.log(error);
     });
-  },[]);
 
+  },[start,end]);
 
   return(
     <Layout>
@@ -292,7 +303,7 @@ function getMinutesTime(amPmString) {
       style={{padding:0,textAlign:'center'}}
     />
     <div style={{textAlign:'center',paddingBottom:'20px'}}>
-    <Text>ملخص المستحقات لآخر شهر </Text>
+    <Text>ملخص المستحقات للفترة  {start+" - "+end} </Text>
     </div>
     </Spin>
     </Card>

@@ -255,7 +255,7 @@ export default function DebtsReport (props){
 return (
   <Layout>
     <Card>
-    <Modal confirmLoading={loadForm} width={700} title="إضافة سلفة جماعية" visible={isVisibleModal}  onOk={function(){ addDebts();}} onCancel={function(){setIsVisibleModal(false);}}>
+    <Modal confirmLoading={loadForm} width={700} title="إضافة سلفة " visible={isVisibleModal}  onOk={function(){ addDebts();}} onCancel={function(){setIsVisibleModal(false);}}>
       <Form form={form}>
       <div>ادخل تاريخ السلفة:</div>
       
@@ -328,7 +328,7 @@ return (
           <RangePicker value={[moment(start,"YYYY-MM-DD"),moment(end,"YYYY-MM-DD")]} style={{width: '200px'}} onCalendarChange={changeRange} />
       </div>    
       <div className='attOperBtn' style={{float: 'left'}}>
-    <Button  style={{backgroundColor:'#FAA61A',borderColor:'#FAA61A',color:'#fff',marginLeft:'20px'}} onClick={function(){setIsVisibleModal(true);}} type='primary'><FormOutlined /> سلفة جماعية </Button>
+    <Button  style={{backgroundColor:'#FAA61A',borderColor:'#FAA61A',color:'#fff',marginLeft:'20px'}} onClick={function(){setIsVisibleModal(true);}} type='primary'><FormOutlined />  إضافة سلفة </Button>
     <Button hidden={data.length==0} style={{backgroundColor:'#f00',borderColor:'#f00',color:'#fff',marginBottom:'20px'}}><DeleteOutlined /> حذف متعدد </Button>
     <Button style={{margin:'0 10px',textAlign:'center',marginLeft:'5px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
     <Button style={{backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button> 

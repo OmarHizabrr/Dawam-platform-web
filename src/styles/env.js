@@ -6,7 +6,7 @@ if(offline){
 }
 else{
    server="https://api.alhikma-ye.com";
-   //  server="https://api.ihcro.dawam.app";
+   //  server="https://api.dawam.app";
 
 }
 

@@ -7,6 +7,8 @@ import { Typography ,Layout,Tabs,Menu, Button,Modal,Row,Col,DatePicker, Select,C
 import {HistoryOutlined,DollarCircleOutlined,ClockCircleOutlined,IssuesCloseOutlined,ToolOutlined} from '@ant-design/icons';
 import axios from 'axios';
 import GeneralSetting from './../GeneralSetting';
+import AttendanceSetting from './../attendanceSetting';
+
 import Backup from './../BackupPane';
 
 import {Env} from './../../../styles';
@@ -50,19 +52,19 @@ return (
     <Layout>
     <Card style={{height:'100%'}}>
         <Row>
-          <Col xs={24} sm={24} md={4} lg={4} xl={4} span={4} style={{height:'100%'}}>
+          <Col xs={24} sm={24} md={3} lg={3} xl={3} span={3} style={{height:'100%'}}>
             <Menu defaultSelectedKeys={['1']}>
                 <Menu.Item key="1" icon={<ToolOutlined />}><Link to={`${url}`} > الإعدادات العامة</Link></Menu.Item>
                 <Menu.Item key="2" icon={<ClockCircleOutlined />}><Link to={`${url}/attendance`} >إدارة الدوام</Link></Menu.Item>
                 <Menu.Item key="3" icon={<HistoryOutlined />}><Link to={`${url}/backup`} >النسخ الاحتياطي والاستعادة</Link></Menu.Item>
             </Menu>
           </Col>
-            <Col xs={24} sm={24} md={20} lg={20} xl={20} span={20} style={{borderRight:'1px solid #E3E4E9',padding:'20px'}}>
+            <Col xs={24} sm={24} md={21} lg={21} xl={21} span={21} style={{borderRight:'1px solid #E3E4E9',padding:'20px'}}>
                 <Switch>
                     <Route path={path} exact>
                         <GeneralSetting setting={props.setting}/>
                     </Route>
-                    <Route path={`${path}/attendance`} component={GeneralSetting} />
+                    <Route path={`${path}/attendance`} component={()=><AttendanceSetting  setting={props.setting}/>} />
                     <Route path={`${path}/backup`} component={Backup} />
 
                 </Switch>

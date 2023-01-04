@@ -198,9 +198,7 @@ export default function TasksRequests(props) {
     setTotalVac(checkPeriod(all,dates));       
   }
   const handleOk = () => {
-    setSaving(true);
- 
-    
+    setSaving(true); 
 
     var values = {
       user_id: cookies.user.user_id,
@@ -213,8 +211,7 @@ export default function TasksRequests(props) {
       accepter: accepter,
     };
     
-    axios
-    .post(Env.HOST_SERVER_NAME + `accept-task`, values)
+    axios.post(Env.HOST_SERVER_NAME + `accept-task`, values)
     .then(function (response) {
      notification.success({
       message:"تم التحديث بنجاح" ,
@@ -315,7 +312,7 @@ export default function TasksRequests(props) {
       render:(el)=>el=="معتمدة"?<CheckCircleOutlined style={{fontSize:'25px',color:'#0972B6'}} />:el=="في الانتظار"?<MinusCircleOutlined style={{fontSize:'25px',color:'#FFDD1C'}}/>:<CloseCircleOutlined style={{fontSize:'25px',color:'#f00'}}/>,
     },
     {
-      title: "الأمين العام",
+      title: props.setting.filter((item)=> item.key == "admin.general_manager")[0]?.value,
       dataIndex: "gerenal_sec",
       key: "gerenal_sec",
       className: "gensec",
@@ -546,3 +543,5 @@ export default function TasksRequests(props) {
     </Card>
   );
 }
+
+
