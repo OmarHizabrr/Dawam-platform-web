@@ -33,6 +33,7 @@ export default function TransportReport(props){
       const [namesFilter,setNamesFilter]=useState([]);
       const [categoriesFilter,setCategoriesFilter]=useState([]);
       const [categories,setCategories]=useState([]);
+      const [count,setCount]=useState(0);
 
       const [data,setData]=useState([]);
       const [load,setLoad]=useState(true);
@@ -61,7 +62,7 @@ export default function TransportReport(props){
           setPData(response.data.records);
           setData(response.data.records);
           setCategories(response.data.categories);
-
+          setCount(response.data.count[0].count);
           setLoad(false);
         }).catch(function (error) {
           console.log(error);
@@ -178,6 +179,7 @@ export default function TransportReport(props){
     var ttvalue=0;
     var ttamount=0;
     var ttcount=0;
+    var ttrcount=0;
 return (
     <Layout>
     <Card>
@@ -226,7 +228,8 @@ return (
                 <th style={{fontWeight: "100"}} rowSpan="2">م</th>              
                      <th style={{fontWeight: "100"}} >الاسم</th>
                      <th style={{fontWeight: "100",width:'100px'}} >الوظيفة</th>
-                     <th style={{fontWeight: "100"}} >عدد الأيام</th>
+                     <th style={{fontWeight: "100"}} >الأيام المطلوبة</th>
+                     <th style={{fontWeight: "100"}} >الأيام الفعلية</th>
                      <th style={{fontWeight: "100"}} >المستحق اليومي</th>
                      <th style={{fontWeight: "100"}} >إجمالي المبلغ المستحق</th>
                      <th style={{fontWeight: "100"}} >التوقيع</th>
@@ -238,6 +241,7 @@ return (
              categories.map(item=>{
               var catData=pdata.filter(record => record.category==item.name);
               var tcount=0;
+              var trcount=0;
               var tvalue=0;
               var tamount=0;
 
@@ -247,16 +251,19 @@ return (
               {
               catData.map(item=>{
                 tcount+=item.transportCount*1;
+                trcount+=count*1;
                 tvalue+=item.transfer_value*1;
                 tamount+=item.transportAmount*1;
                 ttvalue+=item.transfer_value*1;
                 ttamount+=item.transportAmount*1;
                 ttcount+=item.transportCount*1;
+                ttrcount+=count*1;
               return  (
               <tr style={{height: "40px",borderWidth:'1px',borderStyle:'solid',backgroundColor:++index %2!=0?'#e6e6e6':'#fff'}}>
                 <td>{index}</td>
                 <td>{item.name}</td>
                 <td style={{width:'60px'}}>{item.job}</td>
+                <td>{(count)}</td>
                 <td>{(item.transportCount)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(item.transfer_value)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(item.transportAmount)}</td>
@@ -267,7 +274,8 @@ return (
              })
               }
               <tr  style={{height: " 30px",color:"#fff",backgroundColor: "#0972B6",}}>
-                <td colSpan={3}>{item.name}</td>               
+                <td colSpan={3}>{item.name}</td>  
+                <td>{trcount}</td>             
                 <td>{tcount}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(tvalue)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(tamount)}</td>
@@ -278,7 +286,8 @@ return (
               })}
               <tr  style={{height: " 30px",color:"#fff",backgroundColor: "#0972B6",}}>
                 <td colSpan={3}>{'الإجمالي العام'}</td>    
-                <td>{ttcount}</td>           
+                <td>{ttrcount}</td>     
+                <td>{ttcount}</td>        
                 <td>{new Intl.NumberFormat('en-EN').format(ttvalue)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(ttamount)}</td>                               
                 <td><pre>             </pre></td>

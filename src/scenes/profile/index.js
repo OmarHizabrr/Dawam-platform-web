@@ -461,10 +461,10 @@ return (
               </Form.Item>
               </div>
               <div style={{display:'flex',flexDirection:'row'}}>
-              <Form.Item style={{flex:1,marginLeft:'5px'}} label="الراتب" name="salary">
+              <Form.Item style={{flex:1,marginLeft:'5px'}} label="الإعانة" name="salary">
                 <Input disabled={userFormDisable} />
               </Form.Item>
-              <Form.Item  style={{flex:1}} label="عملة الراتب" name="salary_currency">
+              <Form.Item  style={{flex:1}} label="عملة الإعانة" name="salary_currency">
                 <Select 
                 options={types.filter(function(e){return e.parent==4;})}
                 optionFilterProp="children"

@@ -61,7 +61,10 @@ export default function tasksTable(props) {
   const [visible, setVisible] = React.useState(false);
   const [uvisible, setUVisible] = React.useState(false);
   const [vacationsFilter,setVacationsFilter]=useState([]);
+  const [givenTasks, setGivenTasks] = useState(null);
+  const [restTasks, setRestTasks] = useState(null);
 
+  const [givenLoad, setGivenLoad] = useState(true);
   const [confirmLoading, setConfirmLoading] = React.useState(false);
   const [datefromValue,setDatefromValue]=useState(null);
   const [datetoValue,setDatetoValue]=useState(null);
@@ -103,13 +106,18 @@ export default function tasksTable(props) {
         
           setRequiredTasks(response.data.requiredTasks);
           setVacationsAmount(response.data.tasksAmount);
-          setAnnuPerc(response.data.annuPerc[0]);
-        if(response.data.tasksAmount.length>0){
-          var times=response.data.tasksAmount?.find(it=>it.vid==2)?.rest?.split(":");
-          setAnnuDays(Math.round(((((times[0]*60)+parseInt(times[1]))/60)/7)*100)/100);
+
+          
+        if(response.data.tasksAmount.length){
+          var times=response.data.tasksAmount?.find(it=>it.vid==2);
+        
+          setAnnuPerc(times?.rest/times?.amount_m*100);
+          setAnnuDays(times?.rest);
         }
-        else
-        setAnnuDays(0);
+        else{
+          setAnnuPerc(0);
+          setAnnuDays(0);
+        }
         }).catch(function (error) {
           console.log(error);
         });
@@ -146,11 +154,29 @@ export default function tasksTable(props) {
         mywindow.close();// change window to mywindow
     };   
   }
+
+  const getGivenRest=(e)=>{
+    axios.get(Env.HOST_SERVER_NAME+'given-tasks/'+props.user.user_id+'/'+start+'/'+end).then(response=>{
+      setGivenTasks(response.data.vacs.filter(record => record.id== e)[0]?.cumHours);
+      var min=response.data.tasksAmount.filter(record => record.vid== e)[0]?.rest;
+      if(typeof min === 'undefined')
+      setRestTasks('-');
+      else
+      setRestTasks( parseInt(min/60) +":"+min%60);
+
+      setGivenLoad(false);
+    }).catch(function (error) {
+      console.log(error);
+      setGivenLoad(false);
+    });
+  }
     const handleTypeChange=(e)=>{
       setType(e);
+      getGivenRest(e);
     }
     const handleUTypeChange=(e)=>{
       setVacType(e);
+      getGivenRest(e);
     }
     const  handleChange = (pagination, filters, sorter) => {
           setFilteredInfo(filters);
@@ -204,6 +230,8 @@ export default function tasksTable(props) {
             setTotalVac("");
             setType(null);
             setNotes(null);
+            setGivenTasks(0);
+            setRestTasks(0);
           })
        .catch(function (error) {
         console.log(error);
@@ -238,6 +266,8 @@ export default function tasksTable(props) {
              setTotalVac("");
              setVacType(null);
              setNotes(null);
+             setGivenTasks(0);
+             setRestTasks(0);
            })
         .catch(function (error) {
          console.log(error);
@@ -282,6 +312,8 @@ export default function tasksTable(props) {
         setIsUModalVisible(false);
         setTotalVac("");
         setVacType(null);
+        setGivenTasks(0);
+        setRestTasks(0);
         setNotes(null);
         uform.resetFields(['date_range','task_type','notes']);
       };
@@ -453,7 +485,7 @@ export default function tasksTable(props) {
           render: (vid, record, index) => (
             <Button
               disabled={record.dept_manager!='في الانتظار' || record.gerenal_sec!='في الانتظار' || record.hr_manager!='في الانتظار'}
-              onClick={function () {uform.setFieldsValue({notes:record.description,date_range:[moment(record.date_from,"YYYY-MM-DD HH:mm") , moment(record.date_to, "YYYY-MM-DD HH:mm")],task_type:record.vac_id});setVacId(record.id);setVacType(record.vac_id);setDatefromValue(record.date_from);setDatetoValue(record.date_to);setNotes(record.description);setSelectedLogs(null);setIsUModalVisible(true);}}
+              onClick={function () {uform.setFieldsValue({notes:record.description,date_range:[moment(record.date_from,"YYYY-MM-DD HH:mm") , moment(record.date_to, "YYYY-MM-DD HH:mm")],task_type:record.vac_id});setVacId(record.id);setVacType(record.vac_id);getGivenRest(record.vac_id);setDatefromValue(record.date_from);setDatetoValue(record.date_to);setNotes(record.description);setSelectedLogs(null);setIsUModalVisible(true);}}
               className={'edit-btn'}
               style={{ backgroundColor: "#fff", borderColor: "#0972B6",color:"#0972B6" }}
               type="primary"
@@ -531,6 +563,8 @@ export default function tasksTable(props) {
       const handleCancel=()=>{
         setIsModalVisible(false);
         setType(null);
+        setGivenTasks(0);
+        setRestTasks(0);
         setTotalVac("");
         setNotes(null);
         form.resetFields(['date_range','task_type','notes']); 
@@ -560,10 +594,10 @@ return (
     <Card>
     <div className='tasksHeader'>
       <div className='tasksData'>
-        <span><Progress type="circle" percent={annuPerc?annuPerc.perc:0} width={80} style={{marginLeft:'5px',display:'inline-block'}} /></span>
+        <span><Progress type="circle" percent={Math.round(annuPerc?annuPerc:0)} width={80} style={{marginLeft:'5px',display:'inline-block'}} /></span>
         <span style={{display:'flex',flexDirection:'column',paddingTop:'10px',marginRight:'5px'}}>
           <div style={{marginBottom:'5px'}}>رصيد السنوية</div>
-          <div> المتبقي : {annuDays?annuDays:0} يوم </div>
+          <div> المتبقي : {annuDays?  (Math.round(annuDays/60/7*100)/100) :0} يوم </div>
         </span>
       </div>
   
@@ -602,7 +636,7 @@ return (
     <Select
     showSearch
     notFoundContent={<Spin style={{textAlign:'center'}}></Spin>}
-    style={{ width: 200 }}
+    style={{ width: 150 }}
     onSelect={handleTypeChange}
     options={tstypes}
     placeholder="ابحث لاختيار إجازة"
@@ -616,12 +650,16 @@ return (
     }
   >
   </Select>
+  <div style={{marginRight: '10px',display: 'inline-block'}}>
+    <div>الممنوحة: <span style={{fontWeight:'600',color:'#f00',marginLeft:'20px'}}>{givenTasks??0}</span>      المتبقية: <span style={{fontWeight:'600',color:'#f00'}}>{restTasks??0}</span> </div>
+  </div>
     </Form.Item>
     <Form.Item name={'notes'} label="تفاصيل ">
     <TextArea row={3} onChange={notesChange}></TextArea>
     </Form.Item>
     </Form>
     </Modal>
+
     <Modal title="تعديل إجازة / مهمة" confirmLoading={usaving} visible={isuModalVisible} onOk={function(){setUSaving(true);handleuOk()}} onCancel={function(){handleuCancel()}}>
     <Form form={uform} >
     <Form.Item className='rangee' name={'date_range'} label="فترة الإجازة / المهمة :">
@@ -641,9 +679,9 @@ return (
     <Select
     showSearch
     notFoundContent={<Spin style={{textAlign:'center'}}></Spin>}
-    style={{ width: 200 }}
+    style={{ width: 150 }}
     onSelect={handleUTypeChange}
-   // defaultValue={vacType}
+    value={vacType}
     options={tstypes}
     placeholder="ابحث لاختيار إجازة"
     optionFilterProp="children"
@@ -656,6 +694,9 @@ return (
     }
   >
   </Select>
+  <div style={{marginRight: '10px',display: 'inline-block'}}>
+    <div>الممنوحة: <span style={{fontWeight:'600',color:'#f00',marginLeft:'20px'}}>{givenTasks??0}</span>      المتبقية: <span style={{fontWeight:'600',color:'#f00'}}>{restTasks??0}</span> </div>
+  </div>
     </Form.Item>
     <Form.Item name={'notes'} label="تفاصيل ">
     <TextArea row={3} onChange={notesChange}></TextArea>
@@ -758,9 +799,11 @@ return (
                 </tr>
                 <tr style={{backgroundColor:'#e6e6e6'}}>
                  <td style={{backgroundColor: "#0972B6",color: "#fff"}}>المتبقية</td>
-                 {vacationsTypes.map(item=>(
-                  <td style={{display:item.days>0?'':'none'}}>{vacationsAmount.find(it=>it.vid==item.id)?vacationsAmount.find(it=>it.vid==item.id).rest.replace(/(\d{1,2}:\d{2}):\d{2}/, "$1"):0}</td>  
-                 ))}  
+                 {vacationsTypes.map(item=>{
+                  var min=vacationsAmount.find(it=>it.vid==item.id)?vacationsAmount.find(it=>it.vid==item.id).rest:0;
+                  
+                 return <td style={{display:item.days>0?'':'none'}}>{ parseInt(min/60)+":"+min%60}</td>  
+                 })}  
                 </tr>
             </tbody>
         </table>

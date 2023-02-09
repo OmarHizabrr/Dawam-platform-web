@@ -72,7 +72,7 @@ export default function wagesReport(props){
         }); 
         setNamesFilter(names);
         setCategoriesFilter(categories);
-        console.log(ts);
+      
         setTstypes(ts);
         setCount(response.data.count[0].count);
         setData(response.data.lists);
@@ -280,6 +280,7 @@ export default function wagesReport(props){
 
     var index=0;
     var tsal=0;
+    var tallow=0;
     var tdebts=0;
     var tabs=0;
     var tsym=0;
@@ -342,7 +343,7 @@ return (
                   <Form.Item
                   {...restField}
                   name={[name, 'stopped']}
-                  label={'توقيف الراتب'}
+                  label={'توقيف الإعانة'}
                   rules={[{ required: true, message: 'هذا الحقل مطلوب' }]}
                 >
                   <Switch   />
@@ -394,7 +395,8 @@ return (
                      <th style={{fontWeight: "100"}} rowSpan="2">الاسم</th>
                      <th style={{fontWeight: "100",width:'50px'}} rowSpan="2">الوظيفة</th>
                      <th style={{fontWeight: "100",fontSize:'8px'}} rowSpan="2">الاستحقاق</th>
-                     <th style={{fontWeight: "100"}} rowSpan="2">البدلات</th>
+                     <th style={{fontWeight: "100",fontSize:'8px'}} rowSpan="2">البدلات</th>
+                   
                      <th style={{fontWeight: "100"}} colSpan="6">الاستقطاعات</th>
                      <th style={{fontWeight: "100"}} rowSpan="2" colSpan={"2"}> صافي<br/>الاستحقاق </th>
                      <th style={{fontWeight: "100"}} rowSpan="2">التوقيع</th>
@@ -414,6 +416,7 @@ return (
               var catData=pdata.filter(record => record.category==item.name);
               
               var sal=0;
+              var allow=0;
               var debts=0;
               var abs=0;
               var sym=0;
@@ -428,6 +431,7 @@ return (
               {
               catData.map(item=>{
                 sal+=parseFloat(item.salary);
+                allow+=parseFloat(item.allownces);
                 debts+=(item.debt*1);
                 
                 var ab=item.fingerprint_type=='22'? Math.round( (((count*1-item.attendanceDays*1)*(parseInt(item.salary)/30)) + parseFloat(item.lateTimePrice) )/5 )*5:0;
@@ -440,12 +444,13 @@ return (
                 vio+=(item.vdiscount*1);
                 var toD=Math.round(item.debt)+ab+Math.round(item.symbiosis)+Math.round(item.long_debt)+Math.round(item.vdiscount);
                 totD+=toD;
-                var tot=item.stopped?0:item.salary-toD;
+                var tot=item.stopped?0:parseFloat(item.salary)+parseFloat(item.allownces)-toD;
                 total+=tot;
                 var tor=item.stopped?0:Math.round(tot/round)*round;
                 totr+=tor;
 
                  tsal+=parseFloat(item.salary);
+                 tallow+=parseFloat(item.allownces);
                  tdebts+=(item.debt*1);
                  tabs+=parseFloat(ab);
                  tsym+=parseFloat(item.symbiosis);
@@ -460,7 +465,7 @@ return (
                   <td style={{fontSize:'9px'}}>{item.name}</td>
                   <td style={{fontSize: "7px",width:'50px'}}>{item.job}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(item.salary)}</td>
-                  <td>{new Intl.NumberFormat('en-EN').format(item.salary)}</td>
+                  <td>{new Intl.NumberFormat('en-EN').format(item.allownces)}</td>
 
                   <td>{new Intl.NumberFormat('en-EN').format(item.debt)}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(ab)}</td>
@@ -477,7 +482,7 @@ return (
               <tr  style={{height: " 30px",color:"#fff",backgroundColor: "#0972B6",fontSize:'8px!important'}}>
                 <td colSpan={3}>{item.name}</td>               
                 <td>{new Intl.NumberFormat('en-EN').format(sal)}</td>
-                <td>{new Intl.NumberFormat('en-EN').format(sal)}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(allow)}</td>
 
                 <td>{new Intl.NumberFormat('en-EN').format(debts)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(abs)}</td>
@@ -495,7 +500,7 @@ return (
             <tr  style={{height: " 30px",color:"#fff",backgroundColor: "#0972B6",}}>
                 <td colSpan={3}>{'الإجمالي العام'}</td>               
                 <td>{new Intl.NumberFormat('en-EN').format(tsal)}</td>
-                <td>{new Intl.NumberFormat('en-EN').format(tsal)}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(tallow)}</td>
 
                 <td>{new Intl.NumberFormat('en-EN').format(tdebts)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(tabs)}</td>

@@ -5,13 +5,15 @@ import { DatePicker,Table, Button,Card,Input,Select,Typography,Form,Space, Modal
 import {SwapOutlined,MinusCircleOutlined, PlusOutlined ,FormOutlined,ExportOutlined,PrinterOutlined} from '@ant-design/icons';
 import axios from 'axios';
 import excel from 'xlsx';
+import moment from 'moment';
+
 import logoText from '../../../assets/images/logo-text.png';
 import {Env} from './../../../styles';
 const {Text}=Typography;
 
-  const { RangePicker } = DatePicker;
-  const {TextArea}=Input;
-  const {Option}=Select;
+const { RangePicker } = DatePicker;
+const {TextArea}=Input;
+const {Option}=Select;
  
 export default function TasksAccounts (props){
 
@@ -19,9 +21,11 @@ export default function TasksAccounts (props){
   const [sortedInfo, setSortedInfo] = useState({});
   const [data, setData] = useState([]);
   const [load,setLoad]=useState(true);
+  const [loadReport,setLoadReport]=useState(false);
   const [tstypes,setTstypes]=useState([]);
   const [types,setTypes]=useState([]);
   const [namesFilter,setNamesFilter]=useState([]);
+  const [currentYear,setCurrentYear]=useState(moment().format('YYYY'));
 
   const [isTextInput,setIsTextInput]=useState(false);
   const [statment,setStatment]=useState(null);
@@ -35,10 +39,16 @@ export default function TasksAccounts (props){
   const [end,setEnd]=useState(new Date().toISOString().slice(0, 10));
   const [loadUsers, setLoadUsers]=useState(false);
   const [update,setUpdate]=useState(false);
+  const [categories,setCategories]=useState([]);
+  const [pdata, setPData] = useState([]);
+  const [categoriesFilter,setCategoriesFilter]=useState([]);
+  const [annTasks, setAnnTasks] = useState([]);
+  const [pannTasks, setPAnnTasks] = useState([]);
 
-  const getVacDuration=(user_id,vac_name)=>{
+  const getVacDuration=(user_id,vid)=>{
     for(var i = 0; i < data.length; i++)
-      if(data[i].user_id == user_id && data[i].vac_name == vac_name ) return data[i].rest.replace(/(\d{1,2}:\d{2}):\d{2}/, "$1");  
+      if(data[i].user_id == user_id && data[i].vid == vid ) 
+          return  parseInt(data[i].rest/60)+":"+data[i].rest%60;  
       return 0;
   }
   const getOrganizedVacations=()=>{
@@ -49,7 +59,7 @@ export default function TasksAccounts (props){
     vacData+='{'+'"empName":"'+user.label+'","user_id":"'+user.value+'",';
     var vacDetails="";
     tasksTypes.map((task)=>{
-      vacDetails+='"'+task.label+'":"'+getVacDuration(user.value,task.label)+'",';    
+      vacDetails+='"'+task.label+'":"'+getVacDuration(user.value,task.value)+'",';    
     });
     vacData+=vacDetails.substring(0, vacDetails.length - 1);
     vacData+='},';   
@@ -63,7 +73,6 @@ export default function TasksAccounts (props){
     setIsModalVisible(true);
     axios.get(Env.HOST_SERVER_NAME+'get-tasks-statment/'+user_id)
     .then(response => {
-      console.log(response.data);
       form.setFieldsValue({'tasks':response.data});
 
     }).catch(function (error) {
@@ -78,21 +87,30 @@ export default function TasksAccounts (props){
         title: 'اسم الموظف',
         dataIndex: 'empName',
         key: 'empName',
-        sorter: (a, b) => a.empName.localeCompare(b.empName),
+        sorter: (a, b) => a.empName.length - b.empName.length,
         sortOrder: sortedInfo.columnKey === 'empName' && sortedInfo.order,
         ellipsis: false,
         filters:namesFilter,
         filterSearch: true,
         filterMode:'tree',
-        onFilter: (value, record) => record.name.includes(value),
-      },   
+        onFilter: (value, record) => record.empName.includes(value),
+      }, 
+      {
+        title: 'الإدارة',
+        dataIndex: 'category',
+        key: 'category',
+        sorter: (a, b) => a.category.length - b.category.length,
+        sortOrder: sortedInfo.columnKey === 'category' && sortedInfo.order,
+        filters:categoriesFilter,
+        filterMode:'tree',        
+        onFilter: (value, record) => record.category.includes(value),
+      },  
        {
         title: 'الوظيفة',
         dataIndex: 'job',
         key: 'job',
         ellipsis: true,
-      },
-          
+      },   
     ];
    var col='[';
    tasksTypes.map((task)=>{
@@ -115,7 +133,7 @@ export default function TasksAccounts (props){
         }}
         type="primary"
         shape="round"
-        icon={<SwapOutlined />}
+        icon={<FormOutlined />}
       ></Button>
       ),
    });
@@ -125,11 +143,14 @@ export default function TasksAccounts (props){
   }
   
   useEffect(() => {
+    var emp;
+    var tasks;
+    var records;
       axios.get(Env.HOST_SERVER_NAME+'get-emp-names')
           .then(response => {
             setEmpNames(response.data);
             setTstypes(response.data);
-            
+            emp=response.data;
           }).catch(function (error) {
             console.log(error);
           });
@@ -137,35 +158,109 @@ export default function TasksAccounts (props){
           axios.get(Env.HOST_SERVER_NAME+'get-tasks-types-re')
             .then(response => {
                 setTasksTypes(response.data);
+                tasks=response.data;
+
             }).catch(function (error) {
             console.log(error);            
           });
           setLoad(true);
   if(end!='')
-    axios.get(Env.HOST_SERVER_NAME+'get-rest-tasks/'+start+'/'+end)
+    axios.get(Env.HOST_SERVER_NAME+'get-rest-tasks/'+currentYear)
     .then(response => {
+
+      if(response.data.tasks?.length > 0 && emp?.length>0 && tasks?.length>0){
+
+        var vacData='[';
+        emp.map((user,index)=>{
+    
+        vacData+='{'+'"empName":"'+user.label+'","user_id":"'+user.value+'","category":"'+response.data.tasks?.filter(record => record.user_id==user.value)[0]?.category+'","job":"'+response.data.tasks?.filter(record => record.user_id==user.value)[0]?.job+'",';
+    
+        var vacDetails="";
+        tasks.map((task)=>{
+          var dur=response.data.tasks?.filter(record => record.uid==user.value && record.vid==task.value);
+          
+          if(dur.length>0)
+            dur= dur[0].rest<0?"-":"" +Math.abs(parseInt(dur[0].rest/60))+":"+Math.abs(dur[0].rest%60) ;
+          else
+            dur=0;
+
+          vacDetails+='"'+task.label+'":"'+dur+'",';
+        });
+        
+
+        vacData+=vacDetails.substring(0, vacDetails.length - 1);
+        vacData+='},'; 
+        });
+        
+       // console.log(vacData.substring(0, vacData.length - 1)+']');
+       var json=JSON.parse(vacData.substring(0, vacData.length - 1)+']');
+      
+        records=json;
+
+        setData(json);
+        setPData(json);
+      }
+
       let names=[];
+      let categories=[];
+      records.forEach(element => {  
+        if(!names.some(item => element.name == item.text))      
+          names.push({text:element['empName'],value:element['empName']});
+        if(!categories.some(item => element.category == item.text))      
+          categories.push({text:element['category'],value:element['category']});
+        }); 
+        names=names.sort((a, b) =>  a.text.localeCompare(b.text));
+        setNamesFilter(names);
+        categories=categories.sort((a, b) =>  a.text.localeCompare(b.text));
+        setCategoriesFilter(categories);
+
+      setCategories(response.data.categories);
+      //setData(response.data.tasks);
+
+ /*     let names=[];
       console.log(response.data);
       response.data["tasks"].forEach(element => {  
         if(!names.some(item => element.fullname == item.text)){      
           names.push({text:element['fullname'],value:element['fullname']});
         }       
     }); 
-    names=names.sort((a, b) =>  a.name.localeCompare(b.name));
+    names=names.sort((a, b) =>  a.text.localeCompare(b.text));
     setNamesFilter(names);
       setData(response.data['tasks']);
+      setTypes(response.data['types']);
+
+*/
       setTypes(response.data['types']);
       setLoad(false);
     }).catch(function (error) {
       console.log(error);
     });
-   },[start,end,update]);
+    axios.get(Env.HOST_SERVER_NAME+'get-annualy-tasks-report/2/'+currentYear)
+    .then(response => {
+     
+      setAnnTasks(response.data);
+      setPAnnTasks(response.data);
+    }).catch(function (error) {
+      console.log(error);
+    });
+   },[start,end,update,currentYear]);
         
-  const  handleChange = (pagination, filters, sorter) => {
-        console.log('Various parameters', pagination, filters, sorter);
-          setSortedInfo(sorter);
-          setFilteredInfo(filters);
-      };
+   const handleChange = (pagination, filters, sorter) => {
+    setFilteredInfo(filters);
+    setSortedInfo(sorter);
+  
+    if(filters){       
+      Object.keys(filters).forEach(key => {
+        if(filters[key]!=null){
+          setPData(data.filter(item => filters[key].includes(item[key])));
+          setPAnnTasks(annTasks.filter(item => filters[key].includes(item[key])));
+        }
+        else
+          setPData(data);
+          setPAnnTasks(annTasks);           
+      });               
+    }
+  };
   const printReport=()=>{
         var report=document.getElementById('att-report');
         //var report=document.body;
@@ -235,8 +330,30 @@ export default function TasksAccounts (props){
           });
           
         };
-      
-var index=1;
+  function printAnnualyReport(){
+          setLoadReport(true);
+            var report=document.getElementById('ann-report');
+            var mywindow = window.open('');
+            setLoadReport(false);
+            mywindow.document.write("<html><head><title></title> <style>@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500&display=swap'); body{font-family:Tajawal;font-size:12px;margin:0}  </style>");
+            mywindow.document.write('</head><body dir="rtl" style="font-size:12px;" >');
+            mywindow.document.write(report.innerHTML);
+            mywindow.document.write('</body></html>');
+            mywindow.document.close();
+             mywindow.onload = function() { // wait until all resources loaded 
+              mywindow.focus(); // necessary for IE >= 10
+              mywindow.print();  // change window to mywindow
+              mywindow.close();// change window to mywindow
+          };
+  
+        } 
+  const onChange=(all,date)=>{
+    setCurrentYear(date);
+  }   
+        var index=1;
+        var aindex=1;
+        var tttasksTypes=Array(tasksTypes.length).fill(0);
+        var months = ["يناير", "فبراير", "مارس", "إبريل", "مايو", "يونيو","يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
 return (
     <Card>
       <Modal confirmLoading={saving} title="إضافة رصيد إجازة موظف" visible={isModalVisible} width={1300} onCancel={handleCancel} onOk={onFinish} >
@@ -248,14 +365,10 @@ return (
             {
             fields.map(({ key, name, ...restField }) => (
               <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
-                <Form.Item
-                  {...restField}
-                  name={[name, 'id']}
-                  hidden
-                >
-                  <Input  placeholder="الرصيد بالدقائق" />
-                </Form.Item> 
-                <Form.Item 
+                        <Form.Item name="id" hidden={true} style={{display:"none"}} >
+                            <Input/>
+                         </Form.Item>
+                        <Form.Item 
                  {...restField} 
                  name={[name, 'user_id']} label="اسم الموظف" rules={[{ required: true, message: 'Missing area' }]}>
                   <Select style={{ width: 250 }} showSearch  optionFilterProp="children"
@@ -346,22 +459,28 @@ return (
       <div style={{marginBottom:'10px'}}>
       <div className='discountHeader' style={{marginBottom:'10px'}}>
         <div className='discountBtn'>
+          <DatePicker value={moment(currentYear,'YYYY')} onChange={onChange} placeholder="اختر سنة" picker="year" />
           <Button style={{marginLeft:'5px',marginRight:'5px',border:'none',backgroundColor:'#FAA61A',color:'#fff'}} onClick={function(){  setIsModalVisible(true);}} ><FormOutlined /> </Button>
           <Button style={{display:'block',margin:'0 10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
-          <Button style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6",marginLeft:'10px'}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /> تقرير السنوية</Button>
+          <Button loading={loadReport} style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6",marginLeft:'10px'}} onClick={function(){printAnnualyReport()}} type='primary'><PrinterOutlined /> تقرير السنوية</Button>
           <Button style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button>
         </div>
       </div>
     </div>   
-    <Table loading={load} columns={getColumnsVac()} scroll={{x: '1000px' }} dataSource={getOrganizedVacations()} onChange={handleChange} />
+    <Table loading={load} columns={getColumnsVac()} scroll={{x: '1000px' }} dataSource={data} onChange={handleChange} />
     <div id="att-report" style={{display:'none'}}>
     <div  style={{direction: "rtl",fontSize: "12px",fontFamily: "Tajawal",margin: "0"}}>
+    <table style={{fontSize: "11px",width: " 100%",textAlign: " center"}}>
+    <thead>
+    <tr style={{border:'none'}}>
+    <th colSpan={13}>  
     <header style={{display: "flex",flexDirection: "row",borderColor:'#000',borderBottomStyle: "solid",borderBottomWidth:"1px"}}>
        <div style={{width: "20%"}}>
            <img loading="eager" style={{width: "250px"}} src={Env.HOST_SERVER_STORAGE+props.setting.filter((item)=> item.key == 'admin.logo')[0]?.value}/>
        </div>
        <div style={{fontSize: "11px",textAlign: "center",width: "60%",display: "flex",flexDirection: "column",justifyContent: "end",paddingBottom: "10px"}}>
-           <h1 style={{fontSize: " 18px",fontWeight:700,marginBottom: " 5px",margin: "0"}}>كشف أرصدة الإجازات</h1>
+           <h1 style={{fontSize: " 18px",fontWeight:700,marginBottom: " 5px",margin: "0"}}>كشف أرصدة الإجازات </h1>
+           <h2 style={{fontSize: " 14px",fontWeight: " 200",margin: "0"}}>للفترة من {start} إلى {end}</h2>
        </div>     
        <div style={{width: "20%"}}>
 
@@ -370,44 +489,187 @@ return (
     <div  style={{display: 'flex',flexDirection: 'row',textAlign: 'center',fontSize: '14px',borderBottom:'1px solid black'}} >
 
     </div>
-    <div >
-        <table style={{fontSize: "12px",width: " 100%",textAlign: " center",marginTop: " 20px"}}>
-            <thead>
+    </th>
+    </tr>
                 <tr style={{color:"#fff",backgroundColor: "#0972B6",height: "25px"}}>
                      <th style={{fontWeight: "100"}} rowSpan="2">م</th>
-                     {getColumnsVac().map(item=>(
-                      <th style={{fontWeight: "100"}}>{item.title}</th>
+                     <th style={{fontWeight: "100"}} rowSpan="2">اسم الموظف</th>
+                     <th style={{fontWeight: "100"}} rowSpan="2">الوظيفة</th>
+
+                     {tasksTypes.map(item=>(
+                      <th style={{fontWeight: "100"}}>{item.label}</th>
                      ))}              
                      <th style={{fontWeight: "100"}} rowSpan="2">ملاحظات</th>
                 </tr>
             </thead>
             <tbody>
-             {getOrganizedVacations().map(item=>(
+             {
+             
+            categories.map(item=>{
+
+              var catData=pdata?.filter(record => record.category==item.name);
+             
+              var ttasksTypes=Array(tasksTypes.length).fill(0);
+
+          if(catData.length) 
+            return (
+            <>
+            {
+             catData.map(item=>{
+
+              return(
               <tr style={{height: " 25px",backgroundColor:index %2==0?'#e6e6e6':'#fff'}}>
                 <td>{index++}</td>
                 <td>{item.empName}</td>
-                <td>{item.user_id}</td>
-                {tasksTypes.map(task=>{
+                <td>{item.job}</td>
+                {tasksTypes.map((task,index)=>{
 
-                return  <td>{item[task.label]?.replace(/(\d{1,2}:\d{2}):\d{2}/, "$1")}</td>;
+                  var taskAmount=item[task.label]?.replace(/(\d{1,2}:\d{2}):\d{2}/, "$1");
+                  var taskSplit=taskAmount.split(":");
+                 
+                  var finalTask=taskAmount==0?0: parseInt(taskSplit[0]*60)+parseInt(taskSplit[1]);
+
+                  ttasksTypes[index]=ttasksTypes[index]+parseInt(finalTask);
+                  tttasksTypes[index]=tttasksTypes[index]+parseInt(finalTask);
+
+                return  <td>{taskAmount}</td>;
+
+                })}               
+                <td><pre>             </pre></td>
+              </tr>);
+            }
+            )
+             }
+              <tr  style={{height: " 30px",color:"#fff",backgroundColor: "#0972B6",}}>
+                <td colSpan={3}>{item.name}</td>               
+                {tasksTypes.map((task,index)=>{
+
+                return  <td>{parseInt(ttasksTypes[index]/60)+":"+ttasksTypes[index]%60}</td>;
 
                 })}               
                 <td><pre>             </pre></td>
               </tr>
-             ))}
+             </>
+             );
+
+             })}
+              <tr  style={{height: " 30px",color:"#fff",backgroundColor: "#0972B6",}}>
+                <td colSpan={3}>{'الإجمالي العام'}</td>               
+                {tasksTypes.map((task,index)=>{
+
+                  return  <td>{parseInt(tttasksTypes[index]/60)+":"+tttasksTypes[index]%60}</td>;
+
+                  })}               
+                  <td><pre>             </pre></td>
+              </tr>
+  
             </tbody>
-        </table>
-    </div>
-    <div style={{display: "flex",flexDirection: "row",marginTop: "20px",textAlign: "center"}}>
-       <div style={{width: "50%",fontWeight: "900"}}>المختص</div>
-       <div style={{width: "50%",fontWeight: "900"}}>مدير الشؤون</div>
-     </div>  
+            <tfoot>
+      <tr>
+        <th colSpan={16}>
+          <div style={{display: "flex",flexDirection: "row",marginTop: "20px",textAlign: "center"}}>
+            <div style={{width: "50%",fontWeight: "900"}}>شؤون الموظفين</div>
+            <div style={{width: "50%",fontWeight: "900"}}>مدير الشؤون الإدارية</div>
+            <div style={{width: "50%",fontWeight: "900"}}>المحاسب</div>
+            <div style={{width: "50%",fontWeight: "900"}}>المسؤول المالي</div>
+          </div>
+        </th>
+      </tr>
+    </tfoot>
+    </table>  
      <div style={{marginTop: " 20px",width: "85%",backgroundColor: "#e6e6e61",padding: "5px 0",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px"}}>
          <div style={{backgroundColor: " #0972B6",width: " 95%",height: " 15px",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px",color: " #fff",paddingRight: " 20px"}}>نظام دوام | {new Date().toLocaleString('en-IT')} </div>
      </div>
  </div> 
- </div>
+    </div>
+    <div id="ann-report" style={{display:'none'}}>
+    <div  style={{direction: "rtl",fontSize: "12px",fontFamily: "Tajawal",margin: "0"}}>
+    <table style={{fontSize: "11px",width: " 100%",textAlign: " center"}}>
+    <thead>
+    <tr style={{border:'none'}}>
+    <th colSpan={21}>  
+    <header style={{display: "flex",flexDirection: "row",borderColor:'#000',borderBottomStyle: "solid",borderBottomWidth:"1px"}}>
+       <div style={{width: "20%"}}>
+           <img loading="eager" style={{width: "250px"}} src={Env.HOST_SERVER_STORAGE+props.setting.filter((item)=> item.key == 'admin.logo')[0]?.value}/>
+       </div>
+       <div style={{fontSize: "11px",textAlign: "center",width: "60%",display: "flex",flexDirection: "column",justifyContent: "end",paddingBottom: "10px"}}>
+           <h1 style={{fontSize: " 18px",fontWeight:700,marginBottom: " 5px",margin: "0"}}>كشف السنوية لعام {currentYear}م</h1>
+       </div>     
+       <div style={{width: "20%"}}>
+
+       </div>
+    </header> 
+    <div  style={{display: 'flex',flexDirection: 'row',textAlign: 'center',fontSize: '14px',borderBottom:'1px solid black'}} >
+
+    </div>
+    </th>
+    </tr>
+
+    <tr style={{color:"#fff",backgroundColor: "#0972B6"}}>
+      <th style={{fontWeight: "100"}} >م</th>
+      <th style={{fontWeight: "100"}} >اسم الموظف</th>
+      <th style={{fontWeight: "100"}} >الوظيفة</th>
+      <th style={{fontWeight: "100",width:'50px'}} >مرحل من العام الماضي</th>
+      <th style={{fontWeight: "100",width:'50px'}} >رصيد العام الحالي</th>
+      <th style={{fontWeight: "100",width:'50px'}} >رصيد محول</th>
+      <th style={{fontWeight: "100"}} >الافتتاحي</th>
+
+      {
+        months.map((m,ind)=>{
+         return <th style={{fontWeight: "100",whiteSpace: 'nowrap',transform:'rotate(-90deg)',height:'50px',width:'20px'}}>{months[ind]}</th>;
+        })
+      }
+      <th style={{fontWeight: "100"}} > الممنوح</th>
+      <th style={{fontWeight: "100"}} > المتبقي</th>
+
+    </tr>
+    </thead>
+    <tbody>
+{pannTasks.map((item,i)=>{
+var totalg=0;
+var op=item.prev*1+item.curr*1+item.trans*1;
+
+return <tr style={{height: " 25px",backgroundColor:aindex %2==0?'#e6e6e6':'#fff'}}>
+  <td style={{fontWeight: "100"}} >{aindex++}</td>
+  <td style={{fontWeight: "100"}} >{item.name}</td>
+  <td style={{fontWeight: "100",width:'100px'}} >{item.job}</td>
+  <th style={{fontWeight: "100"}} >{parseInt(item.prev/60)+":"+item.prev%60 }</th>
+  <th style={{fontWeight: "100"}} >{parseInt( item.curr/60)+":"+ item.curr%60 }</th>
+  <th style={{fontWeight: "100"}} >{parseInt( item.trans/60)+":"+ item.trans%60}</th>
+  <th style={{fontWeight: "100"}} >{parseInt(op/60)+":"+ op%60}</th>
+  {
+    months.map((m,ind)=>{
+      var min=item['m'+(ind+1)]/60;
+      totalg+=min;
+     return <td style={{fontWeight: "100"}}>{ parseInt(min/60)+":"+min%60 }</td>;
+    })
+    
+  }
+  <td style={{fontWeight: "100"}}>{ Math.round((totalg/60/7)*100)/100 }</td>
+  <th style={{fontWeight: "100"}} >{Math.round(((op-totalg)/60/7)*100)/100}</th>
+
+</tr>;
+})}
+    </tbody>
+    <tfoot>
+      <tr>
+        <th colSpan={21}>
+          <div style={{display: "flex",flexDirection: "row",marginTop: "20px",textAlign: "center"}}>
+            <div style={{width: "50%",fontWeight: "900"}}>شؤون الموظفين</div>
+            <div style={{width: "50%",fontWeight: "900"}}>مدير الشؤون الإدارية</div>
+            <div style={{width: "50%",fontWeight: "900"}}>المحاسب</div>
+            <div style={{width: "50%",fontWeight: "900"}}>المسؤول المالي</div>
+          </div>
+        </th>
+      </tr>
+    </tfoot>
+    </table>
+      <div style={{marginTop: " 20px",width: "85%",backgroundColor: "#e6e6e61",padding: "5px 0",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px"}}>
+         <div style={{backgroundColor: " #0972B6",width: " 95%",height: " 15px",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px",color: " #fff",paddingRight: " 20px"}}>نظام دوام | {new Date().toLocaleString('en-IT')} </div>
+      </div>
+    </div>
+  </div>
     </Card>
 );
 
- }
+}

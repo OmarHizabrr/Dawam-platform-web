@@ -552,7 +552,7 @@ return (
                 <th style={{fontWeight: "100"}} rowSpan="2">م</th>              
                      <th style={{fontWeight: "100"}} >الاسم</th>
                      <th style={{fontWeight: "100"}} >الوظيفة</th>
-                     <th style={{fontWeight: "100"}} >الراتب</th>
+                     <th style={{fontWeight: "100"}} >الإعانة</th>
                      <th style={{fontWeight: "100"}} >القرض</th>
                      <th style={{fontWeight: "100"}} >ملاحظات</th>
                 </tr>

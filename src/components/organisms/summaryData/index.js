@@ -47,7 +47,7 @@ export default function summaryData (props) {
      
         colors: ['#008FFB', '#775DD0', '#FEB019','#FF4560', '#B8C22E', '#00E396'],
     
-      labels: ["سُلف", "أقساط", "تأخرات", "غياب","جزاءات","صافي الراتب"],
+      labels: ["سُلف", "أقساط", "تأخرات", "غياب","جزاءات","صافي الاستحقاق"],
       responsive: [
         {
           breakpoint: 480,

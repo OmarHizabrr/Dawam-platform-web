@@ -115,8 +115,7 @@ export default function CumTasksReport (props){
   else return [];
   }
   
-
-    useEffect(() => {
+  useEffect(() => {
       var emp;
       var tasks;
       var records;
@@ -232,7 +231,7 @@ const handleChange = (pagination, filters, sorter) => {
          excel.writeFile(wb, fn || ('كشف إ دوام ليوم '+"."+(type || 'xlsx')));  
         }
       }
-      const openNotification = (placement,user_name) => {
+  const openNotification = (placement,user_name) => {
         notification.success({
           message: <span> 'تم إضافة الإجازات/المهام الخاصة بـ ' <span style={{fontWeight:'bold'}}>{user_name} </span> ' بنجاح.' </span>,
           placement,
@@ -301,6 +300,7 @@ const handleChange = (pagination, filters, sorter) => {
 
         var index=1;
         var tttasksTypes=Array(tasksTypes.length).fill(0);
+
 return (
     <Card>
       <div style={{marginBottom:'10px'}}>
@@ -352,7 +352,7 @@ return (
                      ))}              
                      <th style={{fontWeight: "100"}} rowSpan="2">ملاحظات</th>
                 </tr>
-            </thead>
+    </thead>
             <tbody>
              {
              
@@ -432,8 +432,9 @@ return (
          <div style={{backgroundColor: " #0972B6",width: " 95%",height: " 15px",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px",color: " #fff",paddingRight: " 20px"}}>نظام دوام | {new Date().toLocaleString('en-IT')} </div>
      </div>
  </div> 
- </div>
-    </Card>
+    </div>
+
+</Card>
 );
 
  }

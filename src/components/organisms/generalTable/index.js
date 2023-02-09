@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useCookies,CookiesProvider  } from 'react-cookie';
 
 import './style.css';
-import {Table,Layout,Card,Rate,DatePicker,Button} from 'antd';
+import {Table,Layout,Card,Rate,DatePicker,Button,Progress} from 'antd';
 import ReactApexChart from "react-apexcharts";
 import {ExportOutlined,PrinterOutlined} from '@ant-design/icons';
 import excel from 'xlsx';
@@ -22,6 +22,9 @@ export default function generalTable(props){
       const [data,setData]=useState([]);
       const [stdata,setStData]=useState([]);
       const [attAvg,setAttAvg]=useState(0);
+      const [abCount,setAbCount]=useState(0);
+      const [lateCount,setLateCount]=useState(0);
+      const [timelyCount,setTimelyCount]=useState(0);
 
       const [load,setLoad]=useState(true);
       const [today,setToday]=useState(new Date().toISOString().split('T')[0]);
@@ -44,7 +47,11 @@ export default function generalTable(props){
         axios.get(Env.HOST_SERVER_NAME+'all-users-log/'+today)
           .then(response => {
             setData(response.data['logs']);
-            setAttAvg(response.data['attendance_percent']);
+            setAttAvg(Math.round(response.data.logs.length/response.data['users_count']*100));           
+            setAbCount(response.data['users_count']-response.data.logs.length);
+            setLateCount(response.data.late_count[0].lateCount);
+            setTimelyCount(response.data.logs.length-response.data.late_count[0].lateCount);
+
             var stars=[];
             response.data['lists'].forEach(function(e){
               var avg=(((response.data.count[0].count-e.attendanceDays)*(e.salary/response.data.count[0].count))+parseInt(e.lateTimePrice || 0))/e.salary;
@@ -55,7 +62,6 @@ export default function generalTable(props){
           }).catch(function (error) {
             console.log(error);
           });
-          
       }, [today]);
 
     const columns = [
@@ -151,9 +157,19 @@ return (
   <Card>
   <div className='generalHeader' >
   <div className='generalData'>
-    <div> المنضبطون: {33}</div>
-    <div> المتأخرون: {15}</div>
-    <div> المتغيبون: {10}</div> 
+  <div className='attPer'><span>
+    <Progress type="circle" percent={Math.round(attAvg)} width={80} style={{marginLeft:'5px',display:'inline-block'}} /></span>
+      <span style={{display:'flex',flexDirection:'column',paddingTop:'10px',marginRight:'5px'}}>
+        <div style={{marginBottom:'5px'}}>الحاضرون : <span>{data.length}</span> </div>
+        <div>الغائبون : <span>{abCount}</span>  </div>
+      </span>
+    </div>
+    <div className='disPer'><span><Progress type="circle" percent={Math.round((timelyCount/data.length)*100)} width={80} style={{marginLeft:'5px',display:'inline-block'}} /></span>
+      <span style={{display:'flex',flexDirection:'column',paddingTop:'10px',marginRight:'5px'}}>
+        <div style={{marginBottom:'5px'}}>المنضبطون : <span>{timelyCount} </span></div>
+        <div>المتأخرون : <span>{lateCount}</span></div>
+      </span>
+    </div>
   </div>
   <div className='generalOper'>     
     <div style={{marginBottom:'10px',marginLeft:'5px'}}><span>اختر يوم : </span>
@@ -190,9 +206,9 @@ return (
        </div>
        <div style={{padding:'20px 30px 20px 10px',fontWeight:'600',fontSize:'14px',textAlign:'right',width:'100%',flex:1}}>
          <div>نسبة الحضور: {Math.round(attAvg)+'%'}</div>
-         <div>عدد المنضبطين: {33}</div>
-         <div>عدد المتأخرين: {15}</div>
-         <div>عدد المتغيبين: {10}</div>
+         <div>عدد المنضبطين: {timelyCount}</div>
+         <div>عدد المتأخرين: {lateCount}</div>
+         <div>عدد المتغيبين: {abCount}</div>
        </div>
 
     </header> 

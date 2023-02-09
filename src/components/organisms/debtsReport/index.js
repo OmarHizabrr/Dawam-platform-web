@@ -338,6 +338,10 @@ return (
     </Card>
     <div id="att-report" style={{display:'none'}}>
     <div  style={{direction: "rtl",fontSize: "12px",fontFamily: "Tajawal",margin: "0"}}>
+    <table style={{fontSize: "11px",width: " 100%",textAlign: " center"}}>
+    <thead>
+    <tr style={{border:'none'}}>
+    <th colSpan={6}> 
     <header style={{display: "flex",flexDirection: "row",borderColor:'#000',borderBottomStyle: "solid",borderBottomWidth:"1px"}}>
        <div style={{width: "20%"}}>
            <img loading="eager" style={{width: "250px"}} src={Env.HOST_SERVER_STORAGE+props.setting.filter((item)=> item.key == 'admin.logo')[0]?.value}/>
@@ -352,14 +356,13 @@ return (
     </header> 
     <div  style={{display: 'flex',flexDirection: 'row',textAlign: 'center',fontSize: '14px',borderBottom:'1px solid black'}} >
     </div>
-    <div >
-        <table style={{fontSize: "12px",width: " 100%",textAlign: " center",marginTop: " 20px"}}>
-            <thead>
+    </th>
+    </tr>
                 <tr style={{color:"#fff",backgroundColor: "#0972B6",height: "30px"}}>
                 <th style={{fontWeight: "100"}} rowSpan="2">م</th>              
                      <th style={{fontWeight: "100"}} >الاسم</th>
                      <th style={{fontWeight: "100"}} >الوظيفة</th>
-                     <th style={{fontWeight: "100"}} >الراتب</th>
+                     <th style={{fontWeight: "100"}} >الإعانة</th>
                      <th style={{fontWeight: "100"}} >السلفة</th>
                      <th style={{fontWeight: "100"}} >التوقيع</th>
 
@@ -408,13 +411,21 @@ return (
                 <td><pre>             </pre></td>
               </tr>
             </tbody>
-        </table>
-    </div>
-    <div style={{display: "flex",flexDirection: "row",marginTop: "20px",textAlign: "center"}}>
-       <div style={{width: "50%",fontWeight: "900"}}>المختص</div>
-       <div style={{width: "50%",fontWeight: "900"}}>مدير الشؤون</div>
-     </div>  
-     <div style={{marginTop: " 20px",width: "85%",backgroundColor: "#e6e6e61",padding: "5px 0",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px"}}>
+            <tfoot>
+      <tr>
+        <th colSpan={6}>
+          <div style={{display: "flex",flexDirection: "row",marginTop: "20px",textAlign: "center"}}>
+            <div style={{width: "50%",fontWeight: "900"}}>شؤون الموظفين</div>
+            <div style={{width: "50%",fontWeight: "900"}}>مدير الشؤون الإدارية</div>
+            <div style={{width: "50%",fontWeight: "900"}}>المحاسب</div>
+            <div style={{width: "50%",fontWeight: "900"}}>المسؤول المالي</div>
+          </div>
+        </th>
+      </tr>
+    </tfoot>
+    </table>
+    
+     <div style={{marginTop: "50px",width: "85%",backgroundColor: "#e6e6e61",padding: "5px 0",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px"}}>
          <div style={{backgroundColor: " #0972B6",width: " 95%",height: " 15px",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px",color: " #fff",paddingRight: " 20px"}}>نظام دوام | {new Date().toLocaleString('en-IT')} </div>
      </div>
  </div> 

@@ -51,7 +51,7 @@ export default function attendanceTable(props){
       const [selUser,setSelUser]=useState(null);
       const [pdata, setPData] = useState([]);
       const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
-
+      const [detailedDay,setDetailedDay]=useState("");
       const id=cookies.user;   
       var allWorkHours=0;
       var allLateTimes=0;
@@ -150,6 +150,7 @@ export default function attendanceTable(props){
         document.body.innerHTML = originalContents;*/ 
       }
     const  showModal = (record) => {
+      setDetailedDay(record.date);
       axios.get(Env.HOST_SERVER_NAME+'attendancelogs/'+props.user.user_id+'/'+record.date)
       .then(response => {
         setSelected(response.data);
@@ -244,7 +245,7 @@ export default function attendanceTable(props){
         render:(discount)=>Math.round(discount)+" "+curr        
       },
       {
-        title: 'الحدث',
+        title: 'التفاصيل',
         key: 'action',
         render: (vid, record, index) => (
           <Button
@@ -356,7 +357,7 @@ export default function attendanceTable(props){
     }
 return (
     <Layout className='attendance'>
-    <Modal className='att-model' width={1100} title="أحداث اليوم"  visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
+    <Modal className='att-model' width={1100} title={"أحداث اليوم | "+detailedDay}  visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
     <Table pagination={false} style={{textAlign:'center!important'}}  scroll={{x: '1000px' }} columns={dcolumns}  dataSource={selected} onCalendarChange={handleChange} />
     </Modal>
     <Card>
@@ -524,7 +525,7 @@ return (
                <th style={{fontWeight: "100"}}>سلفة</th>
                <th style={{fontWeight: "100"}}>أقساط</th>
                <th style={{fontWeight: "100"}}>الإجمالي</th>
-               <th style={{fontWeight: "100"}}>صافي الراتب</th>
+               <th style={{fontWeight: "100"}}>صافي الاستحقاق</th>
              </tr>
          </thead>
          <tbody>

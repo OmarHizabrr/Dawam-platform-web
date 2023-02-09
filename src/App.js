@@ -11,6 +11,7 @@ import { Row, Col,Layout, Form, Input, Button } from 'antd';
 import axios from 'axios';
 import illstarte from './assets/images/loginM.png';
 import logo from './assets/images/logo.png';
+import Assoc from './assets/images/hekma.png';
 import { useCookies,CookiesProvider  } from 'react-cookie';
 import MainHeader from './components/Navigation/MainHeader';
 import Spinner from './components/molecules/Spinner';
@@ -77,18 +78,12 @@ function App() {
       <Layout  className="loginParent"  theme="light" >
       <Row justify="center" className="loginBox">
       <Col span={11} className="mainColumn">
-      <img
-      className="illstarteImage"
-      style={{width:'100%'}}
-      src={illstarte}
-     />
+      <img className="illstarteImage" style={{width:'100%'}} src={illstarte} />
       </Col>
       <Col span={7}  className="formColumn">
       <div className="formTitle">
-        <img
-      
-          src={logo}
-        />
+        <img style={{height:'80px',width: 'auto',marginLeft:'20px',borderLeft: '2px solid',paddingLeft:'10px'}} src={logo}/>
+        <img style={{height:'80px',width: 'auto'}} src={Assoc}/>
       </div>
       <Form
       name="basic"

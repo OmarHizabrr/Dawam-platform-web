@@ -164,10 +164,14 @@ export default function TasksRequests(props) {
     });
      setGivenTasks(null);
      setRestTasks(null);
+
     axios.get(Env.HOST_SERVER_NAME+'given-tasks/'+selected.user_id+'/'+start+'/'+end).then(response=>{
-      
       setGivenTasks(response.data.vacs.filter(record => record.id== selected.vacation)[0]?.cumHours);
-      setRestTasks(response.data.tasksAmount.filter(record => record.vid== selected.vacation)[0]?.rest.replace(/(\d{1,2}:\d{2}):\d{2}/, "$1"));
+      var min=response.data.tasksAmount.filter(record => record.vid== selected.vacation)[0]?.rest;
+      if(typeof min === 'undefined')
+      setRestTasks('-');
+      else
+      setRestTasks( parseInt(min/60)??'-' +":"+min%60?? '-');
 
       setGivenLoad(false);
     }).catch(function (error) {

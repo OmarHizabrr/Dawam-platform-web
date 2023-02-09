@@ -54,6 +54,7 @@ export default function EmpCards(props){
     const [starList,setStarList]=useState([]); 
     const [modalLoad,setModalLoad]=useState(false);
     const [userFormDisable,setUserFormDisable]=useState(true);
+    const [update,setUpdate]=useState(0); 
 
     const [selectedUser,setSelectedUser]=useState(null);
     const [userData,setUserData]=useState(null);
@@ -99,7 +100,7 @@ export default function EmpCards(props){
 
         setLoad(false);
       
-      },[]).catch(function (error) {
+      }).catch(function (error) {
         console.log(error);
       });
       axios.get(Env.HOST_SERVER_NAME+'users-info')
@@ -111,7 +112,7 @@ export default function EmpCards(props){
       }).catch(function (error) {
         console.log(error);
       });
-     },[]);
+     },[update]);
 
      function callback(key) {
      // console.log(key);
@@ -228,7 +229,7 @@ const onFinish=()=>{
   }
 
   axios.post(Env.HOST_SERVER_NAME+'users/add',formData).then(res => {
-    console.log(res.data);
+    
     if(res.status==200){
       notification.success({
         message:'تمت العملية بنجاح' ,
@@ -236,6 +237,7 @@ const onFinish=()=>{
         duration:10,
       });
       userform.resetFields();
+      setUpdate(update+1);
       setIsVisibleModal(false);
       setModalLoad(false);
       setUserFormDisable(true);   
@@ -268,7 +270,7 @@ var options = {
   chart: {
   type: 'donut',
 },
-labels: ["سُلف", "أقساط", "تأخرات", "غياب","جزاءات","صافي الراتب"],
+labels: ["سُلف", "أقساط", "تأخرات", "غياب","جزاءات","صافي الاستحقاق"],
 
 responsive: [{
   breakpoint: 480,
@@ -613,6 +615,7 @@ const deleteUser=()=>{
           placement:'bottomLeft',
           duration:10,
         });
+        setUpdate(update+1);
         setIsDVisibleModal(false);
       }).catch(function (error) {
         setModalLoad(false);
@@ -928,10 +931,10 @@ return(
               </Form.Item>
               </div>
               <div style={{display:'flex',flexDirection:'row'}}>
-              <Form.Item style={{flex:1,marginLeft:'5px'}} label="الراتب" name="salary">
+              <Form.Item style={{flex:1,marginLeft:'5px'}} label="الإعانة" name="salary">
                 <Input disabled={userFormDisable} />
               </Form.Item>
-              <Form.Item  style={{flex:1}} label="عملة الراتب" name="salary_currency">
+              <Form.Item  style={{flex:1}} label="عملة الإعانة" name="salary_currency">
                 <Select 
                 options={types.filter(function(e){return e.parent==4;})}
                 optionFilterProp="children"
