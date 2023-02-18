@@ -5,7 +5,7 @@ import moment from 'moment';
 import excel from 'xlsx';
 import './style.css';
 import logoText from '../../../assets/images/logo-text.png';
-import { Typography ,Layout,Tabs,Table, Button,Progress, DatePicker, Select,Card,Modal } from 'antd';
+import { Typography,notification ,Layout,Tabs,Table, Button,Progress, DatePicker,Form,Input, Spin,Select,Card,Modal } from 'antd';
 import {SwapOutlined,FormOutlined,ExportOutlined,PrinterOutlined} from '@ant-design/icons';
 import axios from 'axios';
 import { useCookies,CookiesProvider  } from 'react-cookie';
@@ -15,6 +15,7 @@ const { Text,Space } = Typography;
 const { TabPane } = Tabs;
 const { Option } = Select; 
 const {RangePicker}=DatePicker;
+const {TextArea}=Input;
 const exportToExcel=(type,fn,dl)=>{
 
   var elt = document.getElementsByTagName('table')[0];
@@ -30,6 +31,10 @@ export default function attendanceTable(props){
       const [filteredInfo,setFilteredInfo]=useState({});
       const [sortedInfo,setSortedInfo]=useState({});
       const [isModalVisible,setIsModalVisible]=useState(false);
+      const [isVModalVisible,setIsVModalVisible]=useState(false);
+      const [datefromValue,setDatefromValue]=useState(null);
+      const [datetoValue,setDatetoValue]=useState(null);
+
       const [eventsLog,setEventsLog]=useState([]);
       const [data,setData]=useState([]);
       const [load,setLoad]=useState(true);
@@ -41,17 +46,30 @@ export default function attendanceTable(props){
       const [salary,setSalary]=useState(0);
       const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
       const [end,setEnd]=useState(moment().format('YYYY-MM-DD'));  
+      const [notes,setNotes]=useState("");
 
       const [dsalary,setDsalary]=useState(0);
       const [totalDebt,setTotalDebt]=useState(0);
       const [totalLoan,setTotalLoan]=useState(0);
       const [vacations,setVacations]=useState([]);
       const [vacationsTypes,setVacationsTypes]=useState([]);
+      const [vacationsAmount,setVacationsAmount]=useState([]);
+      const [saving,setSaving]=useState(false);
+      const [type,setType]=useState(null);
+      const [totalVac,setTotalVac]=useState("");
+
+      const [givenTasks, setGivenTasks] = useState(null);
+      const [restTasks, setRestTasks] = useState(null);
+      const [givenLoad, setGivenLoad] = useState(true);
+      const [tstypes,setTstypes]=useState([]);
+
       const [totalVacs,setTotalVacs]=useState([]);
       const [selUser,setSelUser]=useState(null);
       const [pdata, setPData] = useState([]);
       const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
       const [detailedDay,setDetailedDay]=useState("");
+      const [form] = Form.useForm();
+
       const id=cookies.user;   
       var allWorkHours=0;
       var allLateTimes=0;
@@ -59,7 +77,7 @@ export default function attendanceTable(props){
       var allBonusTimes=0;
       var allDiscounts=0.0;
     
-      let curr=props.setting.filter((item)=> item.key == 'admin.currency')[0]?.value;
+    let curr=props.setting.filter((item)=> item.key == 'admin.currency')[0]?.value;
      // eslint-disable-next-line react-hooks/rules-of-hooks
      useEffect(() => {   
      
@@ -74,6 +92,8 @@ export default function attendanceTable(props){
          // console.log(response.data);
           setVacations(response.data.vacs);
           setVacationsTypes(response.data.vacstypes);
+          setVacationsAmount(response.data.tasksAmount);
+
           setTotalVacs(response.data.totalvacs);
           setTotalDebt(response.data.debt[0]['amount']);
           setTotalLoan(response.data.long_debt[0]['amount']);
@@ -92,6 +112,15 @@ export default function attendanceTable(props){
         }).catch(function (error) {
           console.log(error);
         });
+
+        axios.get(Env.HOST_SERVER_NAME+'get-tasks-types')
+        .then(response => {
+          setTstypes(response.data);
+          //setLoadt(false);
+        }).catch(function (error) {
+          console.log(error);
+        });
+
        },[start,end,props.user]);
 
        const handleChange = (pagination, filters, sorter) => {
@@ -159,17 +188,61 @@ export default function attendanceTable(props){
       });
     
         setIsModalVisible(true);
-      };  
-     const handleOk = () => {
+      };
+    const  showVacationModal =(record)=>{
+        setIsVModalVisible(true);
+      //  form.setFieldsValue({date_range:[moment('2023-02-13 07:00',"YYYY-MM-DD HH:mm"),moment('2023-02-13 14:00',"YYYY-MM-DD HH:mm")]});
+        setDatefromValue(moment(record.date+' 07:00',"YYYY-MM-DD HH:mm"));
+        setDatetoValue(moment(record.date+' 14:00',"YYYY-MM-DD HH:mm"));
+      }
+    const handleOk = () => {
         setIsModalVisible(false);
+      };
+    const openNotification = (placement,text) => {
+        notification.success({
+          message:text ,
+          placement,
+          duration:10,
+        });
+      }
+    const handleVOk = () => {
 
-      }; 
+      var values={
+        "user_id": props.user.user_id,
+        "startDate":datefromValue,
+        "endDate":datetoValue,
+        "type":type,
+        "note":notes,
+      }
+     
+      axios.post(Env.HOST_SERVER_NAME+`add-task`,values)
+      .then(function (response) { 
+        openNotification('bottomLeft',<Text>{'تم إرسال الإجازة بنجاح'}</Text>);
+        setSaving(false);
+        setIsVModalVisible(false);    
+        form.resetFields(['date_range','task_type','notes']);
+        setTotalVac("");
+        setDatetoValue("");
+        setDatefromValue("");
+        setType(null);
+        form.resetFields();
+        setGivenTasks(0);
+        setRestTasks(0);
+      })
+   .catch(function (error) {
+    console.log(error);
+    notification.error({
+      message:'فشل إرسال الإجازة!' ,
+      placement:'bottomLeft',
+      duration:10,
+    });
+    setSaving(false);
+   });
+      };
+    
     const selectMonth=(value)=>{
       }  
     
-  /*  let { sortedInfo, filteredInfo } = this.state;
-    sortedInfo = sortedInfo || {};
-    filteredInfo = filteredInfo || {};*/
     const columns = [
       {
         title: 'اليوم',
@@ -236,7 +309,7 @@ export default function attendanceTable(props){
         ellipsis: true,
       },
       {
-        title: 'خصميات',
+        title:  'خصميات',
         dataIndex: 'discount',
         key: 'discount',
         sorter: (a, b) => a.discount - b.discount,
@@ -255,6 +328,21 @@ export default function attendanceTable(props){
             type="primary"
             shape="round"
             icon={<SwapOutlined />}
+          ></Button>
+          ),
+      },
+      {
+        title: 'تقديم',
+        key: 'action',
+        render: (vid, record, index) => (
+          <Button
+            onClick={function () {
+              showVacationModal(record);
+            }}
+            type="primary"
+            shape="round"
+            style={{backgroundColor:'#FAA61A',border:'none'}}
+            icon={<FormOutlined />}
           ></Button>
           ),
       },
@@ -345,6 +433,30 @@ export default function attendanceTable(props){
   const handleCancel = () => {
     setIsModalVisible(false);
   };
+  const handleVCancel = () => {
+    setIsVModalVisible(false);
+    setDatefromValue("");
+    setDatetoValue("");
+  };
+  const handleTypeChange=(e)=>{
+    setType(e);
+    getGivenRest(e);
+  }
+  const getGivenRest=(e)=>{
+    axios.get(Env.HOST_SERVER_NAME+'given-tasks/'+props.user.user_id+'/'+start+'/'+end).then(response=>{
+      setGivenTasks(response.data.vacs.filter(record => record.id== e)[0]?.cumHours);
+      var min=response.data.tasksAmount.filter(record => record.vid== e)[0]?.rest;
+      if(typeof min === 'undefined')
+      setRestTasks('-');
+      else
+      setRestTasks( parseInt(min/60) +":"+min%60);
+
+      setGivenLoad(false);
+    }).catch(function (error) {
+      console.log(error);
+      setGivenLoad(false);
+    });
+  }
   const onChange=(all,data)=>{
     setCurrentMonth(all.format('MMMM'));
 
@@ -355,8 +467,55 @@ export default function attendanceTable(props){
     setEnd(moment(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
 
     }
+    const checkPeriod=(all,date)=>{
+      if(date[1]!=''){
+        const minutes=(new Date(date[1])-new Date(date[0]))/60000;
+        var alerta="";
+        if(minutes<=420) alerta=(Math.floor(minutes/60)+" ساعة و "+(minutes%60))+" دقيقة ";
+        else alerta=(Math.floor(minutes/1440)+1)+" يوم ";
+        setTotalVac(alerta); 
+      }
+    }
+    const  onRangeChange=(all,dates)=>{ 
+      checkPeriod(all,dates);
+      setDatefromValue(dates[0]);
+      setDatetoValue(dates[1]);     
+    }
 return (
     <Layout className='attendance'>
+    <Modal title="تقديم إجازة / مهمة" confirmLoading={saving} visible={isVModalVisible} onOk={function(){setSaving(true);handleVOk()}} onCancel={function(){handleVCancel()}}>
+      <Form form={form} >
+        <Form.Item className='rangee' name={'date_range'} label="فترة الإجازة / المهمة :">
+          <RangePicker value={[moment(datefromValue,"YYYY-MM-DD HH:mm"), moment(datetoValue, "YYYY-MM-DD HH:mm")]} showTime={{defaultValue: [moment('07:00', 'HH:mm'), moment('14:00', 'HH:mm')],}} format="YYYY-MM-DD HH:mm"  onCalendarChange={function(all,dates){onRangeChange(all,dates);}} />
+          <div style={{marginTop:'10px',fontWeight:600}}>مدة الإجازة: <Text type="danger">{totalVac}</Text></div> 
+        </Form.Item>
+        <Form.Item style={{marginTop:'10px'}} name={'task_type'} label="نوع الإجازة">
+        <Select
+          showSearch
+          notFoundContent={<Spin style={{textAlign:'center'}}></Spin>}
+          style={{ width: 150 }}
+          onSelect={handleTypeChange}
+          options={tstypes}
+          placeholder="ابحث لاختيار إجازة"
+          optionFilterProp="children"
+          filterOption={(input, option) =>
+            option.props.children?.indexOf(input) >= 0 ||
+            option.props.label?.indexOf(input) >= 0
+          }
+          filterSort={(optionA, optionB) =>
+            optionA.props?.children?.localeCompare(optionB.props.children)
+          }
+        >
+      </Select>
+  <div style={{marginRight: '10px',display: 'inline-block'}}>
+    <div>الممنوحة: <span style={{fontWeight:'600',color:'#f00',marginLeft:'20px'}}>{givenTasks??0}</span>      المتبقية: <span style={{fontWeight:'600',color:'#f00'}}>{restTasks??0}</span> </div>
+  </div>
+    </Form.Item>
+    <Form.Item name={'notes'} label="تفاصيل ">
+    <TextArea onChange={function(e){setNotes(e.target.value);}} row={3} ></TextArea>
+    </Form.Item>
+    </Form>
+    </Modal>
     <Modal className='att-model' width={1100} title={"أحداث اليوم | "+detailedDay}  visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
     <Table pagination={false} style={{textAlign:'center!important'}}  scroll={{x: '1000px' }} columns={dcolumns}  dataSource={selected} onCalendarChange={handleChange} />
     </Modal>
@@ -508,9 +667,12 @@ return (
                 </tr>
                 <tr style={{backgroundColor:'#e6e6e6'}}>
                  <td style={{backgroundColor: "#0972B6",color: "#fff"}}>المتبقية</td>
-                 {vacationsTypes.map(item=>(
-                  <td style={{display:item.days>0?'':'none'}}>{totalVacs.find(it=>it.vid==item.id)?totalVacs.find(it=>it.vid==item.id).rest.replace(/(\d{1,2}:\d{2}):\d{2}/, "$1"):0}</td>  
-                 ))}  
+                 {vacationsTypes.map(item=>{
+                    var min=vacationsAmount.find(it=>it.vid==item.id)?vacationsAmount.find(it=>it.vid==item.id).rest:0;
+                  //<td style={{display:item.days>0?'':'none'}}>{totalVacs.find(it=>it.vid==item.id)?totalVacs.find(it=>it.vid==item.id).rest.replace(/(\d{1,2}:\d{2}):\d{2}/, "$1"):0}</td>  
+                 return  <td style={{display:item.days>0?'':'none'}}>{ parseInt(min/60)+":"+min%60}</td>;  
+
+                 })}  
                 </tr>
             </tbody>
         </table>
@@ -531,13 +693,13 @@ return (
          <tbody>
              <tr style={{height: "20px"}}>
                  <td style={{backgroundColor: "#0972B6",color: "#fff"}}>المبلغ</td>
-                 <td>{new Intl.NumberFormat('en-EN').format(props.user.salary)+" "+curr}</td>
-                 <td>{new Intl.NumberFormat('en-EN').format(Math.round(dsalary * (totalDays-totalAtt)))+" "+curr}</td>
+                 <td>{new Intl.NumberFormat('en-EN').format(props.user.status==16?props.user.salary:props.user.salary*pdata.length)+" "+curr}</td>
+                 <td>{new Intl.NumberFormat('en-EN').format(Math.round(props.user.status==16? (dsalary * (totalDays-totalAtt)): ((pdata.length-totalAtt)*props.user.salary) ))+" "+curr}</td>
                  <td>{new Intl.NumberFormat('en-EN').format(totalLatePrice)+" "+curr}</td>
                  <td>{new Intl.NumberFormat('en-EN').format(totalDebt)+" "+curr}</td>
                  <td>{new Intl.NumberFormat('en-EN').format(totalLoan)+" "+curr}</td>
-                 <td>{new Intl.NumberFormat('en-EN').format((Math.round(dsalary * (totalDays-totalAtt))+parseFloat(totalLatePrice)+parseFloat(totalDebt)+parseFloat(totalLoan)))+" "+curr}</td>
-                 <td>{new Intl.NumberFormat('en-EN').format(props.user.salary-(Math.round(dsalary * (totalDays-totalAtt))+parseFloat(totalLatePrice)+parseFloat(totalDebt)+parseFloat(totalLoan)))+" "+curr}</td>
+                 <td>{new Intl.NumberFormat('en-EN').format((Math.round(props.user.status==16? (dsalary * (totalDays-totalAtt)): ((pdata.length-totalAtt)*props.user.salary) )+parseFloat(totalLatePrice)+parseFloat(totalDebt)+parseFloat(totalLoan)))+" "+curr}</td>
+                 <td>{new Intl.NumberFormat('en-EN').format((props.user.status==16?props.user.salary:props.user.salary*pdata.length)-((Math.round(props.user.status==16? (dsalary * (totalDays-totalAtt)): ((pdata.length-totalAtt)*props.user.salary) ))+parseFloat(totalLatePrice)+parseFloat(totalDebt)+parseFloat(totalLoan)))+" "+curr}</td>
                 </tr>
          </tbody>
         

@@ -48,10 +48,12 @@ export default function deptsTable(props){
             setData(response.data.categories);
 
             var stars=[];
+            
             response.data['lists'].forEach(function(e){
               var avg=(((response.data.count[0].count-e.attendanceDays)*(e.salary/response.data.count[0].count))+parseInt(e.lateTimePrice || 0))/e.salary;
-              stars.push({'user_id':e.user_id,'category_id':e.category_id,'star':Math.round((1-avg)*10)/2});
+              stars.push({'user_id':e.user_id,'category_id':e.category_id,'star':((1-avg)*100)});
             });
+           
             const reduced = stars.reduce(function(m, d){
               if(!m[d.category_id]){
                 m[d.category_id] = {...d, count: 1};
@@ -100,7 +102,14 @@ export default function deptsTable(props){
         sorter: (a, b) => a.att_percent - b.att_percent,
         sortOrder: sortedInfo.columnKey === 'att_percent' && sortedInfo.order,
         ellipsis: false,    
-        render:(att_percent,record,index)=><Rate style={{textAlign: 'center',marginBottom:'5px'}} disabled allowHalf value={starList?.filter(function (e) { return e.category_id == record.id; })[0]?.star} />,
+        render:(att_percent,record,index)=>
+        {
+          var star=starList?.filter(function (e) { return e.category_id == record.id; })[0]?.star;
+       return <>
+        <Rate style={{textAlign: 'center',marginBottom:'5px',marginLeft:'5px'}} disabled allowHalf value={(star/20)} />
+        {star? star+'%' : ''}
+        </>
+        },
       },
       {
         title: 'نسبة الحضور',

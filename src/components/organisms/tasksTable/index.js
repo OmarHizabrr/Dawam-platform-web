@@ -209,8 +209,10 @@ export default function tasksTable(props) {
   const  showModal = () => {
         setIsModalVisible(true);
         setSelectedLogs(null);
-      };  
+      }; 
+
   const handleOk = () => {
+    
        var values={
           "user_id": props.user.user_id,
           "startDate":startVac,
@@ -218,7 +220,7 @@ export default function tasksTable(props) {
           "type":type,
           "note":notes
         }
-        //console.log(values);
+       
         axios.post(Env.HOST_SERVER_NAME+`add-task`,values)
           .then(function (response) { 
   
@@ -622,7 +624,6 @@ return (
     <Space>
     <RangePicker
      showTime={{
-       // hideDisabledOptions: true,
         defaultValue: [moment('07:00', 'HH:mm'), moment('14:00', 'HH:mm')],
       }}
       format="YYYY-MM-DD HH:mm"  

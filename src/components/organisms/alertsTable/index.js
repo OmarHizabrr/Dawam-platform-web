@@ -34,7 +34,7 @@ export default function alertsTable (){
       },[start,end]);
       const columns = [
         {
-          title: 'التنبيه',
+          title: 'الإشعار',
           dataIndex: 'text',
           key: 'text',
           sorter: (a, b) => a.text.length - b.text.length,
@@ -42,7 +42,7 @@ export default function alertsTable (){
           ellipsis: true,
         },
         {
-          title: 'تاريخ التنبيه',
+          title: 'تاريخ الإشعار',
           dataIndex: 'created_at',
           key: 'created_at',
           sorter: (a, b) => a.created_at.length - b.created_at.length,
@@ -63,7 +63,7 @@ return(
   <span>اختر فترة : </span>
   <RangePicker  onCalendarChange={changeRange} />
   </div>
-    <Table loading={load} columns={columns} dataSource={data} onChange={handleChange} />
+    <Table loading={load} columns={columns} dataSource={data} scroll={{x: '600px' }}  onChange={handleChange} />
     </Card>
     </Layout>
 );

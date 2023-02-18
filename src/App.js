@@ -42,7 +42,7 @@ function App() {
   const id=cookies.user;
 
   useEffect(() => {   
-   
+    console.log(process.env.REACT_APP_API_URL);
      axios.get(Env.HOST_SERVER_NAME+'setting')
      .then(response => {
         setSetting(response.data);

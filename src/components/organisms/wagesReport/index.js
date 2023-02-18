@@ -47,6 +47,7 @@ export default function wagesReport(props){
       const [categories,setCategories]=useState([]);
       const [load,setLoad]=useState(true);
       const [count,setCount]=useState(0);
+      const [count17,setCount17]=useState(0);
 
       const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
       const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
@@ -59,6 +60,7 @@ export default function wagesReport(props){
        
         axios.get(Env.HOST_SERVER_NAME+'wages-list/'+start+'/'+end)
         .then(response => {
+         // console.log(response.data);
           let names=[];
           let categories=[];
           let ts=[];
@@ -75,6 +77,7 @@ export default function wagesReport(props){
       
         setTstypes(ts);
         setCount(response.data.count[0].count);
+        setCount17(response.data.count17[0].count);
         setData(response.data.lists);
         setPData(response.data.lists);
         
@@ -434,7 +437,7 @@ return (
                 allow+=parseFloat(item.allownces);
                 debts+=(item.debt*1);
                 
-                var ab=item.fingerprint_type=='22'? Math.round( (((count*1-item.attendanceDays*1)*(parseInt(item.salary)/30)) + parseFloat(item.lateTimePrice) )/5 )*5:0;
+                var ab=item.fingerprint_type=='22'? Math.round( ((((item.status==16?count*1:count17*1)-item.attendanceDays*1)*(item.status==16?parseInt(item.salary)/30:item.salary)) + parseFloat(item.lateTimePrice) )/5 )*5:0;
                 ab=ab<0?0:parseFloat(ab);
                 
                 abs+=parseFloat(ab);
@@ -444,7 +447,7 @@ return (
                 vio+=(item.vdiscount*1);
                 var toD=Math.round(item.debt)+ab+Math.round(item.symbiosis)+Math.round(item.long_debt)+Math.round(item.vdiscount);
                 totD+=toD;
-                var tot=item.stopped?0:parseFloat(item.salary)+parseFloat(item.allownces)-toD;
+                var tot=item.stopped?0:item.status==16?parseFloat(item.salary):parseFloat(item.salary)*count17+parseFloat(item.allownces)-toD;
                 total+=tot;
                 var tor=item.stopped?0:Math.round(tot/round)*round;
                 totr+=tor;
@@ -464,7 +467,7 @@ return (
                   <td>{index}</td>
                   <td style={{fontSize:'9px'}}>{item.name}</td>
                   <td style={{fontSize: "7px",width:'50px'}}>{item.job}</td>
-                  <td>{new Intl.NumberFormat('en-EN').format(item.salary)}</td>
+                  <td>{new Intl.NumberFormat('en-EN').format(item.status==16?item.salary:item.salary*30)}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(item.allownces)}</td>
 
                   <td>{new Intl.NumberFormat('en-EN').format(item.debt)}</td>

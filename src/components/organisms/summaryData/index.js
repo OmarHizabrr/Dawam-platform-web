@@ -9,6 +9,9 @@ import { useCookies,CookiesProvider  } from 'react-cookie';
 import {useLocation} from 'react-router-dom';
 import {
   ClusterOutlined,
+  DollarCircleOutlined,
+  EyeTwoTone,
+  EyeInvisibleOutlined,
   TagsOutlined,
 } from '@ant-design/icons';
 import {Env} from './../../../styles';
@@ -267,6 +270,7 @@ useEffect(() => {
     <Col className='userData' xs={24} sm={24} md={10} lg={10} xl={10}>
       <div className="taggedInfo"><Text><ClusterOutlined /> {user.category.name} </Text></div>
       <div className="taggedInfo"><Text><TagsOutlined />{user.job}</Text></div>
+      <div className="taggedInfo"><Text><DollarCircleOutlined /> الراتب: <Input.Password bordered={false} style={{width:'100px'}} readOnly={true} value={new Intl.NumberFormat('en-EN').format(user.salary)} iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}/></Text></div>
       <div className="taggedInfo" style={{marginTop:'10px'}}>
         <Rate disabled allowHalf value={Math.round(props.star*10)/2} /> {Math.round(props.star*100)}%
       </div>
