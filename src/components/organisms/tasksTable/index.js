@@ -44,7 +44,8 @@ export default function tasksTable(props) {
   const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
   const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
   const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
- 
+  const [star,setStar]=useState(0); 
+
   const [notes,setNotes]=useState("");
   const [tstypes,setTstypes]=useState([]);
   const [data,setData]=useState([]);
@@ -63,7 +64,9 @@ export default function tasksTable(props) {
   const [vacationsFilter,setVacationsFilter]=useState([]);
   const [givenTasks, setGivenTasks] = useState(null);
   const [restTasks, setRestTasks] = useState(null);
-
+  const [totalDays,setTotalDays]=useState(0);
+  const [totalAtt,settotalAtt]=useState(0);
+  const [totalLate,setTotalLate]=useState(0);
   const [givenLoad, setGivenLoad] = useState(true);
   const [confirmLoading, setConfirmLoading] = React.useState(false);
   const [datefromValue,setDatefromValue]=useState(null);
@@ -121,6 +124,7 @@ export default function tasksTable(props) {
         }).catch(function (error) {
           console.log(error);
         });
+    
     setLoad(true);
     axios.get(Env.HOST_SERVER_NAME+'get-tasks/'+props.user.user_id+'/'+start+'/'+end)
     .then(response => {
@@ -132,6 +136,17 @@ export default function tasksTable(props) {
     }); 
     setVacationsFilter([...vacationsFilter,...vacations]);
       setData(response.data);
+     // setLoad(false);
+    }).catch(function (error) {
+      console.log(error);
+    });
+
+    axios.get(Env.HOST_SERVER_NAME+'dawam-info/'+props.user.user_id+'/'+start+'/'+end)
+    .then(response => {
+      setTotalDays(response.data.count[0].count);
+      settotalAtt(response.data.data[0].attendanceDays);
+      setTotalLate(response.data.data[0].lateTime);
+      setStar(1-((parseFloat(response.data.lists.lateTimePrice || 0)+parseInt(Math.round(((response.data.count[0].count-(response.data.lists['attendanceDays'] || 0))*( response.data.lists.salary/response.data.count[0].count)))))/(response.data.lists.salary )));
       setLoad(false);
     }).catch(function (error) {
       console.log(error);
@@ -146,13 +161,13 @@ export default function tasksTable(props) {
     mywindow.document.write('</head><body dir="rtl" style="font-size:12px;" >');
     mywindow.document.write(report.innerHTML);
     mywindow.document.write('</body></html>');
-
-    mywindow.document.close();
- mywindow.onload = function() { // wait until all resources loaded 
+    mywindow.print();
+ //   mywindow.document.close();
+ /*mywindow.onload = function() { // wait until all resources loaded 
         mywindow.focus(); // necessary for IE >= 10
         mywindow.print();  // change window to mywindow
         mywindow.close();// change window to mywindow
-    };   
+    };   */
   }
 
   const getGivenRest=(e)=>{
@@ -613,8 +628,8 @@ return (
         </div>
         <div className='tasksBtn'>   
           <Button style={{marginBottom:'10px',marginLeft:'5px',backgroundColor:'#FAA61A',border:'none'}} onClick={showModal} type='primary'><FormOutlined /> تقديم إجازة </Button>
-          <Button style={{display:'block',marginLeft:'5px',marginBottom:'10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
-          <Button style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button>
+          <Button disabled={load} style={{display:'block',marginLeft:'5px',marginBottom:'10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
+          <Button disabled={load} style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button>
         </div>
       </div>
     </div>
@@ -725,8 +740,14 @@ return (
          <div style={{width: " 20%"}}>الوظيفة:  {props.user.job}</div>
          <div style={{width: " 30%"}}>الإدارة:  {typeof props.user.category === 'object'?props.user.category.name:props.user.category}</div>
     </div>
+    <div  style={{display: 'flex',flexDirection: 'row',textAlign: 'center',padding: '10px 0',fontSize: '14px'}} >
+    <div style={{width: " 30%"}}>الدوام المطلوب:  {totalDays}</div>
+    <div style={{width: " 30%"}}>أيام الغياب:  {totalDays-totalAtt}</div>
+    <div style={{width: " 30%"}}>التأخرات بالساعة:  {parseInt(totalLate/60)}:{totalLate%60}</div>
+    <div style={{width: " 30%"}}>نسبة الانضباط:  {Math.round(star*100)}%</div>
+    </div>
     <div >
-        <table style={{fontSize: "12px",width: " 100%",textAlign: " center",marginTop: " 20px"}} >
+        <table style={{fontSize: "12px",width: " 100%",textAlign: " center",marginTop: " 0px"}} >
             <thead>
                 <tr style={{color:"#fff",backgroundColor: "#0972B6",height: "30px"}}>
                      <th colSpan={4} style={{fontWeight: "100"}}>الفترة</th>
@@ -807,7 +828,7 @@ return (
                  })}  
                 </tr>
             </tbody>
-        </table>
+    </table>
     </div>
     <div style={{display: "flex",flexDirection: "row",marginTop: "20px",textAlign: "center"}}>
        <div style={{width: "50%",fontWeight: "900"}}>الموظف</div>

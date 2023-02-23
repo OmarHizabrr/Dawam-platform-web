@@ -51,7 +51,6 @@ const selectRecord=(e,record)=>{
         options.map(item=>selOptions.push(item.value));
     
     setCheckedList(selOptions);   
-    console.log(checkedList);
     setIndeterminate(false);
     setCheckAll(e.target.checked);
   };
@@ -248,7 +247,7 @@ const selectRecord=(e,record)=>{
            setTstypes(response.data);
            response.data.forEach(element => {  
             names.push({text:element['label'],value:element['label']});       
-          }); 
+          });
           setNamesFilter(names);
           }).catch(function (error) {
             console.log(error);

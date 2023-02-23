@@ -187,7 +187,7 @@ const processVio=(record)=>{
         });
           axios.get(Env.HOST_SERVER_NAME+'get-emp-names')
           .then(response => {
-              setTstypes(response.data);
+              setTstypes(response.data.filter(record => record.category==props.user.category.id));
           }).catch(function (error) {
             console.log(error);
           });
@@ -203,9 +203,9 @@ const processVio=(record)=>{
       if(location.pathname=="/profile/dept-violations"){
         var dt=response.data.filter(record => record.uid==props.user.user_id);
 
-        if(type!=3)
+        if(type!=3){
           dt=response.data.filter(record => record.category==props.user.category.name);
-
+        }
         setData(dt);
       }
       else{
@@ -409,7 +409,7 @@ return (
       </Form.Item>
     </Form>
 
-       </Modal>    
+    </Modal>    
     <Table loading={load} columns={columns} scroll={{x: '1000px' }} dataSource={data} onChange={function(){handleChange();}} />
     <div id="task-report"  style={{display:'none'}}>
     <div  style={{direction: "rtl",fontSize: "12px",fontFamily: "Tajawal",margin: "0",padding:'10px',border:'3px solid black'}}>

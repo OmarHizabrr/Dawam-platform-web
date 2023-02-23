@@ -91,3 +91,4 @@ margin-bottom: 15px;
 }
 }
 
+@page { size: A4 landscape; print-color-adjust: exact !important;  -webkit-print-color-adjust: exact !important;}

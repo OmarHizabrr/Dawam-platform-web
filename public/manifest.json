@@ -1,6 +1,9 @@
 {
   "short_name": "دوام",
   "name": "نظام دوام",
+  "display": "standalone",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
   "icons": [
     {
       "src": "favicon.ico",

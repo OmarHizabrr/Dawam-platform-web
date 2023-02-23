@@ -117,7 +117,7 @@ export default function TasksRequests(props) {
             if(!vacations.some(item => element.vactype == item.text))      
               vacations.push({text:element['vactype'],value:element['vactype']});         
         }); 
-
+        console.log(names);
         setNamesFilter(names);
         setCategoriesFilter(categories);
         setVacationsFilter([...vacationsFilter,...vacations]);     

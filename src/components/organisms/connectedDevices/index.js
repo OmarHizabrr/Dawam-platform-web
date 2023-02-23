@@ -18,7 +18,7 @@ const {TextArea}=Input;
 
 //const ZKLib = require('./zklib');
 
-export default function connectedDevices() {
+export default function ConnectedDevices(props) {
   
   const [cookies, setCookie, removeCookie]=useCookies(["userId"]);
   const [filteredInfo,setFilteredInfo]=useState({});
@@ -132,6 +132,7 @@ export default function connectedDevices() {
         }
     }
 
+    
     }
 
 return (

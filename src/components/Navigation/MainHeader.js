@@ -5,6 +5,7 @@ import { Badge, Layout, Menu, Dropdown,Avatar,Button,Modal, Input,notification,F
 import { Typography } from 'antd';
 import {UserOutlined,DownOutlined,PoweroffOutlined,EyeInvisibleOutlined, EyeTwoTone ,LockOutlined,UploadOutlined,EllipsisOutlined}  from '@ant-design/icons';
 import  { useLocation,Redirect,useRouteMatch} from 'react-router-dom'
+import logo from '../../assets/images/logo.png';
 
 import { NavHashLink as NavLink } from 'react-router-hash-link';
 import { useCookies,CookiesProvider  } from 'react-cookie';
@@ -16,6 +17,7 @@ import {
 } from './../../routes';
 const { Header, Sider, Content } = Layout;
 const { Link } = Typography;
+const myAlerts = [];
 
 export default function MainHeader() {
   const [count,setCount]=useState(0);
@@ -23,6 +25,7 @@ export default function MainHeader() {
   const [isModalVisible,setIsModalVisible]=useState(false);
   const [isIModalVisible,setIsIModalVisible]=useState(false);
   const [isSaving,setSaving]=useState(false);
+ 
 
   const [profileImage,setProfileImage]=useState();
   const [form] = Form.useForm();
@@ -61,6 +64,12 @@ export default function MainHeader() {
     setSaving(false);
   })  ;  
   };
+  function addObjectToArray(object) {
+    if (!myAlerts.some(item => item.id === object.id)) {
+      myAlerts.push(object);
+      notifyUser(object);
+    }
+  }
   const handleIOk = () => {
     var formData=new FormData();
     formData.append('user_id',id.id);
@@ -93,7 +102,32 @@ export default function MainHeader() {
     axios.post(Env.HOST_SERVER_NAME+'read-alerts', data).then(res => {
     }).catch(err => console.log(err))
   };
-  
+  const notifyUser=(alert)=>{
+   
+    if (Notification.permission === "granted") {
+      const notification = new Notification("نظام دوام", {
+        body: alert.text,
+        icon:logo
+      });
+      if (notification.hasOwnProperty("show")) {
+        notification.show();
+      }
+    } else if (Notification.permission !== "denied") {
+      Notification.requestPermission().then(permission => {
+        if (permission === "granted") {
+          const notification = new Notification("نظام دوام", {
+            body: alert.text,
+            icon:logo
+          });
+          if (notification.hasOwnProperty("show")) { 
+
+            notification.show();
+          }
+        }
+      });
+    }
+  }
+
   const handleRemoveCookie=()=>{
     removeCookie('user');
    return document.location.reload();
@@ -104,9 +138,19 @@ export default function MainHeader() {
     if(id){
     axios.get(Env.HOST_SERVER_NAME+'unread-alerts/'+id.user_id)
     .then(response => {
-     // console.log(response.data)
-    setData(response.data.alerts);
+    
+
     setCount(response.data.count[0]['count']);
+    if ('setAppBadge' in navigator) {
+      navigator.setAppBadge(parseInt(response.data.count[0]['count'])); // Replace 3 with the actual count you want to display
+    }
+    
+   
+    for (var i = 0; i < response.data.alerts.length ;i++){
+      addObjectToArray(response.data.alerts[i]);
+    }
+    
+    setData(response.data.alerts);
     },[]).catch(function (error) {
       console.log(error);
     });
@@ -249,9 +293,7 @@ export default function MainHeader() {
         </Dropdown>
         </span>
      </div>
-    </Menu>
-     
-    
+    </Menu>  
 </Header>);
 };
 

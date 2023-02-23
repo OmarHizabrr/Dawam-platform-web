@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import React, { useState, useEffect } from 'react';
 import moment from 'moment';
+import 'moment/locale/ar-ly';
 
 import excel from 'xlsx';
 import './style.css';
@@ -89,17 +90,13 @@ export default function attendanceTable(props){
           setTotalLatePrice(response.data.data[0].lateTimePrice);
           setSalary(response.data.data[0].salary);
           setDsalary(response.data.data[0].dsalary);
-         // console.log(response.data);
           setVacations(response.data.vacs);
           setVacationsTypes(response.data.vacstypes);
           setVacationsAmount(response.data.tasksAmount);
-
           setTotalVacs(response.data.totalvacs);
           setTotalDebt(response.data.debt[0]['amount']);
           setTotalLoan(response.data.long_debt[0]['amount']);
         }).catch(function (error) {
-          console.log('error');
-
           console.log(error);
         });
         setLoad(true);
@@ -151,27 +148,18 @@ export default function attendanceTable(props){
       }
       const printReport=()=>{
         var report=document.getElementById('att-report');
+
+
         //var report=document.body;
        var mywindow = window.open('');
         mywindow.document.write("<html><head><title></title> <style>@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500&display=swap'); body{font-family:Tajawal;font-size:12px;margin:0}  </style><style type='text/css' media='print'>@page { size: A4 landscape; print-color-adjust: exact !important;  -webkit-print-color-adjust: exact !important;}</style>");
         mywindow.document.write('</head><body dir="rtl" style="font-size:12px;" >');
         mywindow.document.write(report.innerHTML);
         mywindow.document.write('</body></html>');
-        
-        mywindow.document.close();
-       // mywindow.focus();
-    
-       // mywindow.print();
-               
-      // mywindow.close();   
-
-       mywindow.onload = function() { // wait until all resources loaded 
-        mywindow.focus(); // necessary for IE >= 10
         mywindow.print();  // change window to mywindow
-        mywindow.close();// change window to mywindow
-    };
+       // mywindow.close();
 
-        /* var printContents = document.getElementById("att-report").innerHTML;
+ /*        var printContents = document.getElementById("att-report").innerHTML;
         var originalContents = document.body.innerHTML;
     
         document.body.innerHTML = printContents;
@@ -191,9 +179,9 @@ export default function attendanceTable(props){
       };
     const  showVacationModal =(record)=>{
         setIsVModalVisible(true);
-      //  form.setFieldsValue({date_range:[moment('2023-02-13 07:00',"YYYY-MM-DD HH:mm"),moment('2023-02-13 14:00',"YYYY-MM-DD HH:mm")]});
-        setDatefromValue(moment(record.date+' 07:00',"YYYY-MM-DD HH:mm"));
-        setDatetoValue(moment(record.date+' 14:00',"YYYY-MM-DD HH:mm"));
+        setNotes("");
+        setDatefromValue(record.date+' 07:00');
+        setDatetoValue(record.date+' 14:00');
       }
     const handleOk = () => {
         setIsModalVisible(false);
@@ -401,12 +389,6 @@ export default function attendanceTable(props){
         sortOrder: sortedInfo.columnKey === 'name' && sortedInfo.order,
         ellipsis: true,
       },
-      {
-        title: 'التقديم',
-        key: 'action',
-        render: () =><Button style={{backgroundColor:'#0972B6',borderColor:'#0972B6'}} type="primary" shape="round" icon={<FormOutlined />} ></Button>
-        ,
-      },
     ];
     String.prototype.toHHMMSS = function () {
       var sec_num = parseInt(this, 10); // don't forget the second param
@@ -573,12 +555,12 @@ return (
        </div>     
        <div style={{width: "35%"}}>
        <div style={{display:'flex',flexDirection:'row',justifyContent:'space-between',margin:'20px 5px'}}>
-    <div style={{display:'flex',flexDirection:'row'}}><span><Progress type="circle" percent={Math.round((totalAtt/totalDays)*100)} width={70} style={{marginLeft:'5px',display:'inline-block'}} /></span>
+    <div style={{display:'flex',flexDirection:'row'}}>
     <span style={{display:'flex',flexDirection:'column',paddingTop:'10px',marginRight:'5px'}}>
     <div style={{marginBottom:'5px'}}>الدوام المطلوب : <span>{totalDays}</span> يوم </div>
-    <div>الدوام الفعلي : <span>{totalAtt}</span> يوم </div>
+    <div>أيام الغياب : <span>{totalDays-totalAtt}</span> يوم </div>
     </span></div>
-    <div style={{display:'flex',flexDirection:'row'}}><span><Progress type="circle" percent={Math.round((totalLatePrice/salary)*100)} width={70} style={{marginLeft:'5px',display:'inline-block'}} /></span>
+    <div style={{display:'flex',flexDirection:'row'}}>
     <span style={{display:'flex',flexDirection:'column',paddingTop:'10px',marginRight:'5px'}}>
     <div style={{marginBottom:'5px'}}>التأخرات : <span>{totalLate}</span> دقيقة </div>
     <div>إجمالي الخصم : <span>{totalLatePrice}</span> {curr}</div>

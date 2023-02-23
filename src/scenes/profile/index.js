@@ -37,7 +37,7 @@ import TransferTable from '../../components/organisms/transferTable';
 import AttendanceTable from '../../components/organisms/attendanceTable';
 import TasksTable from '../../components/organisms/tasksTable';
 import TasksRequests from '../../components/organisms/tasksRequests';
-import alertsTable from '../../components/organisms/alertsTable';
+import AlertsTable from '../../components/organisms/alertsTable';
 import DeptsTable from '../../components/organisms/deptsTable';
 import ViolationsRecords from '../../components/organisms/violationsRecords';
 import UsersPerformance from '../../components/organisms/usersPerformance';
@@ -908,7 +908,7 @@ return (
 
           <Route path={`${path}/dept-performance`} component={() => <UsersPerformance setting={props.setting} type="Manager" user={cookies.user} />} />
 
-          <Route path={`${path}/alerts`} component={alertsTable} />
+          <Route path={`${path}/alerts`} component={()=> <AlertsTable type="Manager" setting={props.setting} user={cookies.user}/>} />
           <Redirect to="" />
         </Switch>
   </Layout>

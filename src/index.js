@@ -5,6 +5,9 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { ConfigProvider } from 'antd';
 import arEG from 'antd/lib/locale/ar_EG';
+
+import * as serviceWorkerRegistration from './serviceWorkerRegistration';
+
 ReactDOM.render(
   <React.StrictMode>
   <ConfigProvider locale={arEG}  direction="rtl">
@@ -13,6 +16,8 @@ ReactDOM.render(
   </React.StrictMode>,
   document.getElementById('root')
 );
+
+serviceWorkerRegistration.unregister();
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
