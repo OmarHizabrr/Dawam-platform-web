@@ -84,6 +84,7 @@ export default function attendanceTable(props){
      
         axios.get(Env.HOST_SERVER_NAME+'dawam-info/'+props.user.user_id+'/'+start+'/'+end)
         .then(response => {
+          console.log(response.data);
           setTotalDays(response.data.count[0].count);
           settotalAtt(response.data.data[0].attendanceDays);
           setTotalLate(response.data.data[0].lateTime);

@@ -60,7 +60,7 @@ export default function wagesReport(props){
        
         axios.get(Env.HOST_SERVER_NAME+'wages-list/'+start+'/'+end)
         .then(response => {
-         // console.log(response.data);
+          console.log(response.data);
           let names=[];
           let categories=[];
           let ts=[];
@@ -447,7 +447,7 @@ return (
                 vio+=(item.vdiscount*1);
                 var toD=Math.round(item.debt)+ab+Math.round(item.symbiosis)+Math.round(item.long_debt)+Math.round(item.vdiscount);
                 totD+=toD;
-                var tot=item.stopped?0:item.status==16?parseFloat(item.salary):parseFloat(item.salary)*count17+parseFloat(item.allownces)-toD;
+                var tot=item.stopped?0:(item.status==16?(parseFloat(item.salary)+parseFloat(item.allownces)-toD):parseFloat(item.salary)*count17);
                 total+=tot;
                 var tor=item.stopped?0:Math.round(tot/round)*round;
                 totr+=tor;
