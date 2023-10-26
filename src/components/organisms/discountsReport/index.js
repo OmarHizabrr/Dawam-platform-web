@@ -42,11 +42,13 @@ export default function DiscountsReport(props){
       const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
       const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
           // eslint-disable-next-line react-hooks/rules-of-hooks
+      let dround=parseInt(props.setting.filter((item)=> item.key == 'admin.discounts_round')[0]?.value*1);
+
      useEffect(() => {
        setLoad(true);
         axios.get(Env.HOST_SERVER_NAME+'discounts-list/'+start+'/'+end)
         .then(response => {
-
+          console.log(response.data)
           let names=[];
           let categories=[];
           response.data["lists"].forEach(element => {  
@@ -308,6 +310,7 @@ return (
               catData.map(item=>{
 
                 item.lateTimePrice=item.fingerprint_type=='22'? item.lateTimePrice:0;
+                
                 item.lateTime=item.fingerprint_type=='22'? item.lateTime:0;
                 item.attendanceDays=item.fingerprint_type=='22'? item.attendanceDays:count;
 
@@ -342,11 +345,11 @@ return (
                 <td style={{fontSize:'8px',width:'60px'}}>{item.job}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(item.salary)}</td>
                 <td>{item.lateTime}</td>
-                <td>{new Intl.NumberFormat('en-EN').format(Math.round(item.lateTimePrice/5)*5)}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(Math.round(item.lateTimePrice))}</td>
                 <td>{atim}</td>
-                <td>{new Intl.NumberFormat('en-EN').format(Math.round(adis/5)*5)}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(Math.round(adis))}</td>
                 <td>{parseInt(totalateTime/60)+":"+(totalateTime%60)}</td>               
-                <td>{new Intl.NumberFormat('en-EN').format(Math.round(tot/5)*5)}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(Math.round(tot/dround)*dround)}</td>
               </tr>
               );
              })
@@ -380,11 +383,15 @@ return (
       <tr>
         <th colSpan={13}>
           <div style={{display: "flex",flexDirection: "row",textAlign: "center"}}>
-            <div style={{width: "50%",fontWeight: "900"}}>شؤون الموظفين</div>
-            <div style={{width: "50%",fontWeight: "900"}}>مدير الشؤون الإدارية</div>
-            <div style={{width: "50%",fontWeight: "900"}}>المحاسب</div>
-            <div style={{width: "50%",fontWeight: "900"}}>المسؤول المالي</div>
-          </div>
+{props.setting.filter((item)=> item.key == 'admin.signs_footer')[0]?.value.split('\n').map((sign)=>{
+           var sign_position=sign.split(':')[0];
+           var sign_name=sign.split(':')[1];
+
+           return <div style={{width: "50%"}}>
+               <div style={{fontWeight: "900"}}>{sign_position}</div>
+               {sign_name!="" && <div style={{fontWeight: "500"}}>{sign_name}</div>}
+            </div>
+        })}          </div>
         </th>
       </tr>
     </tfoot>

@@ -78,7 +78,6 @@ export default function TasksAccounts (props){
     }).catch(function (error) {
     console.log(error);            
     });
-
   }
   const getColumnsVac=()=>{
     if(tasksTypes.length>0){
@@ -568,11 +567,15 @@ return (
       <tr>
         <th colSpan={16}>
           <div style={{display: "flex",flexDirection: "row",marginTop: "20px",textAlign: "center"}}>
-            <div style={{width: "50%",fontWeight: "900"}}>شؤون الموظفين</div>
-            <div style={{width: "50%",fontWeight: "900"}}>مدير الشؤون الإدارية</div>
-            <div style={{width: "50%",fontWeight: "900"}}>المحاسب</div>
-            <div style={{width: "50%",fontWeight: "900"}}>المسؤول المالي</div>
-          </div>
+{props.setting.filter((item)=> item.key == 'admin.signs_footer')[0]?.value.split('\n').map((sign)=>{
+           var sign_position=sign.split(':')[0];
+           var sign_name=sign.split(':')[1];
+
+           return <div style={{width: "50%"}}>
+               <div style={{fontWeight: "900"}}>{sign_position}</div>
+               {sign_name!="" && <div style={{fontWeight: "500"}}>{sign_name}</div>}
+            </div>
+        })}          </div>
         </th>
       </tr>
     </tfoot>
@@ -655,11 +658,15 @@ return <tr style={{height: " 25px",backgroundColor:aindex %2==0?'#e6e6e6':'#fff'
       <tr>
         <th colSpan={21}>
           <div style={{display: "flex",flexDirection: "row",marginTop: "20px",textAlign: "center"}}>
-            <div style={{width: "50%",fontWeight: "900"}}>شؤون الموظفين</div>
-            <div style={{width: "50%",fontWeight: "900"}}>مدير الشؤون الإدارية</div>
-            <div style={{width: "50%",fontWeight: "900"}}>المحاسب</div>
-            <div style={{width: "50%",fontWeight: "900"}}>المسؤول المالي</div>
-          </div>
+{props.setting.filter((item)=> item.key == 'admin.signs_footer')[0]?.value.split('\n').map((sign)=>{
+           var sign_position=sign.split(':')[0];
+           var sign_name=sign.split(':')[1];
+
+           return <div style={{width: "50%"}}>
+               <div style={{fontWeight: "900"}}>{sign_position}</div>
+               {sign_name!="" && <div style={{fontWeight: "500"}}>{sign_name}</div>}
+            </div>
+        })}          </div>
         </th>
       </tr>
     </tfoot>

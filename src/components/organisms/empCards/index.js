@@ -8,6 +8,8 @@ import html2canvas from 'html2canvas';
 import {Env} from './../../../styles';
 import AttendanceTable from './../attendanceTable';
 import TasksTable from './../tasksTable';
+import BonusTable from './../bonusTable';
+
 import ReactApexChart from "react-apexcharts";
 
 import { Card, Avatar,Layout,Row,Col,Upload,Checkbox ,Typography,Switch,Badge,Dropdown,Rate,Menu,Skeleton,Space,InputNumber,Select,Modal, Button,Form,Input,notification, DatePicker,Collapse,Progress,Spin} from 'antd';
@@ -37,6 +39,9 @@ export default function EmpCards(props){
     const [types,setTypes]=useState([]);
 
     const [phones,setPhones]=useState([]);
+    const [allows,setAllows]=useState([]);
+    const [deductionsData,setDeductionsData]=useState([]);
+
     const [qualifications,setQualifications]=useState([]);
     const [preworks,setPreworks]=useState([]);
     const [attachments,setAttachments]=useState([]);
@@ -49,6 +54,8 @@ export default function EmpCards(props){
     const [duser,setDUser]=useState([]);
     const [isAVisibleModal,setIsAVisibleModal]=useState(false);
     const [isTVisibleModal,setIsTVisibleModal]=useState(false);
+    const [isBVisibleModal,setIsBVisibleModal]=useState(false);
+
     const [start,setStart]=useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().slice(0,10));
     const [end,setEnd]=useState(new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().slice(0,10));
     const [starList,setStarList]=useState([]); 
@@ -81,12 +88,30 @@ export default function EmpCards(props){
     const [userform] = Form.useForm();
     const [formDate] = Form.useForm();
 
+  const printReport=()=>{
+      var report=document.getElementById('prank-report');
+      //var report=document.body;
+     var mywindow = window.open('');
+      mywindow.document.write("<html><head><title></title> <style>@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500&display=swap'); body{font-family:Tajawal;font-size:12px;margin:0}  </style>");
+      mywindow.document.write('</head><body dir="rtl" style="font-size:12px;" >');
+      mywindow.document.write(report.innerHTML);
+      mywindow.document.write('</body></html>');
+ 
+      mywindow.document.close();
+      mywindow.onload = function() { // wait until all resources loaded 
+          mywindow.focus(); // necessary for IE >= 10
+          mywindow.print();  // change window to mywindow
+          mywindow.close();// change window to mywindow
+      };   
+    }
     useEffect(() => {       
       setLoad(true);
       axios.get(Env.HOST_SERVER_NAME+'users/'+today+'/'+start+'/'+end)
       .then(response => {
         setData(response.data['users']);
         setPhones(response.data['phones']);
+        setAllows(response.data['allownces']);
+        setDeductionsData(response.data['deductions']);
         setQualifications(response.data['qualifications']);
         setPreworks(response.data['preworks']);
         setAttachments(response.data['attachments']); 
@@ -122,24 +147,7 @@ export default function EmpCards(props){
       var datum = Date.parse(strDate);
       return datum/1000;
    }
-   const printReport=()=>{
-
-   // const doc = new jsPDF({orientation: "landscape",format: 'a4',});  
-
-    //const element = printRef.current;
-    const input = document.getElementsByClassName('emp-report-modal')[0];
-    html2canvas(input, { logging: true, letterRendering: 1, useCORS: true })
-      .then((canvas) => {
-        const imgData = canvas.toDataURL('image/png');
-        const pdf =new jsPDF({orientation: "landscape",format: 'a4', unit: "in"}); 
-        
-        pdf.addImage(imgData, 'JPEG', 0, 0,11.693,8.267);
-        // pdf.output('dataurlnewwindow');
-        pdf.save("download.pdf");
-      })
-    ;
-
-  }
+   
   const printTestReport=()=>{
     var report=document.getElementsByClassName('emp-report-modal')[0];
     //var report=document.body;
@@ -389,6 +397,7 @@ const sconfig = {
     },
   ],
 };
+
 const config2={
   series: [{
     name: 'صافي الدوام',
@@ -452,15 +461,22 @@ const config2={
     },
   },
 }
-const openAttModal=(user)=>{
 
+const openAttModal=(user)=>{
   setSelectedUser(user);
   setIsAVisibleModal(true);
 }
+
+const openBonusModal=(user)=>{
+  setSelectedUser(user);
+  setIsBVisibleModal(true);
+}
+
 const openTaskModal=(user)=>{
   setSelectedUser(user);
   setIsTVisibleModal(true);
 }
+
 const openShowUser=(user)=>{
 
   user.control_panel= parseInt(user.control_panel);
@@ -477,6 +493,13 @@ const openShowUser=(user)=>{
   var conts=phones;
   conts=conts.filter(function (e) { return e.user_id == user.id; });
   userform.setFieldsValue({'contacts':conts});
+
+  var allow=allows;
+  allow=allow.filter(function (e) { return e.user_id == user.user_id; });
+  userform.setFieldsValue({'allownces':allow});
+
+  var  deductions=deductionsData?.filter(function (e) { return e.user_id == user.user_id; });
+  userform.setFieldsValue({'deductions':deductions});
 
   var quals=qualifications;
   quals=quals.filter(function (e) { return e.user_id == user.id; });
@@ -786,11 +809,9 @@ return(
         >
           <Input/>
        </Form.Item>
-       
         <Form.Item
         label="الاسم رباعيًا"
         name="name"
-      
         >
           <Input disabled={userFormDisable} />
        </Form.Item>
@@ -856,29 +877,14 @@ return(
       </Form.Item>
         </div>
         </Col>
-        <Col xs={24} sm={24} md={16} lg={16} xl={16} span={16} style={{padding:'20px 0px 20px 20px'}}>
+        <Col xs={24} sm={24} md={16} lg={16} xl={16} span={16}style={{padding:'20px 0px 20px 20px'}}>
         <div style={{backgroundColor:'#fff',borderRadius:'10px',display:'flex',flexDirection:'column',padding:'10px 20px'}}>
-        <Collapse defaultActiveKey={['1','2','3','4','5','6']} onChange={callback}>
-          <Panel header="البيانات الوظيفة" key="1">
-            <div>
-              <div style={{display:'flex',flexDirection:'row'}}>
+        <Collapse defaultActiveKey={['1','2','3','4','5','6','7','8']} onChange={callback}>
+          <Panel header="البيانات الوظيفة"  className='personal-data'  key="1">
+            <Row gutter={[16, 16]}>
+            <Col xs={24} sm={24} md={12} lg={12} xl={12} span={12}>
               <Form.Item style={{marginLeft:'5px',flex:2}} label="الوظيفة" name="job">
                 <Input disabled={userFormDisable} />
-              </Form.Item>
-              <Form.Item style={{marginLeft:'5px',flex:2}} label="الدرجة" name="level">
-                    <Select 
-                      disabled={userFormDisable}
-                      options={types.filter(function(e){return e.parent==23;})}
-                      optionFilterProp="children"
-                     filterOption={(input, option) =>
-                       option.props.children?.indexOf(input) >= 0 ||
-                       option.props.label?.indexOf(input) >= 0
-                     }
-                     filterSort={(optionA, optionB) =>
-                       optionA.props?.children?.localeCompare(optionB.props.children)
-                     }
-                      >
-                    </Select>
               </Form.Item>
               <Form.Item  style={{marginLeft:'5px',flex:3}} label="الإدارة" name="category_id">
                 <Select 
@@ -895,27 +901,22 @@ return(
                 >
                 </Select>
               </Form.Item>
-              </div>
-              <div style={{display:'flex',flexDirection:'row'}}>
-              <Form.Item style={{flex:3,marginLeft:'5px'}} label="تاريخ الانضمام" name="assignment_date">
-                <DatePicker disabled={userFormDisable} />
+              <Form.Item style={{marginLeft:'5px',flex:2}} label="الدرجة" name="level">
+                    <Select 
+                      disabled={userFormDisable}
+                      options={types.filter(function(e){return e.parent==23;})}
+                      optionFilterProp="children"
+                     filterOption={(input, option) =>
+                       option.props.children?.indexOf(input) >= 0 ||
+                       option.props.label?.indexOf(input) >= 0
+                     }
+                     filterSort={(optionA, optionB) =>
+                       optionA.props?.children?.localeCompare(optionB.props.children)
+                     }
+                      >
+                    </Select>
               </Form.Item>
-              <Form.Item style={{flex:3}} label="نوع الدوام" name="durationtype_id">
-                <Select
-                 disabled={userFormDisable}
-                 options={durations}
-                 optionFilterProp="children"
-                filterOption={(input, option) =>
-                  option.props.children?.indexOf(input) >= 0 ||
-                  option.props.label?.indexOf(input) >= 0
-                }
-                filterSort={(optionA, optionB) =>
-                  optionA.props?.children?.localeCompare(optionB.props.children)
-                }
-                 >
-                </Select>
-              </Form.Item>
-              <Form.Item style={{flex:2}} label="حالة التوظيف" name="status">
+              <Form.Item style={{flex:1}} label="حالة التوظيف" name="status">
                 <Select 
                 options={types.filter(function(e){return e.parent==5;})}
                 optionFilterProp="children"
@@ -929,8 +930,12 @@ return(
                 disabled={userFormDisable}>
                 </Select>
               </Form.Item>
-              </div>
-              <div style={{display:'flex',flexDirection:'row'}}>
+            </Col>
+
+              <Col xs={24} sm={24} md={12} lg={12} xl={12} span={12} >
+              <Form.Item style={{flex:1,marginLeft:'5px'}} label="تاريخ الانضمام" name="assignment_date">
+                <DatePicker style={{width:'100%'}} disabled={userFormDisable} />
+              </Form.Item>
               <Form.Item style={{flex:1,marginLeft:'5px'}} label="الإعانة" name="salary">
                 <Input disabled={userFormDisable} />
               </Form.Item>
@@ -947,16 +952,114 @@ return(
                }
                 disabled={userFormDisable}>
                 </Select>
-              </Form.Item>
-              <Form.Item style={{flex:1,marginLeft:'5px'}} label="بدل المواصلات" name="transfer_value">
-                <Input disabled={userFormDisable} />
-              </Form.Item>
-              <Form.Item style={{flex:1,marginLeft:'5px'}} label="مبلغ التكافل" name="symbiosis">
-                <Input disabled={userFormDisable} />
-              </Form.Item>
+              </Form.Item> 
 
+              </Col>
+
+            </Row>
+          </Panel>
+          <Panel header="البدلات" key="7">
+          <div>
+          <Form.Item style={{flex:1,marginLeft:'5px'}} label="بدل المواصلات" name="transfer_value">
+                <Input disabled={userFormDisable} />
+              </Form.Item>
+        <Form.List name="allownces">
+        {(fields, { add, remove }) => {
+          return <>
+            {
+            fields.map(({ key, name, ...restField }) => (
+              <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
+                <Form.Item
+                  {...restField}
+                  name={[name, 'id']}
+                  style={{display:'none'}}
+                >
+                  <Input disabled={userFormDisable}  />
+                </Form.Item>
+                <Form.Item
+                  {...restField}
+                  label={'نوع البدل'}
+                  name={[name, 'allownce_type']}
+                >
+                  <Input disabled={userFormDisable} placeholder="نوع البدل" />
+                </Form.Item>
+                <Form.Item
+                  {...restField}
+                  name={[name, 'allownce_amount']}
+                  label={'مبلغ البدل'}
+                >
+                  <InputNumber disabled={userFormDisable} placeholder="المبلغ" />
+                </Form.Item>
+                 
+                <MinusCircleOutlined onClick={() => remove(name)} />
+              </Space>
+            ))}
+            <Form.Item>
+              <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                إضافة بدل
+              </Button>
+            </Form.Item>
+          </>
+        }}
+      </Form.List> 
               </div>
-            </div>
+          </Panel>
+          <Panel header="الاستقطاعات" key="8">
+            <Form.Item style={{flex:1,marginLeft:'5px'}} label="مبلغ التكافل" name="symbiosis">
+              <Input disabled={userFormDisable} />
+            </Form.Item>
+        <Form.List name="deductions">
+        {(fields, { add, remove }) => {
+          return <>
+            {
+            fields.map(({ key, name, ...restField }) => (
+              <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
+                <Form.Item
+                  {...restField}
+                  name={[name, 'id']}
+                  style={{display:'none'}}
+                >
+                  <Input disabled={userFormDisable}  />
+                </Form.Item>
+                <Form.Item
+                  {...restField}
+                  label={'نوع الاستقطاع'}
+                  name={[name, 'deduction_type']}
+                >
+                  <Select 
+                      style={{minWidth:'100px'}}
+                      disabled={userFormDisable}
+                      options={types.filter(function(e){return e.parent==40;})}
+                      optionFilterProp="children"
+                     filterOption={(input, option) =>
+                       option.props.children?.indexOf(input) >= 0 ||
+                       option.props.label?.indexOf(input) >= 0
+                     }
+                     filterSort={(optionA, optionB) =>
+                       optionA.props?.children?.localeCompare(optionB.props.children)
+                     }
+                      >
+                    </Select>
+                </Form.Item>
+                <Form.Item
+                  {...restField}
+                  name={[name, 'deduction_amount']}
+                  label={'مبلغ الاستقطاع'}
+                >
+                  <InputNumber disabled={userFormDisable} placeholder="المبلغ" />
+                </Form.Item>
+                 
+                <MinusCircleOutlined onClick={() => remove(name)} />
+              </Space>
+            ))}
+            <Form.Item>
+              <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                إضافة استقطاع
+              </Button>
+            </Form.Item>
+          </>
+        }}
+      </Form.List> 
           </Panel>
           <Panel header="معلومات التواصل" key="2">
            <div>
@@ -1014,6 +1117,21 @@ return(
           </Panel>
           <Panel header="بيانات النظام والصلاحيات" key="3">
             <div>
+            <Form.Item style={{flex:3}} label="نوع الدوام" name="durationtype_id">
+                <Select
+                 disabled={userFormDisable}
+                 options={durations}
+                 optionFilterProp="children"
+                filterOption={(input, option) =>
+                  option.props.children?.indexOf(input) >= 0 ||
+                  option.props.label?.indexOf(input) >= 0
+                }
+                filterSort={(optionA, optionB) =>
+                  optionA.props?.children?.localeCompare(optionB.props.children)
+                }
+                 >
+                </Select>
+              </Form.Item>
               <div style={{display:'flex',flexDirection:'row'}}>
               <Form.Item style={{flex:1,marginLeft:'5px'}} label="الرقم الوظيفي" name="user_id">
                 <Input disabled={userFormDisable} />
@@ -1233,21 +1351,23 @@ return(
   <Modal centered={true} className='task-modal' width={1200} title={"سجل إجازات | "+selectedUserName} visible={isTVisibleModal}  onOk={function(){ }} onCancel={function(){setIsTVisibleModal(false);setSelectedUser(null);}}>
       <TasksTable setting={props.setting} user={selectedUser} key={isTVisibleModal}></TasksTable>
   </Modal>
-
+  <Modal centered={true} className='att-modal' width={1200} title={" سجل إضافي | "+selectedUserName} visible={isBVisibleModal}  onOk={function(){ }} onCancel={function(){setIsBVisibleModal(false);setSelectedUser(null);}}>
+      <BonusTable setting={props.setting} user={selectedUser} key={isBVisibleModal}></BonusTable>
+  </Modal>
   <Modal confirmLoading={modalLoad} title="حذف موظف" open={isDVisibleModal} onOk={deleteUser} onCancel={()=>{setIsDVisibleModal(false)}}>
     <p>هل متأكد من حذف الموظف {duser.name} ؟</p>
   </Modal>
 
 <Row style={{margin:'15px 10px'}}>
 <Col span={24} style={{backgroundColor:'#fff',borderRadius:'10px',padding:'10px'}}>
-  
 <Button style={{float:'left',backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button>
 </Col>
 </Row>
 <Row gutter={[{xs: 2, sm: 16, md: 24, lg: 32 },{xs:2, sm: 16, md: 24, lg: 32 }]} style={{padding:'0 20px'}}>
 {listData}
 {data.map(user=>{
- return <Col xs={24} sm={12} md={12} lg={8} xl={6} style={{padding:'10px',marginBottom: '-30px'}}  span={6}>
+
+ return <Col className='card-col' xs={24} sm={12} md={12} lg={8} xl={6} style={{padding:'0px 10px'}}  span={6}>
 <Card className='content' style={{alignItems:'center',borderTopLeftRadius:'10px',borderTopRightRadius:'10px'}}>
   <Dropdown  
   overlay={<Menu>
@@ -1257,6 +1377,11 @@ return(
         <Menu.Item key="2" onClick={function(){setSelectedUserName(user.name);openTaskModal(user);}}>
         سجل الإجازات
         </Menu.Item>
+
+        <Menu.Item key="7" onClick={function(){setSelectedUserName(user.name);openBonusModal(user);}}>
+        الدوام الإضافي
+        </Menu.Item>
+
         <Menu.Divider />
         <Menu.Item key="3"  onClick={function(){userform.resetFields();setUserFormDisable(true);openShowUser(user);}}>عرض البيانات</Menu.Item>
         <Menu.Item key="4"  onClick={function(){userform.resetFields();setUserFormDisable(false);openShowUser(user);}}>تعديل البيانات</Menu.Item>
@@ -1283,11 +1408,13 @@ return(
     <Text style={{textAlign:'center',fontSize:'13px',color:user.leave_time==null && user.attendance_time==null?'#7E7D7C':'#000'}}>
     
     {
+    user.status!=16?types.filter(function(e){
+      return e.parent==5 && e.value==user.status;})[0].label:
     user.fingerprint_type==22?
     user.leave_time==null && user.attendance_time!=null?
 
     ' متواجد الآن' :
-       'غير متواجد '+timeSince((user.last_occ)):"معفي من البصمة"
+       'غير متواجد '+timeSince((user.last_occ)): ("معفي من البصمة")
 
     }
 
@@ -1311,6 +1438,66 @@ return(
 </Col>
 })}
   </Row>
+  <div id="prank-report" style={{display:'none'}}>
+    <div  style={{direction: "rtl",fontSize: "12px",fontFamily: "Tajawal",margin: "0"}}>
+    <header style={{display: "flex",flexDirection: "row",borderColor:'#000',borderBottomStyle: "solid",borderBottomWidth:"1px"}}>
+       <div style={{width: "20%"}}>
+           <img loading="eager" style={{width: "250px"}} src={Env.HOST_SERVER_STORAGE+props.setting.filter((item)=> item.key == 'admin.logo')[0]?.value}/>
+       </div>
+       <div style={{fontSize: "11px",textAlign: "center",width: "60%",display: "flex",flexDirection: "column",justifyContent: "end",paddingBottom: "10px"}}>
+           <h1 style={{fontSize: " 18px",fontWeight:700,marginBottom: " 5px",margin: "0"}}>كشف بأسماء الموظفين</h1>
+       </div>     
+       <div style={{width: "20%"}}>
+
+       </div>
+    </header> 
+    <div  style={{display: 'flex',flexDirection: 'row',textAlign: 'center',fontSize: '14px',borderBottom:'1px solid black'}} >
+
+    </div>
+    <div >
+        <table style={{fontSize: "12px",width: " 100%",textAlign: " center",marginTop: " 20px"}}>
+            <thead>
+                <tr style={{color:"#fff",backgroundColor: "#0972B6",height: "30px"}}>
+                <th style={{fontWeight: "100"}} rowSpan="2">م</th>              
+                     <th style={{fontWeight: "100"}} >الاسم</th>
+                     <th style={{fontWeight: "100"}} >الإدارة</th>
+                     <th style={{fontWeight: "100"}} >الوظيفة</th>
+                     <th style={{fontWeight: "100"}} >معدل الدوام</th>
+                     <th style={{fontWeight: "100"}} >انضباط الحضور</th>
+                     <th style={{fontWeight: "100"}} >انضباط الانصراف</th>
+                     <th style={{fontWeight: "100"}} >التأخرات بالساعة</th>
+                     <th style={{fontWeight: "100"}} >الوقت الفائض بالساعة</th>
+                     <th style={{fontWeight: "100"}} >إجمالي التقييم</th>
+                </tr>
+            </thead>
+            <tbody>
+             
+             {data.map(item=>(
+              <tr style={{height: " 25px",backgroundColor:data.indexOf(item) %2!=0?'#e6e6e6':'#fff'}}>
+                <td>{data.indexOf(item)+1}</td>
+                <td>{item.name}</td>
+                <td>{item.category}</td>
+                <td>{item.job}</td>
+                <td>{Math.round(item.attendance_rate*100)+'%'}</td>
+                <td>{Math.round(Math.round(item.att_rate*100)*item.attendance_rate)+'%'}</td>
+                <td>{Math.round(Math.round(item.leave_rate*100)*item.attendance_rate)+'%'}</td>
+                <td>{ parseInt((item.lateTimes/60)/60)+":"+parseInt(item.lateTimes/60)%60}</td>
+                <td>{  parseInt((item.bonusTime/60)/60)+":"+parseInt(item.bonusTime/60)%60}</td>
+                <td>{Math.round((Math.round(item.attendance_rate*100)+Math.round(Math.round(item.att_rate*100)*item.attendance_rate)+Math.round(Math.round(item.leave_rate*100)*item.attendance_rate))/3)+'%'}</td>
+              </tr>
+             ))}
+            </tbody>
+        </table>
+    </div>
+    <div style={{display: "flex",flexDirection: "row",marginTop: "20px",textAlign: "center"}}>
+       <div style={{width: "50%",fontWeight: "900"}}>المختص</div>
+       <div style={{width: "50%",fontWeight: "900"}}>مدير الشؤون</div>
+     </div>  
+     <div style={{marginTop: " 20px",width: "85%",backgroundColor: "#e6e6e61",padding: "5px 0",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px"}}>
+         <div style={{backgroundColor: " #0972B6",width: " 95%",height: " 15px",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px",color: " #fff",paddingRight: " 20px"}}>نظام دوام | {new Date().toLocaleString('en-IT')} </div>
+     </div>
+ </div> 
+ </div>
 </Layout>
 );
 

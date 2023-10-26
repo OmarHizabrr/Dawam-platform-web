@@ -42,6 +42,8 @@
 }
 .generalHeader .generalOper{
     display:flex;
+    flex-wrap: wrap;
+
     flex:1;
     flex-direction:row;
     justify-content:flex-end;
@@ -56,7 +58,26 @@
         margin-top: 10px;
      }
      .generalHeader .generalOper{
-        justify-content:space-between;
+        justify-content:end;
+    }
+    .generalHeader .generalOper .date {
+        display: flex;
+        align-items: center;
+        margin-top: 5px;
+      }
+
+      .generalHeader .generalOper span {
+        flex: 0 0 auto; /* Let label take the necessary space */
+        margin-right: 10px; /* Add spacing between label and input */
+      }
+      
+      .generalHeader .generalOper .ant-picker{
+        flex: 1; /* Make input take up remaining space */
+      }
+
+    .generalHeader .generalOper .date{
+        flex-basis: 100%;
+        order: 2;
     }
     .genTable .ant-table-thead > tr > th, .ant-table-tbody > tr > td, .ant-table tfoot > tr > th, .ant-table tfoot > tr > td{
         padding: 16px 0px;

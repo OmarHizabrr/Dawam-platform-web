@@ -1,13 +1,15 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import React,{ useState, useEffect }  from 'react';
 import './style.css';
-import { DatePicker,Popconfirm,Table, Button,Card,Input,Select,Typography,Form, Space,Spin,notification,Checkbox,Divider, Layout} from 'antd';
-import {ExportOutlined,PrinterOutlined} from '@ant-design/icons';
+import { DatePicker,Popconfirm,Table, Button,Card,Modal,Badge,Typography,Form, Space,Spin,notification,Checkbox,Divider, Layout} from 'antd';
+import {ExportOutlined,PrinterOutlined,InsertRowAboveOutlined,EditOutlined} from '@ant-design/icons';
 import axios from 'axios';
 import excel from 'xlsx';
 import logoText from '../../../assets/images/logo-text.png';
 import {useLocation} from 'react-router-dom';
 import moment from 'moment';
+import AttendanceTable from './../attendanceTable';
+import TasksTable from './../tasksTable';
 
 import {Env} from './../../../styles';
 
@@ -29,20 +31,63 @@ export default function UsersPerformance (props){
   const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
   const [end,setEnd]=useState(moment().format('YYYY-MM-DD'));  
   const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
+  const [selectedUserName,setSelectedUserName]=useState("");
+  const [selectedUser,setSelectedUser]=useState(null);
 
   const [namesFilter,setNamesFilter]=useState([]);
   const [categoriesFilter,setCategoriesFilter]=useState([]);
+  const [isAVisibleModal,setIsAVisibleModal]=useState(false);
+  const [isTVisibleModal,setIsTVisibleModal]=useState(false);
 
+  const intervals = [
+    { label: 'سنوات', seconds: 31536000 },
+    { label: 'أشهر', seconds: 2592000 },
+    { label: 'أيام', seconds: 86400 },
+    { label: 'ساعات', seconds: 3600 },
+    { label: 'دقائق', seconds: 60 },
+    { label: 'ثواني', seconds: 1 }
+  ];
+  const sintervals = [
+    { label: 'سنة', seconds: 31536000 },
+    { label: 'شهر', seconds: 2592000 },
+    { label: 'يوم', seconds: 86400 },
+    { label: 'ساعة', seconds: 3600 },
+    { label: 'دقيقة', seconds: 60 },
+    { label: 'ثانية', seconds: 1 }
+  ];
+  const dintervals = [
+    { label: 'سنتين', seconds: 31536000 },
+    { label: 'شهرين', seconds: 2592000 },
+    { label: 'يومين', seconds: 86400 },
+    { label: 'ساعتين', seconds: 3600 },
+    { label: 'دقيقتين', seconds: 60 },
+    { label: 'ثانيتين', seconds: 1 }
+  ];
+  const  timeSince=(date) =>{
+   
+    // const datet=new Date(date);
+     const seconds = Math.floor(((new Date().getTime())-(new Date(date).getTime()))/1000);  
+     const interval = intervals.find(i => i.seconds < seconds);
+     const sinterval = sintervals.find(i => i.seconds < seconds);
+     const dinterval = dintervals.find(i => i.seconds < seconds);
+     //alert(date);
+     const count = Math.floor(seconds / interval?.seconds);
+     if(count===1)
+       return `منذ ${sinterval?.label}`;
+     else if(count===2)  return `منذ ${dinterval?.label}`;
+     else
+     return `منذ ${count} ${count > 2 && count <= 10 ?interval?.label:sinterval?.label}`;
+   }
   const columns = [
     {
       title: 'اسم الموظف',
-      dataIndex: 'fullname',
-      key: 'fullname',
+      dataIndex: 'name',
+      key: 'name',
       filters: namesFilter,
-      filteredValue: filteredInfo.fullname || null,
-      onFilter: (value, record) => record.fullname.includes(value),
-      sorter: (a, b) => a.fullname.localeCompare(b.fullname),
-      sortOrder: sortedInfo.columnKey === 'fullname' && sortedInfo.order,
+      filteredValue: filteredInfo.name || null,
+      onFilter: (value, record) => record.name.includes(value),
+      sorter: (a, b) => a.name.localeCompare(b.name),
+      sortOrder: sortedInfo.columnKey === 'name' && sortedInfo.order,
       ellipsis: false,
     },
     location.pathname!="/profile/dept-performance"?   
@@ -66,6 +111,21 @@ export default function UsersPerformance (props){
       sorter: (a, b) => a.job.localeCompare(b.job),
       sortOrder: sortedInfo.columnKey === 'job' && sortedInfo.order,
       ellipsis: false,
+    },
+    {
+      title: 'آخر تواجد',
+      width:150,
+      dataIndex: 'last_occ',
+      key: 'last_occ',
+      ellipsis: false,
+      render: (last_occ, record) =>{
+        var max_leave=last_occ.split(',')[0];
+        var max_att=last_occ.split(',')[1];
+        // eslint-disable-next-line no-unused-expressions
+        return new Date(max_att)> new Date(max_leave)? <><Badge  style={{marginRight:'5px'}} status="success"/> 
+        {' متواجد الآن' }</>:
+           'غير متواجد '+timeSince(max_leave)
+        },
     },   
     {
       title: 'معدل أيام الدوام',
@@ -121,8 +181,32 @@ export default function UsersPerformance (props){
       ellipsis: false,
       render: (col, record) => Math.round((Math.round(record.attendance_rate*100)+Math.round(Math.round(record.att_rate*100)*record.attendance_rate)+Math.round(Math.round(record.leave_rate*100)*record.attendance_rate))/3)+'%',
     },
+    {
+      title: 'سجل الحضور',
+      key: 'action',
+      render: (vid, record, index) => (
+        <Button
+          onClick={function(){setSelectedUserName(record.name);openAttModal(record);}}
+          type="primary"
+          shape="round"
+          icon={<InsertRowAboveOutlined />}
+        ></Button>
+        ),
+    },
+    {
+      title: 'سجل الإجازات',
+      key: 'action',
+      render: (vid, record, index) => (
+        <Button
+          onClick={function(){setSelectedUserName(record.name);openTaskModal(record);}}
+          type="primary"
+          shape="round"
+          style={{backgroundColor:'#FAA61A',border:'none'}}
+          icon={<EditOutlined />}
+        ></Button>
+        ),
+    },
   ];
-
 
   useEffect(() => {
     
@@ -130,8 +214,11 @@ export default function UsersPerformance (props){
           axios.get(Env.HOST_SERVER_NAME+'get-emp-names')
           .then(response => {
             var names=[];
-           setTstypes(response.data);
-           response.data.forEach(element => {  
+            var filtered_names=response.data.filter(record => record.category==props.user.category.id);
+            setTstypes(filtered_names);
+
+            filtered_names.forEach(element => {  
+
             names.push({text:element['label'],value:element['label']});       
           }); 
           setNamesFilter(names);
@@ -141,7 +228,7 @@ export default function UsersPerformance (props){
 
     axios.get(Env.HOST_SERVER_NAME+'users-performance-rank/'+start+'/'+end)
     .then(response => {
-     console.log(response.data);
+      
       if(location.pathname=="/profile/dept-performance"){
         var dt=response.data.filter(record => record.category==props.user.category.name);
         setData(dt);
@@ -229,8 +316,26 @@ export default function UsersPerformance (props){
       setEnd(moment(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
   
       }
+      const openAttModal=(user)=>{
+        console.log(user);
+        setSelectedUser(user);
+        setIsAVisibleModal(true);
+      }
+
+      const openTaskModal=(user)=>{
+
+        setSelectedUser(user);
+        setIsTVisibleModal(true);
+      }
+
 return (
   <Layout>
+  <Modal centered={true} className='att-modal' width={1200} title={" سجل حضور | "+selectedUserName} visible={isAVisibleModal}  onOk={function(){ }} onCancel={function(){setIsAVisibleModal(false);setSelectedUser(null);}}>
+      <AttendanceTable setting={props.setting} user={selectedUser} key={isAVisibleModal}></AttendanceTable>
+  </Modal>
+  <Modal centered={true} className='task-modal' width={1200} title={"سجل إجازات | "+selectedUserName} visible={isTVisibleModal}  onOk={function(){ }} onCancel={function(){setIsTVisibleModal(false);setSelectedUser(null);}}>
+      <TasksTable setting={props.setting} user={selectedUser} key={isTVisibleModal}></TasksTable>
+  </Modal>
     <Card>
     <div className='discountHeader' >
       <div className='discountRange'  >
@@ -287,7 +392,7 @@ return (
              {pdata.map(item=>(
               <tr style={{height: " 25px",backgroundColor:data.indexOf(item) %2!=0?'#e6e6e6':'#fff'}}>
                 <td>{data.indexOf(item)+1}</td>
-                <td>{item.fullname}</td>
+                <td>{item.name}</td>
                 <td>{item.category}</td>
                 <td>{item.job}</td>
                 <td>{Math.round(item.attendance_rate*100)+'%'}</td>

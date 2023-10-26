@@ -14,6 +14,7 @@ const { Text,Space } = Typography;
 const { TabPane } = Tabs;
 const { Option } = Select; 
 const {RangePicker}=DatePicker;
+const { TextArea } = Input;
 
 
 export default function GeneralSetting(props){
@@ -38,7 +39,8 @@ export default function GeneralSetting(props){
          formData.append('month_end',values['month_end']);
          formData.append('backend_link',values['backend_link']);
          formData.append('general_manager',values['general_manager']);
-       
+         formData.append('signs_footer',values['signs_footer']);
+
        axios.post(Env.HOST_SERVER_NAME+'general-setting',formData)
         .then(res=>{
             setLoad(false);
@@ -56,6 +58,7 @@ export default function GeneralSetting(props){
       'month_end':props.setting.filter((item)=> item.key == 'admin.month_end')[0]?.value,
       'backend_link':props.setting.filter((item)=> item.key == 'admin.backend_link')[0]?.value,
       'general_manager':props.setting.filter((item)=> item.key == 'admin.general_manager')[0]?.value,
+      'signs_footer':props.setting.filter((item)=> item.key == 'admin.signs_footer')[0]?.value,
     });
     const openNotification = (placement,text) => {
       notification.success({
@@ -96,6 +99,9 @@ return (
             <Form.Item name={'general_manager'} label={'مسمى المدير العام'}>
                 <Input/>
             </Form.Item>  
+            <Form.Item name={'signs_footer'} label={'توقيعات تذييل الصفحة'}>
+              <TextArea placeholder='مثلاً... شئون الموظفين: فلان الفلاني' rows={4}   />
+            </Form.Item> 
             </Col>
           </Row>
           <div style={{width:'100%'}}>

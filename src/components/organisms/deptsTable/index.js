@@ -101,7 +101,8 @@ export default function deptsTable(props){
         key: 'att_percent',
         sorter: (a, b) => a.att_percent - b.att_percent,
         sortOrder: sortedInfo.columnKey === 'att_percent' && sortedInfo.order,
-        ellipsis: false,    
+        ellipsis: false,
+        width:'200px',    
         render:(att_percent,record,index)=>
         {
           var star=starList?.filter(function (e) { return e.category_id == record.id; })[0]?.star;
@@ -128,6 +129,16 @@ export default function deptsTable(props){
         sorter: (a, b) => a.tot_users - b.tot_users,
         sortOrder: sortedInfo.columnKey === 'tot_users' && sortedInfo.order,
         ellipsis: true,
+        render:(tot_users,record)=> parseInt(record.tot_users??0)+parseInt(record.tof_users??0)
+      },
+      {
+        title: 'المعفيون',
+        dataIndex: 'tof_users',
+        key: 'tof_users',
+        sorter: (a, b) => a.tof_users - b.tof_users,
+        sortOrder: sortedInfo.columnKey === 'tof_users' && sortedInfo.order,
+        ellipsis: true,
+        render:(tof_users,record)=> parseInt(record.tof_users??0)
       },
       {
         title: 'الحاضرون',
@@ -190,7 +201,7 @@ return (
   <div style={{display:'flex',flexDirection:'row',marginBottom:'20px',justifyContent:'space-between'}}>
 
   <div style={{display:'flex',flex:1,flexDirection:'row',justifyContent:'flex-end'}}>     
-    <div style={{marginBottom:'10px',marginLeft:'5px'}}><span>اختر يوم : </span>
+    <div style={{marginBottom:'10px',marginLeft:'5px'}}><span>اختر يومًا : </span>
     <DatePicker onChange={changeDate} />
     </div>
     <Button style={{display:'block',marginLeft:'5px',marginBottom:'10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>

@@ -71,7 +71,7 @@ export default function AlertsTable (props){
           key: 'text',
           sorter: (a, b) => a.text.length - b.text.length,
           sortOrder: sortedInfo.columnKey === 'text' && sortedInfo.order,
-          ellipsis: true,
+          ellipsis: false,
         },
         {
           title: 'تاريخ الإشعار',
@@ -152,14 +152,19 @@ return(
 
     </Modal> 
   <Card>
-  <div style={{float:'left',marginBottom:'20px'}}>
-  <span>اختر فترة : </span>
+  <div className='discountBtn' style={{display:'flex',flex:1,flexDirection:'row',justifyContent:'flex-end'}}>     
+      <div className='discountRange' >
+  <div style={{marginLeft:'10px'}}><span>اختر فترة : </span>
   <RangePicker  onCalendarChange={changeRange} />
+  </div>
+  <div className='addbtn'>
   { 
         type && (props.user.role_id==1 ||  type!=3)? 
         <Button style={{marginRight:'5px'}} onClick={function(){form.resetFields(['text']); setIsModalVisible(true);}} type='primary'><FormOutlined />إضافة إشعار </Button>
         :<></>       
 }
+</div>
+  </div>
   </div>
     <Table loading={load} columns={columns} dataSource={data} scroll={{x: '600px' }}  onChange={handleChange} />
     </Card>

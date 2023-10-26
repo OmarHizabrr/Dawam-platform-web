@@ -55,12 +55,13 @@ export default function wagesReport(props){
 
       // eslint-disable-next-line react-hooks/rules-of-hooks
     let round=props.setting.filter((item)=> item.key == 'admin.round')[0]?.value*1;
+    let dround=parseInt(props.setting.filter((item)=> item.key == 'admin.discounts_round')[0]?.value*1);
+
      useEffect(() => {
        setLoad(true);
        
         axios.get(Env.HOST_SERVER_NAME+'wages-list/'+start+'/'+end)
         .then(response => {
-          console.log(response.data);
           let names=[];
           let categories=[];
           let ts=[];
@@ -240,6 +241,7 @@ export default function wagesReport(props){
     }
     const showUsersDebt=()=>{
       setLoadUsers(true);
+      console.log(pdata);
       form.setFieldsValue({'users':pdata});  
       setIsVisibleModal(true);
       setLoadUsers(false);
@@ -276,18 +278,18 @@ export default function wagesReport(props){
      // list.filter((item)=> item.user_id == 95)[0].stopped=1;
     }
     const settingBefore=()=>{
-      console.log(form.getFieldsValue());
       setPData(form.getFieldsValue().users);
       setIsVisibleModal(false);
     }
-
     var index=0;
     var tsal=0;
     var tallow=0;
+    var tsalallow=0;
     var tdebts=0;
     var tabs=0;
     var tsym=0;
     var tvio=0;
+    var tded=0;
     var tldebts=0;
     var ttotD=0;
     var ttotal=0;
@@ -375,7 +377,7 @@ return (
     <table style={{fontSize: "11px",width: " 100%",textAlign: " center"}}>
     <thead>
     <tr style={{border:'none'}}>
-    <th colSpan={14}>  
+    <th colSpan={16}>  
     <header style={{display: "flex",flexDirection: "row",borderColor:'#000',borderBottomStyle: "solid",borderBottomWidth:"1px"}}>
        <div style={{width: "20%"}}>
            <img loading="eager" style={{width: "250px"}} src={Env.HOST_SERVER_STORAGE+props.setting.filter((item)=> item.key == 'admin.logo')[0]?.value}/>
@@ -397,19 +399,23 @@ return (
                 <th style={{fontWeight: "100"}} rowSpan="2">م</th>              
                      <th style={{fontWeight: "100"}} rowSpan="2">الاسم</th>
                      <th style={{fontWeight: "100",width:'50px'}} rowSpan="2">الوظيفة</th>
-                     <th style={{fontWeight: "100",fontSize:'8px'}} rowSpan="2">الاستحقاق</th>
-                     <th style={{fontWeight: "100",fontSize:'8px'}} rowSpan="2">البدلات</th>
+
+                     <th style={{fontWeight: "100",fontSize:'8px'}} colSpan="3">الاستحقاق</th>
                    
-                     <th style={{fontWeight: "100"}} colSpan="6">الاستقطاعات</th>
+                     <th style={{fontWeight: "100"}} colSpan="7">الاستقطاعات</th>
                      <th style={{fontWeight: "100"}} rowSpan="2" colSpan={"2"}> صافي<br/>الاستحقاق </th>
                      <th style={{fontWeight: "100"}} rowSpan="2">التوقيع</th>
                 </tr>
                 <tr style={{color:"#fff",backgroundColor: "#0972B6",height: "25px"}}>
+                <th style={{fontWeight: "100",fontSize:'8px'}} >الإعانة</th>
+                <th style={{fontWeight: "100",fontSize:'8px'}}>البدلات</th>
+                <th style={{fontWeight: "100",fontSize:'8px'}}>إجمالي</th>
                 <th style={{fontWeight: "100"}}>سُلف</th>
                 <th style={{fontWeight: "100"}}>غياب</th>
                 <th style={{fontWeight: "100"}}>تكافل</th>
                 <th style={{fontWeight: "100"}}>أقساط</th>
                 <th style={{fontWeight: "100"}}>جزاءات</th>
+                <th style={{fontWeight: "100"}}>اشتراكات</th>
                 <th style={{fontWeight: "100",width:'20px'}}>إجمالي</th>
                 </tr>
             </thead>
@@ -420,10 +426,12 @@ return (
               
               var sal=0;
               var allow=0;
+              var salallow=0;
               var debts=0;
               var abs=0;
               var sym=0;
               var vio=0;
+              var ded=0;
               var ldebts=0;
               var totD=0;
               var total=0;
@@ -433,11 +441,12 @@ return (
             <>
               {
               catData.map(item=>{
-                sal+=parseFloat(item.salary);
+                sal+=parseFloat(item.status==16?item.salary:item.salary*count17);
                 allow+=parseFloat(item.allownces);
+                salallow+=parseFloat(item.status==16?item.salary:item.salary*count17)+parseFloat(item.allownces);
                 debts+=(item.debt*1);
                 
-                var ab=item.fingerprint_type=='22'? Math.round( ((((item.status==16?count*1:count17*1)-item.attendanceDays*1)*(item.status==16?parseInt(item.salary)/30:item.salary)) + parseFloat(item.lateTimePrice) )/5 )*5:0;
+                var ab=item.fingerprint_type=='22'? Math.round( ((((item.status==16?count*1:count17*1)-item.attendanceDays*1)*(item.status==16?parseInt(item.salary)/30:item.salary)) + parseFloat(item.lateTimePrice) )/dround )*dround:0;
                 ab=ab<0?0:parseFloat(ab);
                 
                 abs+=parseFloat(ab);
@@ -445,19 +454,22 @@ return (
                 sym+=parseFloat(item.symbiosis);
                 ldebts+=(item.long_debt*1);
                 vio+=(item.vdiscount*1);
-                var toD=Math.round(item.debt)+ab+Math.round(item.symbiosis)+Math.round(item.long_debt)+Math.round(item.vdiscount);
+                ded+=(item.deductions*1);
+                var toD=(item.deductions*1)+Math.round(item.debt)+ab+Math.round(item.symbiosis)+Math.round(item.long_debt)+Math.round(item.vdiscount);
                 totD+=toD;
-                var tot=item.stopped?0:(item.status==16?(parseFloat(item.salary)+parseFloat(item.allownces)-toD):parseFloat(item.salary)*count17);
+                var tot=item.stopped?0:(item.status==16?(parseFloat(item.salary)+parseFloat(item.allownces)-toD):(parseFloat(item.salary)*count17)-toD);
                 total+=tot;
                 var tor=item.stopped?0:Math.round(tot/round)*round;
                 totr+=tor;
 
-                 tsal+=parseFloat(item.salary);
+                 tsal+=parseFloat(item.status==16?item.salary:item.salary*count17);
                  tallow+=parseFloat(item.allownces);
+                 tsalallow=tsal+tallow;
                  tdebts+=(item.debt*1);
                  tabs+=parseFloat(ab);
                  tsym+=parseFloat(item.symbiosis);
                  tvio+=item.vdiscount*1;
+                 tded+=item.deductions*1;
                  tldebts+=item.long_debt*1;
                  ttotD+=toD;
                  ttotal+=tot;
@@ -465,16 +477,19 @@ return (
 
               return  (<tr style={{height: "30px",backgroundColor:++index %2!=0?'#e6e6e6':'#fff'}}>
                   <td>{index}</td>
-                  <td style={{fontSize:'9px'}}>{item.name}</td>
+                  <td style={{fontSize:'9px',minWidth:'100px'}}>{item.name}</td>
                   <td style={{fontSize: "7px",width:'50px'}}>{item.job}</td>
-                  <td>{new Intl.NumberFormat('en-EN').format(item.status==16?item.salary:item.salary*30)}</td>
+                  <td>{new Intl.NumberFormat('en-EN').format(item.status==16?item.salary:item.salary*count17)}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(item.allownces)}</td>
-
+                  <td>{new Intl.NumberFormat('en-EN').format(parseFloat(item.status==16?item.salary:item.salary*count17)+parseFloat(item.allownces))}</td>
+                  
                   <td>{new Intl.NumberFormat('en-EN').format(item.debt)}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(ab)}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(Math.round(parseFloat(item.symbiosis)))}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(item.long_debt)}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(item.vdiscount)}</td>
+                  <td>{new Intl.NumberFormat('en-EN').format(item.deductions)}</td>
+
                   <td>{new Intl.NumberFormat('en-EN').format(toD)}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(tot)}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(tor)}</td>
@@ -486,12 +501,14 @@ return (
                 <td colSpan={3}>{item.name}</td>               
                 <td>{new Intl.NumberFormat('en-EN').format(sal)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(allow)}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(salallow)}</td>
 
                 <td>{new Intl.NumberFormat('en-EN').format(debts)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(abs)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(sym)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(ldebts)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(vio)}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(ded)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(totD)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(total)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(totr)}</td>                                
@@ -504,12 +521,15 @@ return (
                 <td colSpan={3}>{'الإجمالي العام'}</td>               
                 <td>{new Intl.NumberFormat('en-EN').format(tsal)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(tallow)}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(tsalallow)}</td>
 
                 <td>{new Intl.NumberFormat('en-EN').format(tdebts)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(tabs)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(tsym)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(tldebts)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(tvio)}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(tded)}</td>
+
                 <td>{new Intl.NumberFormat('en-EN').format(ttotD)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(ttotal)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(ttotr)}</td>                                
@@ -518,13 +538,17 @@ return (
             </tbody>
     <tfoot>
       <tr>
-        <th colSpan={14}>
+        <th colSpan={16}>
           <div style={{display: "flex",flexDirection: "row",marginTop: "20px",textAlign: "center"}}>
-            <div style={{width: "50%",fontWeight: "900"}}>شؤون الموظفين</div>
-            <div style={{width: "50%",fontWeight: "900"}}>مدير الشؤون الإدارية</div>
-            <div style={{width: "50%",fontWeight: "900"}}>المحاسب</div>
-            <div style={{width: "50%",fontWeight: "900"}}>المسؤول المالي</div>
-          </div>
+{props.setting.filter((item)=> item.key == 'admin.signs_footer')[0]?.value.split('\n').map((sign)=>{
+           var sign_position=sign.split(':')[0];
+           var sign_name=sign.split(':')[1];
+
+           return <div style={{width: "50%"}}>
+               <div style={{fontWeight: "900"}}>{sign_position}</div>
+               {sign_name!="" && <div style={{fontWeight: "500"}}>{sign_name}</div>}
+            </div>
+        })}          </div>
         </th>
       </tr>
     </tfoot>

@@ -603,8 +603,15 @@ return (
         </table>
     </div>
     <div style={{display: "flex",flexDirection: "row",marginTop: "20px",textAlign: "center"}}>
-       <div style={{width: "50%",fontWeight: "900"}}>المختص</div>
-       <div style={{width: "50%",fontWeight: "900"}}>مدير الشؤون</div>
+    {props.setting.filter((item)=> item.key == 'admin.signs_footer')[0]?.value.split('\n').map((sign)=>{
+           var sign_position=sign.split(':')[0];
+           var sign_name=sign.split(':')[1];
+
+           return <div style={{width: "50%"}}>
+               <div style={{fontWeight: "900"}}>{sign_position}</div>
+               {sign_name!="" && <div style={{fontWeight: "500"}}>{sign_name}</div>}
+            </div>
+        })}
      </div>  
      <div style={{marginTop: " 20px",width: "85%",backgroundColor: "#e6e6e61",padding: "5px 0",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px"}}>
          <div style={{backgroundColor: " #0972B6",width: " 95%",height: " 15px",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px",color: " #fff",paddingRight: " 20px"}}>نظام دوام | {new Date().toLocaleString('en-IT')} </div>

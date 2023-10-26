@@ -67,9 +67,17 @@ color: #fff!important;
 }
 .personal-data .ant-form-item-label{
     flex:1;
+    text-align: left;
+    overflow: inherit;
 }
 .personal-data .ant-form-item-control{
     flex:2;
+}
+.personal-data .ant-form-item-row{
+    width: 100%;
+}
+.card-col{
+    margin-bottom:'-10px';
 }
 @media only screen and (max-width: 600px) {
 
@@ -79,4 +87,8 @@ display: none;
 .emp-report-modal .dawam-section{
     flex-direction: column;
 }
+.card-col{
+    margin: 5px 0px;
 }
+}
+

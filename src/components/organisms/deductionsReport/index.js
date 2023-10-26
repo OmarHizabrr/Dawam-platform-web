@@ -6,7 +6,7 @@ import {DeleteOutlined,MinusCircleOutlined, PlusOutlined ,FormOutlined,ExportOut
 import axios from 'axios';
 import excel from 'xlsx';
 import logoText from '../../../assets/images/logo-text.png';
-import {Env} from './../../../styles';
+import {Env} from '../../../styles';
 import Modal from 'antd/lib/modal/Modal';
 import moment from 'moment';
 
@@ -16,19 +16,17 @@ const {Text}=Typography;
   const {TextArea}=Input;
   const {Option}=Select;
  
-export default function CumTasksReport (props){
+export default function deductionsReport (props){
 
   const [filteredInfo, setFilteredInfo] = useState({});
   const [sortedInfo, setSortedInfo] = useState({});
   const [data, setData] = useState([]);
   const [load,setLoad]=useState(true);
 
-  const [isTextInput,setIsTextInput]=useState(false);
-  const [selectedIndex,setSelectedIndex]=useState(null);
-  const [amountValue,setAmountValue]=useState(null);
+
   const [isModalVisible,setIsModalVisible]=useState(false);
   const [saving,setSaving]=useState(false);
-  const [tasksTypes,setTasksTypes]=useState([]);
+  const [dedTypes,setDedTypes]=useState([]);
   const [empNames,setEmpNames]=useState([]);
   const [selectedName,setSelectedName]=useState(null);
   const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
@@ -47,31 +45,10 @@ export default function CumTasksReport (props){
       return 0;
   }
 
-  const getOrganizedVacations=()=>{
 
-    if(data.length>0 && empNames.length>0 && tasksTypes.length>0){
-
-    var vacData='[';
-    empNames.map((user,index)=>{
-
-    vacData+='{'+'"empName":"'+user.label+'","user_id":"'+user.value+'","category":"'+data?.filter(record => record.uid==user.value)[0]?.category+'","job":"'+data?.filter(record => record.uid==user.value)[0]?.job+'",';
-
-    var vacDetails="";
-    tasksTypes.map((task)=>{
-      vacDetails+='"'+task.label+'":"'+getVacDuration(user.value,task.label)+'",';    
-    });
-
-    vacData+=vacDetails.substring(0, vacDetails.length - 1);
-    vacData+='},';   
-    });  
-    return JSON.parse(vacData.substring(0, vacData.length - 1)+']');
-
-  }
-  else return [];
-  }
   
   const getColumnsVac=()=>{
-    if(tasksTypes.length>0){
+    if(dedTypes?.length>0){
     const ncolumns = [
       {
         title: 'اسم الموظف',
@@ -103,7 +80,7 @@ export default function CumTasksReport (props){
       },   
     ];
    var col='[';
-   tasksTypes.map((task)=>{
+   dedTypes?.map((task)=>{
     col+='{"title":"'+task.label+'","dataIndex":"'+task.label+'","key":"'+task.label+'"},'; 
    });
    var nc=JSON.parse( col.substring(0, col.length - 1)+']');
@@ -117,8 +94,10 @@ export default function CumTasksReport (props){
   
   useEffect(() => {
       var emp;
-      var tasks;
+      var deductions;
       var records;
+      setLoad(true);
+
       axios.get(Env.HOST_SERVER_NAME+'get-emp-names')
           .then(response => {
             emp=response.data;
@@ -127,32 +106,24 @@ export default function CumTasksReport (props){
             console.log(error);
           });
           
-          axios.get(Env.HOST_SERVER_NAME+'get-tasks-types-re')
-            .then(response => {
-                tasks=response.data;
-                setTasksTypes(response.data);
-            }).catch(function (error) {
-            console.log(error);            
-          });
-          setLoad(true);
 
     if(end!='')
-    axios.get(Env.HOST_SERVER_NAME+'get-cum-tasks/'+start+'/'+end)
+    axios.get(Env.HOST_SERVER_NAME+'deductions-report')
     .then(response => {
-      console.log(response.data)
-      if(response.data.tasks?.length > 0 && emp?.length>0 && tasks?.length>0){
-
+      setDedTypes(response.data.types);
+      deductions=response.data.types;
+      if(response.data.deductions?.length > 0 && emp?.length>0 && deductions?.length>0){
         var vacData='[';
         emp.map((user,index)=>{
     
-        vacData+='{'+'"empName":"'+user.label+'","user_id":"'+user.value+'","category":"'+response.data.tasks?.filter(record => record.uid==user.value)[0]?.category+'","job":"'+response.data.tasks?.filter(record => record.uid==user.value)[0]?.job+'",';
+        vacData+='{'+'"empName":"'+user.label+'","user_id":"'+user.value+'","category":"'+response.data.deductions?.filter(record => record.uid==user.value)[0]?.category+'","job":"'+response.data.deductions?.filter(record => record.uid==user.value)[0]?.job+'",';
     
         var vacDetails="";
-        tasks.map((task)=>{
+        deductions.map((task)=>{
          
-          var dur=response.data.tasks?.filter(record => record.uid==user.value && record.vac_name==task.label);
+          var dur=response.data.deductions?.filter(record => record.uid==user.value && record.ded_name==task.label);
           if(dur.length>0)
-            dur=dur[0].vac_duration;
+            dur=dur[0].ded_amount;
           else
             dur=0;
 
@@ -173,7 +144,7 @@ export default function CumTasksReport (props){
 
       let names=[];
       let categories=[];
-      records.forEach(element => {  
+      records?.forEach(element => {  
         if(!names.some(item => element.name == item.text))      
           names.push({text:element['empName'],value:element['empName']});
         if(!categories.some(item => element.category == item.text))      
@@ -238,40 +209,10 @@ const handleChange = (pagination, filters, sorter) => {
           duration:10,
         });
       };
-  const addTasks = () => {
-          setIsModalVisible(true);
-      };
-  const deleteDebt = (record) => {
-       /* axios.get(Env.HOST_SERVER_NAME+'delete-task/'+record.id)
-          .then(response => {
-            alert('لقد قمت بحذف الإجازة الخاصة بـ'+record.name);
-          }).catch(function (error) {
-            console.log(error);
-          });*/
-      };    
-      const handleCancel = () => {
-        setIsModalVisible(false);
-      };
-
   
         const [form] = Form.useForm();
       
-        const onFinish = values => {
-        setSaving(true);        
-        axios.post(Env.HOST_SERVER_NAME+'add-accepted-tasks',values)
-        .then(response => {
-        setSaving(false);
-           openNotification('bottomLeft',selectedName);
-          }).catch(function (error) {
-           alert('يوجد مشكلة في الاتصال بالسرفر!');
-          });
-          
-        };
-      
-        const handleFormChange = (selected,options) => {
-          setSelectedName(options.label);
-          form.setFieldsValue({ tasks: [] });
-        };
+
         const changeRange=(all,date)=>{
           setStart(date[0]);
           setEnd(date[1]); 
@@ -287,20 +228,10 @@ const handleChange = (pagination, filters, sorter) => {
       
           }
 
-      function getMinutesTime(amPmString) {
-
-            if(amPmString){
-              var d = amPmString.split(':'); 
-              var m=(parseInt(d[0])*60) + parseInt(d[1]);
-              return m; 
-            }
-            else return 0;
-
-          }
-
         var index=1;
-        var tttasksTypes=Array(tasksTypes.length).fill(0);
 
+        var tttasksTypes=Array(dedTypes?.length).fill(0);
+        var tttoald=0;
 return (
     <Card>
       <div style={{marginBottom:'10px'}}>
@@ -330,7 +261,7 @@ return (
            <img loading="eager" style={{width: "250px"}} src={Env.HOST_SERVER_STORAGE+props.setting.filter((item)=> item.key == 'admin.logo')[0]?.value}/>
        </div>
        <div style={{fontSize: "11px",textAlign: "center",width: "60%",display: "flex",flexDirection: "column",justifyContent: "end",paddingBottom: "10px"}}>
-           <h1 style={{fontSize: " 18px",fontWeight:700,marginBottom: " 5px",margin: "0"}}>كشف الإجازات لشهر {currentMonth}</h1>
+           <h1 style={{fontSize: " 18px",fontWeight:700,marginBottom: " 5px",margin: "0"}}>خلاصة الاستقطاعات لشهر {currentMonth}</h1>
            <h2 style={{fontSize: " 14px",fontWeight: " 200",margin: "0"}}>للفترة من {start} إلى {end}</h2>
        </div>     
        <div style={{width: "20%"}}>
@@ -347,9 +278,11 @@ return (
                      <th style={{fontWeight: "100"}} rowSpan="2">اسم الموظف</th>
                      <th style={{fontWeight: "100"}} rowSpan="2">الوظيفة</th>
 
-                     {tasksTypes.map(item=>(
+                     {dedTypes?.map(item=>(
                       <th style={{fontWeight: "100"}}>{item.label}</th>
-                     ))}              
+                     ))}
+                    <th style={{fontWeight: "100"}} rowSpan="2">إجمالي</th>
+          
                      <th style={{fontWeight: "100"}} rowSpan="2">ملاحظات</th>
                 </tr>
     </thead>
@@ -357,35 +290,34 @@ return (
              {
              
             categories.map(item=>{
-
+              var ttoald=0;
+              
               var catData=pdata?.filter(record => record.category==item.name);
              
-              var ttasksTypes=Array(tasksTypes.length).fill(0);
+              var ttasksTypes=Array(dedTypes?.length).fill(0);
 
           if(catData.length) 
             return (
             <>
             {
              catData.map(item=>{
-
+              var totald=0;
               return(
               <tr style={{height: " 25px",backgroundColor:index %2==0?'#e6e6e6':'#fff'}}>
                 <td>{index++}</td>
                 <td>{item.empName}</td>
                 <td>{item.job}</td>
-                {tasksTypes.map((task,index)=>{
+                {dedTypes?.map((task,index)=>{
 
-                  var taskAmount=item[task.label]?.replace(/(\d{1,2}:\d{2}):\d{2}/, "$1");
-                  var taskSplit=taskAmount.split(":");
-                 
-                  var finalTask=taskAmount==0?0: parseInt(taskSplit[0]*60)+parseInt(taskSplit[1]);
-
-                  ttasksTypes[index]=ttasksTypes[index]+parseInt(finalTask);
-                  tttasksTypes[index]=tttasksTypes[index]+parseInt(finalTask);
-
+                  var taskAmount=item[task.label];
+                  
+                  ttasksTypes[index]=ttasksTypes[index]+parseInt(taskAmount);
+                  tttasksTypes[index]=tttasksTypes[index]+parseInt(taskAmount);
+                  totald+=parseFloat(taskAmount);
                 return  <td>{taskAmount}</td>;
-
-                })}               
+                
+                })}
+                <td>{totald}</td>               
                 <td><pre>             </pre></td>
               </tr>);
             }
@@ -393,11 +325,12 @@ return (
              }
               <tr  style={{height: " 30px",color:"#fff",backgroundColor: "#0972B6",}}>
                 <td colSpan={3}>{item.name}</td>               
-                {tasksTypes.map((task,index)=>{
+                {dedTypes?.map((task,index)=>{
+                ttoald+=parseFloat(ttasksTypes[index]);
+                return  <td>{parseFloat(ttasksTypes[index])}</td>;
 
-                return  <td>{parseInt(ttasksTypes[index]/60)+":"+ttasksTypes[index]%60}</td>;
-
-                })}               
+                })}  
+                <td>{ttoald}</td>             
                 <td><pre>             </pre></td>
               </tr>
              </>
@@ -406,11 +339,12 @@ return (
              })}
               <tr  style={{height: " 30px",color:"#fff",backgroundColor: "#0972B6",}}>
                 <td colSpan={3}>{'الإجمالي العام'}</td>               
-                {tasksTypes.map((task,index)=>{
+                {dedTypes?.map((task,index)=>{
+                    tttoald+=parseFloat(tttasksTypes[index])
+                  return  <td>{parseFloat(tttasksTypes[index])}</td>;
 
-                  return  <td>{parseInt(tttasksTypes[index]/60)+":"+tttasksTypes[index]%60}</td>;
-
-                  })}               
+                  })}
+                  <td>{tttoald}</td>               
                   <td><pre>             </pre></td>
               </tr>
   
@@ -419,7 +353,7 @@ return (
       <tr>
         <th colSpan={13}>
           <div style={{display: "flex",flexDirection: "row",marginTop: "20px",textAlign: "center"}}>
-{props.setting.filter((item)=> item.key == 'admin.signs_footer')[0]?.value.split('\n').map((sign)=>{
+          {props.setting.filter((item)=> item.key == 'admin.signs_footer')[0]?.value.split('\n').map((sign)=>{
            var sign_position=sign.split(':')[0];
            var sign_name=sign.split(':')[1];
 
@@ -427,7 +361,8 @@ return (
                <div style={{fontWeight: "900"}}>{sign_position}</div>
                {sign_name!="" && <div style={{fontWeight: "500"}}>{sign_name}</div>}
             </div>
-        })}          </div>
+        })}
+          </div>
         </th>
       </tr>
     </tfoot>

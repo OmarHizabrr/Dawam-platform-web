@@ -42,7 +42,9 @@ export default function tasksTable(props) {
 
   const [endVac,setEndVac]=useState("");
   const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
-  const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
+//  const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
+  const [end,setEnd]=useState(moment().format('YYYY-MM-DD'));  
+
   const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
   const [star,setStar]=useState(0); 
 
@@ -146,7 +148,8 @@ export default function tasksTable(props) {
       setTotalDays(response.data.count[0].count);
       settotalAtt(response.data.data[0].attendanceDays);
       setTotalLate(response.data.data[0].lateTime);
-      setStar(1-((parseFloat(response.data.lists.lateTimePrice || 0)+parseInt(Math.round(((response.data.count[0].count-(response.data.lists['attendanceDays'] || 0))*( response.data.lists.salary/response.data.count[0].count)))))/(response.data.lists.salary )));
+      
+      setStar(1-((parseFloat(response.data.lists.lateTimePrice || 0)+parseInt((response.data.count[0].count-(response.data.lists['attendanceDays'] || 0))*(response.data.lists.salary/response.data.count[0].count)))/parseInt(response.data.lists.salary)));
       setLoad(false);
     }).catch(function (error) {
       console.log(error);
@@ -162,22 +165,31 @@ export default function tasksTable(props) {
     mywindow.document.write(report.innerHTML);
     mywindow.document.write('</body></html>');
     mywindow.print();
- //   mywindow.document.close();
- /*mywindow.onload = function() { // wait until all resources loaded 
-        mywindow.focus(); // necessary for IE >= 10
-        mywindow.print();  // change window to mywindow
-        mywindow.close();// change window to mywindow
-    };   */
   }
 
-  const getGivenRest=(e)=>{
+  const getGivenRest=(e,start)=>{
     axios.get(Env.HOST_SERVER_NAME+'given-tasks/'+props.user.user_id+'/'+start+'/'+end).then(response=>{
       setGivenTasks(response.data.vacs.filter(record => record.id== e)[0]?.cumHours);
+      
       var min=response.data.tasksAmount.filter(record => record.vid== e)[0]?.rest;
+
+
       if(typeof min === 'undefined')
       setRestTasks('-');
-      else
-      setRestTasks( parseInt(min/60) +":"+min%60);
+      else{
+        var startMon=props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value
+
+        if(e==2){
+        var perMonth=(30*7*60)/12;
+        }
+        else{
+          var perMonth=0;
+        }
+        var curr=parseInt(moment(start,"YYYY-MM-DD HH:mm").format('MM'));
+        var currMonth=parseInt(moment(start,"YYYY-MM-DD HH:mm").format('DD'))>=startMon?curr+1:curr;
+        var restMin=min- (perMonth*(12-currMonth));
+      setRestTasks( parseInt(restMin/60).toString().padStart(2, '0') + ":" +(restMin%60).toString().padStart(2, '0'));
+      }
 
       setGivenLoad(false);
     }).catch(function (error) {
@@ -187,11 +199,11 @@ export default function tasksTable(props) {
   }
     const handleTypeChange=(e)=>{
       setType(e);
-      getGivenRest(e);
+      getGivenRest(e,startVac);
     }
     const handleUTypeChange=(e)=>{
       setVacType(e);
-      getGivenRest(e);
+      getGivenRest(e,startVac);
     }
     const  handleChange = (pagination, filters, sorter) => {
           setFilteredInfo(filters);
@@ -394,9 +406,10 @@ export default function tasksTable(props) {
           title: 'من',
           dataIndex: 'date_from',
           key: 'date_from',
+          
           sorter: (a, b) => a.date_from - b.date_from,
           sortOrder: sortedInfo.columnKey === 'date_from' && sortedInfo.order,
-          ellipsis: true,
+          ellipsis: false,
           render:(amount,record,index)=>{
             if(index==edit){
               return (<Input onChange={function(e){setDatefromValue(e.target.value)}} onPressEnter={function(){updateTask(record);setEdit(null);}} defaultValue={moment(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}></Input>)
@@ -410,10 +423,10 @@ export default function tasksTable(props) {
           title: 'إلى',
           dataIndex: 'date_to',
           key: 'date_to',
-
+          
           sorter: (a, b) => a.date_to.length - b.date_to.length,
           sortOrder: sortedInfo.columnKey === 'address' && sortedInfo.order,
-          ellipsis: true,
+          ellipsis: false,
           render:(amount,record,index)=>{
             if(index==edit){
               return (<Input onChange={function(e){setDatetoValue(e.target.value)}} onPressEnter={function(){updateTask(record);setEdit(null)}} defaultValue={moment(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}></Input>)
@@ -422,7 +435,15 @@ export default function tasksTable(props) {
               return (<Text>{moment(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}</Text>)
             }      
           }
-        },     
+        },
+        {
+          title: 'تاريخ التقديم',
+          dataIndex: 'created_at',
+          key: 'created_at',
+          sorter: (a, b) => a.created_at.length - b.created_at.length,
+          sortOrder: sortedInfo.columnKey === 'address' && sortedInfo.order,
+          ellipsis: false,
+        },        
          {
           title: 'التفاصيل',
           dataIndex: 'description',
@@ -502,7 +523,7 @@ export default function tasksTable(props) {
           render: (vid, record, index) => (
             <Button
               disabled={record.dept_manager!='في الانتظار' || record.gerenal_sec!='في الانتظار' || record.hr_manager!='في الانتظار'}
-              onClick={function () {uform.setFieldsValue({notes:record.description,date_range:[moment(record.date_from,"YYYY-MM-DD HH:mm") , moment(record.date_to, "YYYY-MM-DD HH:mm")],task_type:record.vac_id});setVacId(record.id);setVacType(record.vac_id);getGivenRest(record.vac_id);setDatefromValue(record.date_from);setDatetoValue(record.date_to);setNotes(record.description);setSelectedLogs(null);setIsUModalVisible(true);}}
+              onClick={function () {uform.setFieldsValue({notes:record.description,date_range:[moment(record.date_from,"YYYY-MM-DD HH:mm") , moment(record.date_to, "YYYY-MM-DD HH:mm")],task_type:record.vac_id});setVacId(record.id);setVacType(record.vac_id);setDatefromValue(record.date_from);setDatetoValue(record.date_to);getGivenRest(record.vac_id,record.date_from);setNotes(record.description);setSelectedLogs(null);setIsUModalVisible(true);}}
               className={'edit-btn'}
               style={{ backgroundColor: "#fff", borderColor: "#0972B6",color:"#0972B6" }}
               type="primary"

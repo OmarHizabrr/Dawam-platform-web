@@ -265,7 +265,7 @@ useEffect(() => {
     />
     <Text style={{textAlign:'center',fontSize:'20px',marginBottom:'10px'}}>{user.user_name} <Badge status="success"  /></Text>
     <div style={{textAlign:'center',marginBottom:'18px'}}><Badge count={ user.user_id }   style={{ backgroundColor: '#DDDDDD',color:'#000' }} /></div>
-    <div style={{textAlign:'center'}}><Button type='primary' >الملف الوظيفي {props.aboutProps}</Button></div>
+    <div style={{textAlign:'center'}}><Button onClick={props.showModal} type='primary' >الملف الوظيفي </Button></div>
     </Col>
     <Col className='userData' xs={24} sm={24} md={10} lg={10} xl={10}>
       <div className="taggedInfo"><Text><ClusterOutlined /> {user.category.name} </Text></div>

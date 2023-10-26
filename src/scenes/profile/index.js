@@ -18,6 +18,7 @@ import {
     ApartmentOutlined,
     LineChartOutlined,
     SnippetsOutlined,
+    PlusCircleOutlined,
     EyeTwoTone,
     EyeInvisibleOutlined,
     EditOutlined,
@@ -41,6 +42,7 @@ import AlertsTable from '../../components/organisms/alertsTable';
 import DeptsTable from '../../components/organisms/deptsTable';
 import ViolationsRecords from '../../components/organisms/violationsRecords';
 import UsersPerformance from '../../components/organisms/usersPerformance';
+import BonusTable from '../../components/organisms/bonusTable';
 
 import {
   Link,
@@ -144,15 +146,17 @@ export default function Profile(props){
          //-----------------------------       
        }
   useEffect(() => {
-
-   
-
     axios.get(Env.HOST_SERVER_NAME+'salary-info/'+user.user_id+'/'+start+'/'+end)
-    .then(response => {   
- 
+    .then(response => {
       setStar(1-((parseFloat(response.data.lists[0].lateTimePrice || 0)+parseInt(Math.round(((response.data.count[0].count-(response.data.lists[0]['attendanceDays'] || 0))*( response.data.lists[0].salary/response.data.count[0].count)))))/(response.data.lists[0].salary )));
-      setSpiderData([Math.round(response.data.att_count[0].att_count/response.data.att_count[0].count*100) || 0,Math.round(response.data.id_count[0].id_count/response.data.id_count[0].count*100) || 0,Math.round(response.data.leave_count[0].leave_count/response.data.leave_count[0].count*100) || 0,Math.round(response.data.lists[0].attendanceDays/response.data.count[0].count*100) || 0,Math.round(response.data.vac_count[0].late_vacs/response.data.vac_count[0].count*100) || 100]);
-
+      setSpiderData([
+        Math.round(response.data.att_count[0].att_count/response.data.att_count[0].count*100) || 0,
+        Math.round(response.data.id_count[0].id_count/response.data.id_count[0].count*100) || 0,
+        Math.round(response.data.leave_count[0].leave_count/response.data.leave_count[0].count*100) || 0,
+        Math.round(response.data.lists[0].attendanceDays/response.data.count[0].count*100) || 0,
+        Math.round(response.data.vac_count[0].late_vacs/response.data.vac_count[0].count*100) || 100
+      ]);
+      
     }).catch(function (error) {
       console.log(error);
     });
@@ -294,7 +298,9 @@ const getCurrentTab=()=>{
     case '/profile/dept-violations':
         return '9';
     case '/profile/dept-performance':
-      return '10';         
+      return '10';
+    case '/profile/bonus-time':
+      return '11';         
   }
 
 }
@@ -818,6 +824,19 @@ return (
         </Link>
       }
       key="3"
+    >
+    </TabPane>
+
+    <TabPane
+      tab={
+        <Link to={`${url}/bonus-time`} >
+        <span>
+        <PlusCircleOutlined />
+        الدوام الإضافي
+        </span>
+        </Link>
+      }
+      key="11"
       
     >
     </TabPane>
@@ -892,7 +911,7 @@ return (
   >  
         <Switch>
           <Route path={path} exact>
-            <SummaryData spiderData={spiderData} setting={setting} userData={user} star={star} />
+            <SummaryData spiderData={spiderData} showModal={openShowUser} setting={setting} userData={user} star={star} />
           </Route>
           <Route path={`${path}/general-table`}>
             <GeneralTable setting={props.setting}/>
@@ -907,6 +926,7 @@ return (
           <Route path={`${path}/dept-violations`} component={() => <ViolationsRecords setting={props.setting} type="Manager" user={cookies.user} />} />
 
           <Route path={`${path}/dept-performance`} component={() => <UsersPerformance setting={props.setting} type="Manager" user={cookies.user} />} />
+          <Route path={`${path}/bonus-time`} component={() => <BonusTable setting={props.setting} type="Manager" user={cookies.user} />} />
 
           <Route path={`${path}/alerts`} component={()=> <AlertsTable type="Manager" setting={props.setting} user={cookies.user}/>} />
           <Redirect to="" />

@@ -51,7 +51,9 @@ export default function TasksRequests(props) {
   const [sortedInfo, setSortedInfo] = useState({});
   const [data, setData] = useState([]);
   const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
-  const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
+//  const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
+  const [end,setEnd]=useState(moment().format('YYYY-MM-DD'));  
+
   const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM')); 
   const [selected, setSelected] = useState(null);
   const [selectedLogs, setSelectedLogs] = useState(null);
@@ -117,7 +119,7 @@ export default function TasksRequests(props) {
             if(!vacations.some(item => element.vactype == item.text))      
               vacations.push({text:element['vactype'],value:element['vactype']});         
         }); 
-        console.log(names);
+
         setNamesFilter(names);
         setCategoriesFilter(categories);
         setVacationsFilter([...vacationsFilter,...vacations]);     
@@ -168,11 +170,20 @@ export default function TasksRequests(props) {
     axios.get(Env.HOST_SERVER_NAME+'given-tasks/'+selected.user_id+'/'+start+'/'+end).then(response=>{
       setGivenTasks(response.data.vacs.filter(record => record.id== selected.vacation)[0]?.cumHours);
       var min=response.data.tasksAmount.filter(record => record.vid== selected.vacation)[0]?.rest;
+      //var totInMonth=1050;
+
+     
       if(typeof min === 'undefined')
       setRestTasks('-');
-      else
-      setRestTasks( parseInt(min/60)??'-' +":"+min%60?? '-');
+      else{
+        var startMon=props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value
 
+        var perMonth=(30*7*60)/12;
+        var curr=parseInt(moment(selected.date_from,"YYYY-MM-DD HH:mm").format('MM'));
+        var currMonth=parseInt(moment(selected.date_from,"YYYY-MM-DD HH:mm").format('DD'))>=startMon?curr+1:curr;
+         var restMin=min- (perMonth*(12-currMonth));
+      setRestTasks( parseInt(restMin/60).toString().padStart(2, '0') + ":" +(restMin%60).toString().padStart(2, '0'));
+      }
       setGivenLoad(false);
     }).catch(function (error) {
       console.log(error);
@@ -287,6 +298,7 @@ export default function TasksRequests(props) {
       title: "من",
       dataIndex: "date_from",
       key: "date_from",
+      width:'110px',
       sorter: (a, b) => a.date_from - b.date_from,
       sortOrder: sortedInfo.columnKey === "date_from" && sortedInfo.order,
       ellipsis: false,
@@ -295,10 +307,21 @@ export default function TasksRequests(props) {
       title: "إلى",
       dataIndex: "date_to",
       key: "date_to",
+      width:'110px',
       sorter: (a, b) => a.date_to.length - b.date_to.length,
       sortOrder: sortedInfo.columnKey === "address" && sortedInfo.order,
       ellipsis: false,
     },
+    {
+      title: 'تاريخ التقديم',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      width:'110px',
+      sorter: (a, b) => a.created_at.length - b.created_at.length,
+      sortOrder: sortedInfo.columnKey === 'address' && sortedInfo.order,
+      ellipsis: false,
+
+    }, 
     {
       title: "مدير الإدارة",
       dataIndex: "dept_manager",
@@ -354,7 +377,7 @@ export default function TasksRequests(props) {
       key: "vid",
       render: (vid, record, index) => (
         <Button
-          disabled={ props.user.role_id!=1 && record.hr_manager!='في الانتظار'}
+          disabled={ props.user.role_id!=1 && record.hr_manager=='معتمدة' }
           onClick={function () {
             setSelected(record);
             processRequest(record);
@@ -367,6 +390,7 @@ export default function TasksRequests(props) {
       ),
     },
   ];
+
   const dcolumns = [
     {
       title: 'التاريخ',

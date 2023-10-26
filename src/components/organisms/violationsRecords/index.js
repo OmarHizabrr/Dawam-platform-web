@@ -187,7 +187,11 @@ const processVio=(record)=>{
         });
           axios.get(Env.HOST_SERVER_NAME+'get-emp-names')
           .then(response => {
+            if(props.type=="Admin")
+              setTstypes(response.data);
+            else
               setTstypes(response.data.filter(record => record.category==props.user.category.id));
+
           }).catch(function (error) {
             console.log(error);
           });
@@ -387,7 +391,6 @@ return (
                    <Input defaultValue={0}/>
                 </Form.Item>
                 <Form.Item
-             
                   label="سبب المخالفة"
                   name={'note'}
                 >

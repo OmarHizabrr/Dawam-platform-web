@@ -1,6 +1,3 @@
-th{
-    text-align: center!important;
-}
 .discountHeader{
     display: flex;
     flex-direction: row;
@@ -10,10 +7,26 @@ th{
 display: flex;
 flex-direction: row;
 }
-.discountRange{
+@media only screen and (max-width: 600px) {
+
+    .discountHeader{
+        flex-direction: column;
+    }
+    .discountRange{
+        order: 2;
+    }
+    .discountBtn{
+        justify-content: flex-end;
+        margin-bottom: 10px;
+        }
+}.discountHeader{
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
+}
+.discountBtn{
+display: flex;
+flex-direction: row;
 }
 @media only screen and (max-width: 600px) {
 
@@ -22,15 +35,9 @@ flex-direction: row;
     }
     .discountRange{
         order: 2;
-        flex-direction: column;
     }
     .discountBtn{
-        flex-direction: column;
         justify-content: flex-end;
         margin-bottom: 10px;
         }
-    .addbtn{
-        text-align: left;
-        margin-top:10px;
-    }
 }
