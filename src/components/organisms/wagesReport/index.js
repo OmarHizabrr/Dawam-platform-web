@@ -402,7 +402,7 @@ return (
 
                      <th style={{fontWeight: "100",fontSize:'8px'}} colSpan="3">الاستحقاق</th>
                    
-                     <th style={{fontWeight: "100"}} colSpan="7">الاستقطاعات</th>
+                     <th style={{fontWeight: "100"}} colSpan="6">الاستقطاعات</th>
                      <th style={{fontWeight: "100"}} rowSpan="2" colSpan={"2"}> صافي<br/>الاستحقاق </th>
                      <th style={{fontWeight: "100"}} rowSpan="2">التوقيع</th>
                 </tr>
@@ -415,7 +415,8 @@ return (
                 <th style={{fontWeight: "100"}}>تكافل</th>
                 <th style={{fontWeight: "100"}}>أقساط</th>
                 <th style={{fontWeight: "100"}}>جزاءات</th>
-                <th style={{fontWeight: "100"}}>اشتراكات</th>
+                {//<th style={{fontWeight: "100"}}>اشتراكات</th>
+                }
                 <th style={{fontWeight: "100",width:'20px'}}>إجمالي</th>
                 </tr>
             </thead>
@@ -488,8 +489,8 @@ return (
                   <td>{new Intl.NumberFormat('en-EN').format(Math.round(parseFloat(item.symbiosis)))}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(item.long_debt)}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(item.vdiscount)}</td>
-                  <td>{new Intl.NumberFormat('en-EN').format(item.deductions)}</td>
-
+                  {//<td>{new Intl.NumberFormat('en-EN').format(item.deductions)}</td>
+              }
                   <td>{new Intl.NumberFormat('en-EN').format(toD)}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(tot)}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(tor)}</td>
@@ -508,7 +509,8 @@ return (
                 <td>{new Intl.NumberFormat('en-EN').format(sym)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(ldebts)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(vio)}</td>
-                <td>{new Intl.NumberFormat('en-EN').format(ded)}</td>
+                {//<td>{new Intl.NumberFormat('en-EN').format(ded)}</td>
+                }
                 <td>{new Intl.NumberFormat('en-EN').format(totD)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(total)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(totr)}</td>                                
@@ -528,8 +530,8 @@ return (
                 <td>{new Intl.NumberFormat('en-EN').format(tsym)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(tldebts)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(tvio)}</td>
-                <td>{new Intl.NumberFormat('en-EN').format(tded)}</td>
-
+                {//<td>{new Intl.NumberFormat('en-EN').format(tded)}</td>
+}
                 <td>{new Intl.NumberFormat('en-EN').format(ttotD)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(ttotal)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(ttotr)}</td>                                
