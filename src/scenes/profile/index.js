@@ -340,7 +340,6 @@ return (
         <Form.Item
         label="الاسم رباعيًا"
         name="name"
-      
         >
           <Input disabled={userFormDisable} />
        </Form.Item>

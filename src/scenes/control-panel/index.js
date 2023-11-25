@@ -35,7 +35,7 @@ import DeductionsReport from '../../components/organisms/deductionsReport';
 import DebtReport from '../../components/organisms/debtsReport';
 import LongDebtReport from '../../components/organisms/longDebtReport';
 import TransportReport from '../../components/organisms/transportReport';
-import SettingsPane from '../../components/organisms/SettingsPane';
+import SettingsPane from '../../components/organisms/settingsPane';
 import TasksRecords from '../../components/organisms/tasksRecords';
 import TasksAccounts from '../../components/organisms/tasksAccounts';
 import TypesTable from '../../components/organisms/typesTable';
@@ -47,10 +47,11 @@ import CumTasksReport from '../../components/organisms/cumTasksReport';
 import ViolationsReport from '../../components/organisms/violationsReport';
 import UsersPerformance from '../../components/organisms/usersPerformance';
 import { useCookies,CookiesProvider  } from 'react-cookie';
+import BonusReport from '../../components/organisms/bonusReport'
 
 import {STATISTICS} from '../../routes';
 import { Cookies } from 'react-cookie';
-const { Content } = Layout;
+const { Content } = Layout; 
 const { Text } = Typography;
 const { Sider } = Layout;
 const { SubMenu } = Menu;
@@ -95,6 +96,13 @@ export default function ControlPanel(props){
         <Menu.Item key="sub18">
           <Link to={`${url}/deductions-reports`} >
             خلاصة الاستقطاعات
+          </Link>
+        </Menu.Item>
+
+
+        <Menu.Item key="sub19">
+          <Link to={`${url}/bonus-reports`} >
+           تقرير الإضافي
           </Link>
         </Menu.Item>
 
@@ -197,7 +205,9 @@ export default function ControlPanel(props){
           <Route path={`${path}/emp-cards`} component={()=> <EmpCards setting={props.setting}/> } />
           <Route path={`${path}/wages-report`} component={()=> <WagesReport setting={props.setting}/>} />       
           <Route path={`${path}/discounts-reports`} component={ ()=> <DiscountsReport setting={props.setting}/>} />         
-          <Route path={`${path}/deductions-reports`} component={ ()=> <DeductionsReport setting={props.setting}/>} />         
+          <Route path={`${path}/deductions-reports`} component={ ()=> <DeductionsReport setting={props.setting}/>} /> 
+          <Route path={`${path}/bonus-reports`} component={ ()=> <BonusReport setting={props.setting}/>} />         
+        
           <Route path={`${path}/debts-report`} component={()=> <DebtReport setting={props.setting}/>} /> 
           <Route path={`${path}/tasks-records`} component={ ()=><TasksRecords setting={props.setting}/>} /> 
           <Route path={`${path}/tasks-accounts`} component={()=> <TasksAccounts setting={props.setting}/>} /> 
