@@ -156,6 +156,7 @@ export default function tasksTable(props) {
     });
 
   },[start,end,update,props.user]);
+
   const printReport=()=>{
     var report=document.getElementById('task-report');
     //var report=document.body;
@@ -197,20 +198,20 @@ export default function tasksTable(props) {
       setGivenLoad(false);
     });
   }
-    const handleTypeChange=(e)=>{
+  const handleTypeChange=(e)=>{
       setType(e);
       getGivenRest(e,startVac);
     }
-    const handleUTypeChange=(e)=>{
+  const handleUTypeChange=(e)=>{
       setVacType(e);
       getGivenRest(e,startVac);
     }
-    const  handleChange = (pagination, filters, sorter) => {
+  const  handleChange = (pagination, filters, sorter) => {
           setFilteredInfo(filters);
           setSortedInfo(sorter);
       };
 
-    const  onRangeChange=(all,dates)=>{ 
+  const onRangeChange=(all,dates)=>{ 
         setStartVac(dates[0]);  
         setEndVac(dates[1]); 
         setDatefromValue(dates[0]);
@@ -224,7 +225,7 @@ export default function tasksTable(props) {
           setLogLoad(false);
         });      
       }
-      const checkPeriod=(all,date)=>{
+  const checkPeriod=(all,date)=>{
         if(date[1]!=''){
           const minutes=(new Date(date[1])-new Date(date[0]))/60000;
           var alerta="";
@@ -233,6 +234,7 @@ export default function tasksTable(props) {
           setTotalVac(alerta); 
         }
       }
+
   const  showModal = () => {
         setIsModalVisible(true);
         setSelectedLogs(null);
@@ -250,7 +252,7 @@ export default function tasksTable(props) {
        
         axios.post(Env.HOST_SERVER_NAME+`add-task`,values)
           .then(function (response) { 
-  
+          
             openNotification('bottomLeft',<Text>{'تم إرسال الإجازة بنجاح'}</Text>);
             setSaving(false);
             setIsModalVisible(false);    
@@ -261,9 +263,21 @@ export default function tasksTable(props) {
             setNotes(null);
             setGivenTasks(0);
             setRestTasks(0);
+            
+
           })
        .catch(function (error) {
         console.log(error);
+          if(error.response.status==409){
+          notification.error({
+            message:error.response.data.message,
+            placement:'bottomLeft',
+            duration:10,
+          });
+          setSaving(false);
+
+        }
+        else{
         notification.error({
           message:'فشل إرسال الإجازة!' ,
           placement:'bottomLeft',
@@ -273,9 +287,11 @@ export default function tasksTable(props) {
         setIsModalVisible(false);   
         setType(null);
         setNotes(null); 
+      }
        });
       
-      }; 
+      };
+
   const handleuOk = () => {
         var values={
            "id":vacId,
@@ -311,13 +327,15 @@ export default function tasksTable(props) {
 
         });
        }; 
-      const openNotification = (placement,text) => {
+
+  const openNotification = (placement,text) => {
         notification.success({
           message:text ,
           placement,
           duration:10,
         });
       }
+
   const deleteTask = (record) => {
        
         axios.delete(Env.HOST_SERVER_NAME+'delete-task/'+record.id)
@@ -330,6 +348,7 @@ export default function tasksTable(props) {
              console.log(error);
            });
        }; 
+       
   const handlePOk = (record) => {
         setConfirmLoading(true);
         deleteTask(record);
@@ -628,6 +647,7 @@ export default function tasksTable(props) {
         setEnd(moment(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
     
         }
+
 return (
     <Card>
     <div className='tasksHeader'>
@@ -660,7 +680,7 @@ return (
     <Space>
     <RangePicker
      showTime={{
-        defaultValue: [moment('07:00', 'HH:mm'), moment('14:00', 'HH:mm')],
+        defaultValue: [moment(props.setting.filter((item)=> item.key == 'duration_start')[0]?.value, 'HH:mm'), moment(props.setting.filter((item)=> item.key == 'duration_end')[0]?.value, 'HH:mm')],
       }}
       format="YYYY-MM-DD HH:mm"  
       onCalendarChange={function(all,dates){onRangeChange(all,dates);}}

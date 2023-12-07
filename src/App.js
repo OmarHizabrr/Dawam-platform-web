@@ -19,7 +19,6 @@ import Profile from './scenes/profile' ;
 import ControlPanel from './scenes/control-panel/' ;
 import Login  from './scenes/login/' ;
 
-
 import 'moment/locale/ar-ly';
 
 import './App.css';
@@ -43,7 +42,7 @@ function App() {
 
   useEffect(() => {   
     console.log(process.env.REACT_APP_API_URL);
-     axios.get(Env.HOST_SERVER_NAME+'setting')
+     axios.get(Env.HOST_SERVER_NAME+'setting/'+id?.user_id)
      .then(response => {
         setSetting(response.data);
      }).catch(function (error) {
@@ -72,6 +71,7 @@ function App() {
         setLoading(false);
     });
   };
+
   if (!id) {
 
     routes = (

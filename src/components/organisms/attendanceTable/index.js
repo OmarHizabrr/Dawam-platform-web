@@ -186,8 +186,8 @@ export default function attendanceTable(props){
         setIsVModalVisible(true);
         setNotes("");
         setTotalVac("");
-        setDatefromValue(record.date+' 07:00');
-        setDatetoValue(record.date+' 14:00');
+        setDatefromValue(record.date+' '+props.setting.filter((item)=> item.key == 'duration_start')[0]?.value);
+        setDatetoValue(record.date+' '+props.setting.filter((item)=> item.key == 'duration_end')[0]?.value);
       }
     const handleOk = () => {
         setIsModalVisible(false);
@@ -223,15 +223,29 @@ export default function attendanceTable(props){
         setGivenTasks(0);
         setRestTasks(0);
       })
-   .catch(function (error) {
-    console.log(error);
-    notification.error({
-      message:'فشل إرسال الإجازة!' ,
-      placement:'bottomLeft',
-      duration:10,
-    });
-    setSaving(false);
-   });
+      .catch(function (error) {
+        console.log(error);
+          if(error.response.status==409){
+          notification.error({
+            message:error.response.data.message,
+            placement:'bottomLeft',
+            duration:10,
+          });
+          setSaving(false);
+
+        }
+        else{
+        notification.error({
+          message:'فشل إرسال الإجازة!' ,
+          placement:'bottomLeft',
+          duration:10,
+        });
+        setSaving(false);
+        setIsModalVisible(false);   
+        setType(null);
+        setNotes(null); 
+      }
+       });
       };
     
     const selectMonth=(value)=>{
@@ -500,7 +514,7 @@ return (
     <Modal title="تقديم إجازة / مهمة" confirmLoading={saving} visible={isVModalVisible} onOk={function(){setSaving(true);handleVOk()}} onCancel={function(){handleVCancel()}}>
       <Form form={form} >
         <Form.Item className='rangee' name={'date_range'} label="فترة الإجازة / المهمة :">
-          <RangePicker value={[moment(datefromValue,"YYYY-MM-DD HH:mm"), moment(datetoValue, "YYYY-MM-DD HH:mm")]} showTime={{defaultValue: [moment('07:00', 'HH:mm'), moment('14:00', 'HH:mm')],}} format="YYYY-MM-DD HH:mm"  onCalendarChange={function(all,dates){onRangeChange(all,dates);}} />
+          <RangePicker value={[moment(datefromValue,"YYYY-MM-DD HH:mm"), moment(datetoValue, "YYYY-MM-DD HH:mm")]} showTime={{defaultValue: [moment(props.setting.filter((item)=> item.key == 'duration_start')[0]?.value, 'HH:mm'), moment(props.setting.filter((item)=> item.key == 'duration_end')[0]?.value, 'HH:mm')],}} format="YYYY-MM-DD HH:mm"  onCalendarChange={function(all,dates){onRangeChange(all,dates);}} />
           <div style={{marginTop:'10px',fontWeight:600}}>مدة الإجازة: <Text type="danger">{totalVac}</Text></div> 
         </Form.Item>
         <Form.Item style={{marginTop:'10px'}} name={'task_type'} label="نوع الإجازة">

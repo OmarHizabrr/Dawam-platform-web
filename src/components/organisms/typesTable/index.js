@@ -338,7 +338,7 @@ return (
     <Space>
     <RangePicker
      showTime={{
-        defaultValue: [moment('07:00', 'HH:mm'), moment('14:00', 'HH:mm')],
+        defaultValue: [moment(props.setting.filter((item)=> item.key == 'duration_start')[0]?.value, 'HH:mm'), moment(props.setting.filter((item)=> item.key == 'duration_end')[0]?.value, 'HH:mm')],
       }}
       format="YYYY-MM-DD HH:mm"  
     />

@@ -199,7 +199,7 @@ useEffect(() => {
   }
   else{
     var setting;
-    axios.get(Env.HOST_SERVER_NAME+'setting')
+    axios.get(Env.HOST_SERVER_NAME+'setting/'+props.userData.user_id)
     .then(response => {
        setting=response.data;
        setStart(moment(moment().format('YYYY-MM')+"-"+setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));

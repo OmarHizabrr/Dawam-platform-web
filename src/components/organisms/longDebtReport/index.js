@@ -93,7 +93,7 @@ export default function LongDebtReport (props){
       onFilter: (value, record) => record.category.includes(value),
     },
     {
-      title: 'مبلغ القرض',
+      title: 'مبلغ القسط',
       dataIndex: 'amount',
       key: 'amount',
       sorter: (a, b) => a.amount - b.amount,
@@ -125,7 +125,7 @@ export default function LongDebtReport (props){
         ></Button>
     <Popconfirm
       key={record.id}
-      title={'هل أنت متأكد من حذف القرض '}
+      title={'هل أنت متأكد من حذف القسط '}
       visible={visible && selectedIndex==record.id}
       onConfirm={function(){deleteDebt(record);}}
       okButtonProps={{loading:confirmLoading }}
@@ -298,24 +298,24 @@ export default function LongDebtReport (props){
           debt_date: debtDate,
           note:mamountValue ,
         };
-        openLoadingNotification('bottomLeft',<span> 'جاري إضافة القرض الخاص بـ ' <span style={{fontWeight:'bold'}}>{empName} </span> </span>);
+        openLoadingNotification('bottomLeft',<span> 'جاري إضافة القسط الخاص بـ ' <span style={{fontWeight:'bold'}}>{empName} </span> </span>);
         axios
           .post(Env.HOST_SERVER_NAME + 'add-long-debt', values)
           .then(function (response) {
             console.log(response);
             if (response.status == "201") {     
               setDuration(1);        
-              openNotification('success','bottomLeft','loadingAdd',3000,<span> 'تم إضافة القرض الخاص بـ ' <span style={{fontWeight:'bold'}}>{empName} </span> ' بنجاح.' </span>);
+              openNotification('success','bottomLeft','loadingAdd',3000,<span> 'تم إضافة القسط الخاص بـ ' <span style={{fontWeight:'bold'}}>{empName} </span> ' بنجاح.' </span>);
             }
             else{
-              openNotification('error','bottomLeft','loadingAdd',0,<span> 'فشل إضافة القرض الخاص بـ ' <span style={{fontWeight:'bold'}}>{empName} </span>  </span>);
+              openNotification('error','bottomLeft','loadingAdd',0,<span> 'فشل إضافة القسط الخاص بـ ' <span style={{fontWeight:'bold'}}>{empName} </span>  </span>);
 
             }
           })
           .catch(function (error) {
             console.log("Refused Request : "+error);
             setDuration(1);
-            openNotification('error','bottomLeft','loadingAdd',0,<span> 'فشل إضافة القرض الخاص بـ ' <span style={{fontWeight:'bold'}}>{empName} </span>  </span>);
+            openNotification('error','bottomLeft','loadingAdd',0,<span> 'فشل إضافة القسط الخاص بـ ' <span style={{fontWeight:'bold'}}>{empName} </span>  </span>);
           });
           setIsModalVisible(false);
       };
@@ -347,17 +347,17 @@ export default function LongDebtReport (props){
           .then(function (response) {
             if (response.status == "201") {     
               setDuration(1);        
-              openNotification('success','bottomLeft','loadingAdd',3000,<span> تم تسديد القرض الخاص بـ  <span style={{fontWeight:'bold'}}>{empName} </span>  بنجاح. </span>);
+              openNotification('success','bottomLeft','loadingAdd',3000,<span> تم تسديد القسط الخاص بـ  <span style={{fontWeight:'bold'}}>{empName} </span>  بنجاح. </span>);
             }
             else{
-              openNotification('error','bottomLeft','loadingAdd',0,<span> 'فشل تسديد القرض الخاص بـ ' <span style={{fontWeight:'bold'}}>{empName} </span>  </span>);
+              openNotification('error','bottomLeft','loadingAdd',0,<span> 'فشل تسديد القسط الخاص بـ ' <span style={{fontWeight:'bold'}}>{empName} </span>  </span>);
 
             }
           })
           .catch(function (error) {
             console.log("Refused Request : "+error);
             setDuration(1);
-            openNotification('error','bottomLeft','loadingAdd',0,<span> 'فشل تسديد القرض الخاص بـ ' <span style={{fontWeight:'bold'}}>{empName} </span>  </span>);
+            openNotification('error','bottomLeft','loadingAdd',0,<span> 'فشل تسديد القسط الخاص بـ ' <span style={{fontWeight:'bold'}}>{empName} </span>  </span>);
           });
         setIsPModalVisible(false);
 
@@ -401,11 +401,11 @@ export default function LongDebtReport (props){
 
 return (
     <Card>
-    <Modal confirmLoading={loadForm} width={900} title="إضافة قروض " visible={isVisibleModal}  onOk={function(){ addDebts();}} onCancel={function(){setIsVisibleModal(false);}}>
+    <Modal confirmLoading={loadForm} width={900} title="إضافة أقساط " visible={isVisibleModal}  onOk={function(){ addDebts();}} onCancel={function(){setIsVisibleModal(false);}}>
       <Form form={form}>
-      <div>ادخل تاريخ القرض:</div>   
+      <div>ادخل تاريخ القسط:</div>   
       <Form.Item style={{display:'inline-block'}}  name={'debt_date'}>
-         <DatePicker placeholder="تاريخ القرض" />  
+         <DatePicker placeholder="تاريخ التسديد" />  
       </Form.Item> 
       <Button loading={loadUsers} onClick={function(){ showUsersDebt();}} style={{marginRight:'20px'}} type='primary'>جلب الموظفين</Button>  
       <Form.List name="debts">
@@ -444,10 +444,10 @@ return (
                 <Form.Item
                   {...restField}
                   name={[name, 'debt_value']}
-                  label={'مبلغ القرض'}
+                  label={'مبلغ القسط'}
                   rules={[{ required: true, message: 'هذا الحقل مطلوب' }]}
                 >
-                  <InputNumber  placeholder="مبلغ القرض" />
+                  <InputNumber  placeholder="مبلغ القسط" />
                 </Form.Item> 
                 <Form.Item
                   {...restField}
@@ -462,7 +462,7 @@ return (
             ))}
             <Form.Item>
               <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
-                إضافة قرض فردي
+                إضافة قسط فردي
               </Button>
             </Form.Item>
           </>
@@ -470,7 +470,7 @@ return (
       </Form.List> 
       </Form>
     </Modal>  
-    <Modal title="تعديل قرض" confirmLoading={buttonLoading} visible={isModalVisible} onOk={onFinish} onCancel={handleCancel}>
+    <Modal title="تعديل قسط" confirmLoading={buttonLoading} visible={isModalVisible} onOk={onFinish} onCancel={handleCancel}>
       <Form form={updateForm}>
        <Form.Item
         name="id"
@@ -498,10 +498,10 @@ return (
         }
         ></Select>
         </Form.Item>
-        <Form.Item label="مبلغ القرض" name="amount" >
+        <Form.Item label="مبلغ القسط" name="amount" >
         <Input onChange={function(e){setAmountValue(e.target.value);}}  style={{marginTop:'10px',width:300}} />
         </Form.Item>
-        <Form.Item label="تاريخ الاقتراض" name="debt_date" >
+        <Form.Item label="تاريخ التسديد" name="debt_date" >
            <DatePicker  onChange={onDateChange} /> 
           </Form.Item>
         <Form.Item label="التفاصيل" name="note" >
@@ -520,7 +520,7 @@ return (
       <RangePicker value={[moment(start,"YYYY-MM-DD"),moment(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
   </div>
   <div className='addbtn'>
-  <Button style={{backgroundColor:'#FAA61A',borderColor:'#FAA61A',color:'#fff',marginLeft:'20px'}} onClick={function(){ setIsVisibleModal(true);}} ><PlusOutlined /> إضافة قرض </Button>
+  <Button style={{backgroundColor:'#FAA61A',borderColor:'#FAA61A',color:'#fff',marginLeft:'20px'}} onClick={function(){ setIsVisibleModal(true);}} ><PlusOutlined /> إضافة قسط </Button>
   <Button style={{backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button> 
   </div>
 
