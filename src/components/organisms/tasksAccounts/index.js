@@ -31,7 +31,11 @@ export default function TasksAccounts (props){
   const [statment,setStatment]=useState(null);
   const [amountValue,setAmountValue]=useState(null);
   const [isModalVisible,setIsModalVisible]=useState(false);
+  const [isDModalVisible,setIsDModalVisible]=useState(false);
+
   const [saving,setSaving]=useState(false);
+  const [dsaving,setDSaving]=useState(false);
+
   const [tasksTypes,setTasksTypes]=useState([]);
   const [empNames,setEmpNames]=useState([]);
   const [selectedName,setSelectedName]=useState(null);
@@ -300,6 +304,11 @@ export default function TasksAccounts (props){
         setIsModalVisible(false);
         form.resetFields();
       };
+
+      const handleDCancel = () => {
+        setIsDModalVisible(false);
+        dform.resetFields();
+      };
    const showUsersDebt=()=>{
         setLoadUsers(true);
         axios.get(Env.HOST_SERVER_NAME+'get-users-long-debts/')
@@ -312,7 +321,8 @@ export default function TasksAccounts (props){
             });
        };
   const [form] = Form.useForm();
-      
+  const [dform] = Form.useForm();
+
   const onFinish = () => {
         
         setSaving(true);        
@@ -329,6 +339,27 @@ export default function TasksAccounts (props){
           });
           
         };
+
+        const onDFinish = () => {
+        
+          setDSaving(true);        
+          axios.post(Env.HOST_SERVER_NAME+'discount-task-account',dform.getFieldsValue())
+          .then(response => {
+              setDSaving(false);
+              setIsDModalVisible(false);
+              dform.resetFields();
+              setUpdate(update+1);
+              notification.success({
+                message: 'تم خصم الرصيد بنجاح ',
+                placement:'bottomLeft',
+                duration:10
+              });
+            }).catch(function (error) {
+             alert('يوجد مشكلة في الاتصال بالسرفر!');
+             setDSaving(false);
+            });
+            
+          };
   function printAnnualyReport(){
           setLoadReport(true);
             var report=document.getElementById('ann-report');
@@ -441,7 +472,6 @@ return (
                   <TextArea  placeholder="ملاحظات" />
                 </Form.Item>  
 
-                <MinusCircleOutlined onClick={() => remove(name)} />
               </Space>
             ))}
             <Form.Item>
@@ -455,11 +485,65 @@ return (
       </Form>
       </Modal>
       
+      <Modal confirmLoading={dsaving} title="خصم رصيد إجازة" visible={isDModalVisible} onCancel={handleDCancel} onOk={onDFinish} >
+      <Form form={dform}>
+      <Form.Item 
+                 name={ 'user_id'} label="اسم الموظف" rules={[{ required: true,  message: 'هذا الحقل مطلوب'  }]}>
+                  <Select style={{ width: 250 }} showSearch  optionFilterProp="children"
+                         notFoundContent={<Spin style={{textAlign:'center'}}></Spin>}
+                          filterOption={(input, option) =>
+                           option.props.children?.indexOf(input) >= 0 ||
+                           option.props.value?.indexOf(input) >= 0 ||
+                            option.props.label?.indexOf(input) >= 0
+                          }
+                        filterSort={(optionA, optionB) =>
+                           optionA.props?.children?.localeCompare(optionB.props.children)
+                        }>
+                        {tstypes.map(item => (
+                          <Option key={item.value} value={item.value}>
+                            {item.label}
+                          </Option>
+                        ))}
+                      </Select>
+      </Form.Item>
+      <Form.Item 
+                 name={'task_id'} label="نوع الإجازة" rules={[{ required: true, message: 'هذا الحقل مطلوب'  }]}>
+                  <Select style={{ width: 100 }} showSearch  optionFilterProp="children"
+                         notFoundContent={<Spin style={{textAlign:'center'}}></Spin>}
+                          filterOption={(input, option) =>
+                           option.props.children?.indexOf(input) >= 0 ||
+                           option.props.value?.indexOf(input) >= 0 ||
+                            option.props.label?.indexOf(input) >= 0
+                          }
+                        filterSort={(optionA, optionB) =>
+                           optionA.props?.children?.localeCompare(optionB.props.children)
+                        }>
+                        {tasksTypes.map(item => (
+                          <Option key={item.value} value={item.value}>
+                            {item.label}
+                          </Option>
+                        ))}
+                      </Select>
+      </Form.Item>
+      <Form.Item name={'amount'} label={'مقدار الخصم'}  rules={[{ required: true, message: 'هذا الحقل مطلوب' }]} >
+          <InputNumber  placeholder="الرصيد بالدقائق" />
+      </Form.Item> 
+      <Form.Item name={'discount_date'} label={'تاريخ الخصم'}  rules={[{ required: true, message: 'هذا الحقل مطلوب' }]} >
+          <DatePicker />
+      </Form.Item>
+      <Form.Item name={'note'} label={'ملاحظات'} rules={[{ required: true, message: 'هذا الحقل مطلوب' }]} >
+        <TextArea  placeholder="ملاحظات" />
+      </Form.Item>
+      </Form>
+      </Modal>
+
       <div style={{marginBottom:'10px'}}>
       <div className='discountHeader' style={{marginBottom:'10px'}}>
         <div className='discountBtn'>
           <DatePicker value={moment(currentYear,'YYYY')} onChange={onChange} placeholder="اختر سنة" picker="year" />
-          <Button style={{marginLeft:'5px',marginRight:'5px',border:'none',backgroundColor:'#FAA61A',color:'#fff'}} onClick={function(){  setIsModalVisible(true);}} ><FormOutlined /> </Button>
+          <Button style={{marginLeft:'5px',marginRight:'5px',border:'none',backgroundColor:'#FAA61A',color:'#fff'}} onClick={function(){  setIsDModalVisible(true);}} ><FormOutlined />  خصم رصيد </Button>
+
+          <Button style={{marginLeft:'5px',marginRight:'5px',border:'none',backgroundColor:'#FAA61A',color:'#fff'}} onClick={function(){  setIsModalVisible(true);}} ><FormOutlined /> إضافة رصيد</Button>
           <Button style={{display:'block',margin:'0 10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
           <Button loading={loadReport} style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6",marginLeft:'10px'}} onClick={function(){printAnnualyReport()}} type='primary'><PrinterOutlined /> تقرير السنوية</Button>
           <Button style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button>
@@ -630,15 +714,15 @@ return (
     <tbody>
 {pannTasks.map((item,i)=>{
 var totalg=0;
-var op=item.prev*1+item.curr*1+item.trans*1;
+var op=Math.round(item.prev)+Math.round(item.curr)+Math.round(item.trans);
 
 return <tr style={{height: " 25px",backgroundColor:aindex %2==0?'#e6e6e6':'#fff'}}>
   <td style={{fontWeight: "100"}} >{aindex++}</td>
   <td style={{fontWeight: "100"}} >{item.name}</td>
   <td style={{fontWeight: "100",width:'100px'}} >{item.job}</td>
-  <th style={{fontWeight: "100"}} >{parseInt(item.prev/60)+":"+item.prev%60 }</th>
-  <th style={{fontWeight: "100"}} >{parseInt( item.curr/60)+":"+ item.curr%60 }</th>
-  <th style={{fontWeight: "100"}} >{parseInt( item.trans/60)+":"+ item.trans%60}</th>
+  <th style={{fontWeight: "100"}} >{parseInt(item.prev/60)+":"+Math.round(item.prev%60) }</th>
+  <th style={{fontWeight: "100"}} >{parseInt( item.curr/60)+":"+ Math.round(item.curr%60) }</th>
+  <th style={{fontWeight: "100"}} >{parseInt( item.trans/60)+":"+ Math.round(item.trans%60)}</th>
   <th style={{fontWeight: "100"}} >{parseInt(op/60)+":"+ op%60}</th>
   {
     months.map((m,ind)=>{

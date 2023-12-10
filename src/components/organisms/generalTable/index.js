@@ -28,6 +28,7 @@ export default function generalTable(props){
       const [abCount,setAbCount]=useState(0);
       const [lateCount,setLateCount]=useState(0);
       const [timelyCount,setTimelyCount]=useState(0);
+      const [timelyData,setTimelyData]=useState([]);
 
       const [load,setLoad]=useState(true);
       const [today,setToday]=useState(new Date().toISOString().split('T')[0]);
@@ -50,7 +51,7 @@ export default function generalTable(props){
             printReport('late-report');
             break;
           case '3':
-            console.log('Printing late employees');
+            printReport('timely-report');
             break;
           default:
             break;
@@ -66,13 +67,56 @@ export default function generalTable(props){
         setLoad(true);
         axios.get(Env.HOST_SERVER_NAME+'all-users-log/'+today)
           .then(response => {
-            setData(response.data['logs']);
-            setAbData(response.data['ablogs']);
-            setLateData(response.data['latelogs']);
-            setAttAvg(Math.round(response.data.logs.length/response.data['users_count']*100));           
-            setAbCount(response.data['users_count']-response.data.logs.length);
-            setLateCount(response.data.late_count[0].lateCount);
-            setTimelyCount(response.data.logs.length-response.data.late_count[0].lateCount);
+
+
+            const joinedData = response.data['users'].map(user => {
+              const userAttendance =  response.data['logs_test'].find(item => item.user_id === user.user_id);
+              return {
+                ...user,
+                attendance: userAttendance || null, 
+              };
+            });
+
+            const orderDataByAttendance = joinedData => {
+              return joinedData.sort((a, b) => {
+                const timeA = parseTimeString(a.attendance?.attendance_time) || 0;
+                const timeB = parseTimeString(b.attendance?.attendance_time) || 0;
+            
+                // If either attendance is null, place it at the end
+                if (a.attendance === null) return 1;
+                if (b.attendance === null) return -1;
+            
+                return timeA - timeB;
+              });
+            };
+            
+            const parseTimeString = timeString => {
+              if (!timeString) return 0;
+            
+              const [time, meridiem] = timeString.split(' ');
+              const [hours, minutes, seconds] = time.split(':').map(Number);
+            
+              let adjustedHours = hours % 12;
+              adjustedHours = meridiem === 'PM' ? adjustedHours + 12 : adjustedHours;
+            
+              return adjustedHours * 3600 + minutes * 60 + seconds;
+            };
+
+            const data=orderDataByAttendance(joinedData);
+
+            setData(data.filter((item)=>item.attendance!=null));
+
+            const abdata=data.filter((item)=>item.attendance==null);
+            setAbData(abdata);
+            const latedata=data.filter((item)=>item.attendance?.startLateTime<0);
+            setLateData(latedata);
+            const timelydata=data.filter((item)=>item.attendance?.startLateTime>=0);
+            setTimelyData(timelydata);
+
+            setAttAvg(Math.round(data.filter((item)=>item.attendance!=null).length/response.data['users'].length*100));           
+            setAbCount(abdata.length);
+            setLateCount(latedata.length);
+            setTimelyCount(timelydata.length);
 
             var stars=[];
             response.data['lists'].forEach(function(e){
@@ -97,12 +141,13 @@ export default function generalTable(props){
       },
       {
         title: 'وقت الحضور',
-        dataIndex: 'attendance_time',
-        key: 'attendance_time',
-        sorter: (a, b) => a.attendance_time.length - b.attendance_time.length,
+        dataIndex: 'attendance',
+        key: 'attendance',
+        sorter: (a, b) => a.attendance?.attendance_time.length - b.attendance?.attendance_time.length,
         sortOrder: sortedInfo.columnKey === 'attendance_time' && sortedInfo.order,
         ellipsis: false,
         width:'150px',
+        render:(attendance,record,index)=>record.attendance?.attendance_time,
       }, 
       {
         title: 'الاسم',
@@ -190,8 +235,10 @@ export default function generalTable(props){
     ];
 
     var rank=1;
+    var trank=1;
     var index=1;
     var lindex=1;
+  
     var days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 
     const menuProps = {
@@ -277,7 +324,6 @@ return (
                 </tr>
             </thead>
             <tbody>
-             
              {data.map(item=>(
               <tr style={{height: " 30px",backgroundColor:data.indexOf(item) %2!=0?'#e6e6e6':'#fff'}}>
                 <td>{rank++}</td>
@@ -285,8 +331,8 @@ return (
                 <td>{item.fullname}</td>
                 <td style={{fontSize:'8px'}}>{item.department}</td>
                 <td style={{fontSize:'8px'}}>{item.job}</td>
-                <td>{item.attendance_time}</td>
-                <td>{item.leave_time}</td>
+                <td>{item.attendance?.attendance_time}</td>
+                <td>{item.attendance?.leave_time}</td>
                 <td>{item.workHours}</td>
               </tr>
              ))}
@@ -377,6 +423,65 @@ return (
     </header> 
     <div >
         <table className='print-table' style={{fontSize: "11px",width: " 100%",textAlign: " center",marginTop: " 20px"}}>
+        <thead>
+                <tr style={{color:"#fff",backgroundColor: "#0972B6",height: "30px"}}>
+                    <th style={{fontWeight: "100"}}>م</th>
+                    <th style={{fontWeight: "100",fontSize:'8px'}}>الرقم الوظيفي</th>
+                     <th style={{fontWeight: "100"}}>الاسم</th>
+                     <th style={{fontWeight: "100"}}>الإدارة</th>
+                     <th style={{fontWeight: "100"}}>الوظيفة</th>
+                     <th style={{fontWeight: "100"}}>زمن الحضور</th>
+                     <th style={{fontWeight: "100"}}>زمن الانصراف</th>
+                     <th style={{fontWeight: "100"}}>وقت التأخر </th>
+                </tr>
+            </thead>
+            <tbody>
+             {lateData.map(item=>(
+              <tr style={{height: " 30px",backgroundColor:data.indexOf(item) %2!=0?'#e6e6e6':'#fff'}}>
+                <td>{lindex++}</td>
+                <td>{item.user_id}</td>
+                <td>{item.fullname}</td>
+                <td style={{fontSize:'8px'}}>{item.department}</td>
+                <td style={{fontSize:'8px'}}>{item.job}</td>
+                <td>{item.attendance?.attendance_time}</td>
+                <td>{item.attendance?.leave_time}</td>
+                <td>{Math.floor(item.attendance?.startLateTime*-1)} دقيقة</td>
+              </tr>
+             ))}
+            </tbody>
+        </table>
+    </div>
+    <div style={{display: "flex",flexDirection: "row",marginTop: "20px",textAlign: "center"}}>
+       <div style={{width: "50%",fontWeight: "900"}}>المختص</div>
+       <div style={{width: "50%",fontWeight: "900"}}>مدير الشؤون</div>
+     </div>  
+     <div style={{marginTop: " 20px",width: "85%",backgroundColor: "#e6e6e61",padding: "5px 0",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px"}}>
+         <div style={{backgroundColor: " #0972B6",width: " 95%",height: " 15px",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px",color: " #fff",paddingRight: " 20px"}}>نظام دوام | {new Date().toLocaleString('en-IT')} </div>
+     </div>
+ </div> 
+ </div>
+
+ <div id="timely-report" style={{display:'none'}}>
+    <div  style={{direction: "rtl",fontSize: "12px",fontFamily: "Tajawal",margin: "0"}}>
+    <header  style={{display: "flex",flexDirection: "row",borderColor:'#000',borderBottomStyle: "solid",borderBottomWidth:"1px"}}>
+       <div style={{flex:1}}>
+           <img loading="eager" style={{width: "280px"}} src={Env.HOST_SERVER_STORAGE+props.setting.filter((item)=> item.key == 'admin.logo')[0]?.value}/>
+       </div>
+       <div style={{height:'100%',fontSize: "11px",textAlign: "center",flex:1}}>
+            <div style={{height:'50px'}}></div>
+           <h1 style={{textAlign:'center',fontSize: " 18px",marginBottom: " 5px",margin: "0"}}>حافظة دوام الموظفين المنضبطين</h1>
+           <h2 style={{textAlign:'center',fontSize: " 14px",fontWeight: " 200",margin: "0"}}>ليوم {days[new Date(today ).getDay()] } الموافق {today}</h2>
+       </div>
+       <div style={{padding:'20px 30px 20px 10px',fontWeight:'600',fontSize:'14px',textAlign:'right',width:'100%',flex:1}}>
+         <div>نسبة الحضور: {Math.round(attAvg)+'%'}</div>
+         <div>عدد المنضبطين: {timelyCount}</div>
+         <div>عدد المتأخرين: {lateCount}</div>
+         <div>عدد المتغيبين: {abCount}</div>
+       </div>
+
+    </header> 
+    <div >
+        <table className='print-table' style={{fontSize: "11px",width: " 100%",textAlign: " center",marginTop: " 20px"}}>
             <thead>
                 <tr style={{color:"#fff",backgroundColor: "#0972B6",height: "30px"}}>
                     <th style={{fontWeight: "100"}}>م</th>
@@ -384,18 +489,22 @@ return (
                      <th style={{fontWeight: "100"}}>الاسم</th>
                      <th style={{fontWeight: "100"}}>الإدارة</th>
                      <th style={{fontWeight: "100"}}>الوظيفة</th>
-                     <th style={{fontWeight: "100"}}>ملاحظات</th>
+                     <th style={{fontWeight: "100"}}>زمن الحضور</th>
+                     <th style={{fontWeight: "100"}}>زمن الانصراف</th>
+                     <th style={{fontWeight: "100"}}>الدوام الفعلي</th>
                 </tr>
             </thead>
             <tbody>
-             {lateData?.map(item=>(
-              <tr style={{height: " 30px",backgroundColor:lateData.indexOf(item) %2!=0?'#e6e6e6':'#fff'}}>
-                <td>{lindex++}</td>
+             {timelyData?.map(item=>(
+              <tr style={{height: " 30px",backgroundColor:data.indexOf(item) %2!=0?'#e6e6e6':'#fff'}}>
+                <td>{trank++}</td>
                 <td>{item.user_id}</td>
                 <td>{item.fullname}</td>
                 <td style={{fontSize:'8px'}}>{item.department}</td>
                 <td style={{fontSize:'8px'}}>{item.job}</td>
-                <td>{' '}</td>
+                <td>{item.attendance?.attendance_time}</td>
+                <td>{item.attendance?.leave_time}</td>
+                <td>{item.workHours}</td>
               </tr>
              ))}
             </tbody>
