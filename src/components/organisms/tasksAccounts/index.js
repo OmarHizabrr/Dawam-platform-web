@@ -671,7 +671,7 @@ return (
     </div>
     <div id="ann-report" style={{display:'none'}}>
     <div  style={{direction: "rtl",fontSize: "12px",fontFamily: "Tajawal",margin: "0"}}>
-    <table style={{fontSize: "11px",width: " 100%",textAlign: " center"}}>
+    <table class="equal-table" style={{fontSize: "11px",width: " 100%",textAlign: " center"}}>
     <thead>
     <tr style={{border:'none'}}>
     <th colSpan={21}>  
@@ -703,7 +703,7 @@ return (
 
       {
         months.map((m,ind)=>{
-         return <th style={{fontWeight: "100",whiteSpace: 'nowrap',transform:'rotate(-90deg)',height:'50px',width:'20px'}}>{months[ind]}</th>;
+         return <th class="equal" style={{fontWeight: "100",whiteSpace: 'nowrap', transform: 'rotate(-180deg)',writingMode: 'vertical-rl',height:'30px',width:'30px',maxWidth:'30px'}}>{months[ind]}</th>;
         })
       }
       <th style={{fontWeight: "100"}} > الممنوح</th>
@@ -728,7 +728,7 @@ return <tr style={{height: " 25px",backgroundColor:aindex %2==0?'#e6e6e6':'#fff'
     months.map((m,ind)=>{
       var min=item['m'+(ind+1)]/60;
       totalg+=min;
-     return <td style={{fontWeight: "100"}}>{ parseInt(min/60)+":"+min%60 }</td>;
+     return <td class="equal" style={{fontWeight: "100"}}>{ parseInt(min/60)+":"+min%60 }</td>;
     })
     
   }

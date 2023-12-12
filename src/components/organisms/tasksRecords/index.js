@@ -192,25 +192,17 @@ const selectRecord=(e,record)=>{
       }
     },
     {
+      title: 'إجمالي الوقت',
+      dataIndex: 'netPeriod',
+      key: 'netPeriod',
+      ellipsis: true,
+    }, 
+    {
       title: 'التفاصيل',
       dataIndex: 'description',
       key: 'description',
       ellipsis: true,
-    },
-    {
-      title: "",
-      width:100,
-      render: (vid, record, index) => (
-        <Button
-          onClick={function () {setVacType(record.vac_id);setDatefromValue(record.date_from);setDatetoValue(record.date_to);setEdit(index)}}
-          className={'edit-btn'}
-          style={{ backgroundColor: "#fff", borderColor: "#0972B6",color:"#0972B6" }}
-          type="primary"
-          shape="round"
-          icon={<FormOutlined />}
-        ></Button>
-      ),
-    } ,  
+    },  
    {
       title: "",
       width:100,

@@ -18,7 +18,7 @@ const { Option } = Select;
 const {RangePicker}=DatePicker;
 const exportToExcel=(type,fn,dl)=>{
 
-  var elt = document.getElementsByTagName('table')[0];
+  var elt = document.getElementById('discounts-table');
   if(elt){
    var wb = excel.utils.table_to_book(elt, { sheet: "sheet1" });
    return dl ?
@@ -251,7 +251,7 @@ return (
     </Card>
     <div id="att-report"style={{display:'none'}}>
     <div  style={{direction: "rtl",fontSize: "12px",fontFamily: "Tajawal",margin: "0"}}>
-    <table style={{fontSize: "11px",width: " 100%",textAlign: " center",marginTop: " 20px"}}>
+    <table id="discounts-table" style={{fontSize: "11px",width: " 100%",textAlign: " center",marginTop: " 20px"}}>
     <thead>
     <tr style={{border:'none'}}>
     <th colSpan={13}>  
@@ -280,7 +280,7 @@ return (
                      <th style={{fontWeight: "100"}} rowSpan="2">الاستحقاق</th>
                      <th style={{fontWeight: "100"}} colSpan="2">التأخرات</th>
                      <th style={{fontWeight: "100"}} colSpan="2">الغياب</th>
-                     <th style={{fontWeight: "100"}} colSpan="2">إجمالي الخصم</th>
+                     <th style={{fontWeight: "100"}} colSpan="3">إجمالي الخصم</th>
                 </tr>
                 <tr style={{color:"#fff",backgroundColor: "#0972B6",height: "20px"}}>
                 <th style={{fontWeight: "100"}}>الساعات</th>
@@ -289,6 +289,8 @@ return (
                 <th style={{fontWeight: "100"}}>الخصم</th>
                 <th style={{fontWeight: "100"}}>الساعات</th>
                 <th style={{fontWeight: "100"}}>المبلغ</th>
+                <th style={{fontWeight: "100"}}>النسبة</th>
+
                 </tr>
             </thead>
             <tbody>
@@ -350,6 +352,9 @@ return (
                 <td>{new Intl.NumberFormat('en-EN').format(Math.round(adis))}</td>
                 <td>{parseInt(totalateTime/60)+":"+(totalateTime%60)}</td>               
                 <td>{new Intl.NumberFormat('en-EN').format(Math.round(tot/dround)*dround)}</td>
+
+                <td>{Math.round(tot/item.salary*100)}%</td>
+
               </tr>
               );
              })
@@ -363,6 +368,9 @@ return (
                 <td>{new Intl.NumberFormat('en-EN').format(Math.round(adiscounts/5)*5)}</td>
                 <td>{parseInt(ttotalateTime/60)+":"+(ttotalateTime%60)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(Math.round(total/5)*5)}</td>
+
+                <td>{Math.round(total/sal*100)}%</td>
+
               </tr>
             </>            
               );
@@ -376,6 +384,9 @@ return (
                 <td>{new Intl.NumberFormat('en-EN').format(Math.round(tadiscounts/5)*5)}</td>
                 <td>{parseInt(tttotalateTime/60)+":"+(tttotalateTime%60)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(Math.round(ttotal/5)*5)}</td>
+
+                <td>{Math.round(ttotal/tsal*100)}%</td>
+
               </tr>
 
             </tbody>
