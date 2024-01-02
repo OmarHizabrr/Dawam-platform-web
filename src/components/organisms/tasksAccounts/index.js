@@ -384,7 +384,26 @@ export default function TasksAccounts (props){
         var aindex=1;
         var tttasksTypes=Array(tasksTypes.length).fill(0);
         var months = ["يناير", "فبراير", "مارس", "إبريل", "مايو", "يونيو","يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
-return (
+        var tprevBalance=0;
+        var tcurrBalance=0;
+        var ttransBalance=0;
+        var topBalance=0;
+        var ttotalgBalance=0;
+        var tmonthsBalance={
+          'm1' : 0,
+          'm2' : 0,
+          'm3' : 0,
+          'm4' : 0,
+          'm5' : 0,
+          'm6' : 0,
+          'm7' : 0,
+          'm8' : 0,
+          'm9' : 0,
+          'm10' : 0,
+          'm11' : 0,
+          'm12' : 0,
+        }
+        return (
     <Card>
       <Modal confirmLoading={saving} title="إضافة رصيد إجازة موظف" visible={isModalVisible} width={1300} onCancel={handleCancel} onOk={onFinish} >
       <Form form={form}>
@@ -536,7 +555,6 @@ return (
       </Form.Item>
       </Form>
       </Modal>
-
       <div style={{marginBottom:'10px'}}>
       <div className='discountHeader' style={{marginBottom:'10px'}}>
         <div className='discountBtn'>
@@ -712,37 +730,111 @@ return (
     </tr>
     </thead>
     <tbody>
-{pannTasks.map((item,i)=>{
-var totalg=0;
-var op=Math.round(item.prev)+Math.round(item.curr)+Math.round(item.trans);
-
-return <tr style={{height: " 25px",backgroundColor:aindex %2==0?'#e6e6e6':'#fff'}}>
-  <td style={{fontWeight: "100"}} >{aindex++}</td>
-  <td style={{fontWeight: "100"}} >{item.name}</td>
-  <td style={{fontWeight: "100",width:'100px'}} >{item.job}</td>
-  <th style={{fontWeight: "100"}} >{parseInt(item.prev/60)+":"+Math.round(item.prev%60) }</th>
-  <th style={{fontWeight: "100"}} >{parseInt( item.curr/60)+":"+ Math.round(item.curr%60) }</th>
-  <th style={{fontWeight: "100"}} >{parseInt( item.trans/60)+":"+ Math.round(item.trans%60)}</th>
-  <th style={{fontWeight: "100"}} >{parseInt(op/60)+":"+ op%60}</th>
   {
-    months.map((m,ind)=>{
-      var min=item['m'+(ind+1)]/60;
-      totalg+=min;
-     return <td class="equal" style={{fontWeight: "100"}}>{ parseInt(min/60)+":"+min%60 }</td>;
-    })
-    
-  }
-  <td style={{fontWeight: "100"}}>{ Math.round((totalg/60/7)*100)/100 }</td>
-  <th style={{fontWeight: "100"}} >{Math.round(((op-totalg)/60/7)*100)/100}</th>
+   categories.map(item=>{
+    var catData=pannTasks.filter(record => record.category==item.name);
+    var prevBalance=0;
+    var currBalance=0;
+    var transBalance=0;
+    var opBalance=0;
+    var totalgBalance=0;
+    var monthsBalance={
+      'm1' : 0,
+      'm2' : 0,
+      'm3' : 0,
+      'm4' : 0,
+      'm5' : 0,
+      'm6' : 0,
+      'm7' : 0,
+      'm8' : 0,
+      'm9' : 0,
+      'm10' : 0,
+      'm11' : 0,
+      'm12' : 0,
+    }
+    if(catData.length) return (
+      <>
+        {
+          catData.map(item=>{
+            prevBalance+=item.prev*1;
+            currBalance+=item.curr*1;
+            transBalance+=item.trans*1;
+            var totalg=0;
+            var op=Math.round(item.prev)+Math.round(item.curr)+Math.round(item.trans);
+            opBalance+=op;
+            
+            tprevBalance+=item.prev*1;
+            tcurrBalance+=item.curr*1;
+            ttransBalance+=item.trans*1;
+            topBalance+=op;
 
-</tr>;
+            return  (
+            <tr style={{height: " 25px",backgroundColor:aindex %2==0?'#e6e6e6':'#fff'}}>
+              <td style={{fontWeight: "100"}} >{aindex++}</td>
+              <td style={{fontWeight: "100"}} >{item.name}</td>
+              <td style={{fontWeight: "100",width:'100px'}} >{item.job}</td>
+              <th style={{fontWeight: "100"}} >{parseInt(item.prev/60)+":"+Math.round(item.prev%60) }</th>
+              <th style={{fontWeight: "100"}} >{parseInt( item.curr/60)+":"+ Math.round(item.curr%60) }</th>
+              <th style={{fontWeight: "100"}} >{parseInt( item.trans/60)+":"+ Math.round(item.trans%60)}</th>
+              <th style={{fontWeight: "100"}} >{parseInt(op/60)+":"+ op%60}</th>
+              {
+                months.map((m,ind)=>{
+                  var min=item['m'+(ind+1)]/60;
+                  totalg+=min;
+                  totalgBalance+=min;
+                  monthsBalance['m'+(ind+1)]+=min;
+                  ttotalgBalance+=min;
+                  tmonthsBalance['m'+(ind+1)]+=min;
+                 return <td class="equal" style={{fontWeight: "100"}}>{ parseInt(min/60)+":"+min%60 }</td>;
+                })
+                
+              }
+              <td style={{fontWeight: "100"}}>{ Math.round((totalg/60/7)*100)/100 }</td>
+              <th style={{fontWeight: "100"}} >{Math.round(((op-totalg)/60/7)*100)/100}</th>
+                        
+            </tr>
+            );
+          })
+        }
+      <tr style={{height: " 25px",color:"#fff",backgroundColor: "#0972B6",}}>
+        <td style={{fontWeight: "100"}} colSpan={3}>{item.name}</td>
+        <th style={{fontWeight: "100"}} >{parseInt(prevBalance/60)+":"+Math.round(prevBalance%60) }</th>
+        <th style={{fontWeight: "100"}} >{parseInt(currBalance/60)+":"+ Math.round(currBalance%60) }</th>
+        <th style={{fontWeight: "100"}} >{parseInt(transBalance/60)+":"+ Math.round(transBalance%60)}</th>
+        <th style={{fontWeight: "100"}} >{parseInt(opBalance/60)+":"+ opBalance%60}</th>
+        {
+          months.map((m,ind)=>{
+            var min=monthsBalance['m'+(ind+1)];
+           return <td class="equal" style={{fontWeight: "100"}}>{ parseInt(min/60)+":"+min%60 }</td>;
+          }) 
+        }
+        <td style={{fontWeight: "100"}}>{ Math.round((totalgBalance/60/7)*100)/100 }</td>
+        <th style={{fontWeight: "100"}} >{Math.round(((opBalance-totalgBalance)/60/7)*100)/100}</th>          
+      </tr>
+      </>            
+      );
 })}
+      <tr  style={{height: " 30px",color:"#fff",backgroundColor: "#0972B6",}}>
+        <td colSpan={3}>{'الإجمالي العام'}</td>    
+        <th style={{fontWeight: "100"}} >{parseInt(tprevBalance/60)+":"+Math.round(tprevBalance%60) }</th>
+        <th style={{fontWeight: "100"}} >{parseInt(tcurrBalance/60)+":"+ Math.round(tcurrBalance%60) }</th>
+        <th style={{fontWeight: "100"}} >{parseInt(ttransBalance/60)+":"+ Math.round(ttransBalance%60)}</th>
+        <th style={{fontWeight: "100"}} >{parseInt(topBalance/60)+":"+ topBalance%60}</th>
+        {
+          months.map((m,ind)=>{
+            var min=tmonthsBalance['m'+(ind+1)];
+           return <td class="equal" style={{fontWeight: "100"}}>{ parseInt(min/60)+":"+min%60 }</td>;
+          }) 
+        }
+        <td style={{fontWeight: "100"}}>{ Math.round((ttotalgBalance/60/7)*100)/100 }</td>
+        <th style={{fontWeight: "100"}} >{Math.round(((topBalance-ttotalgBalance)/60/7)*100)/100}</th> 
+      </tr>
     </tbody>
     <tfoot>
       <tr>
         <th colSpan={21}>
           <div style={{display: "flex",flexDirection: "row",marginTop: "20px",textAlign: "center"}}>
-{props.setting.filter((item)=> item.key == 'admin.signs_footer')[0]?.value.split('\n').map((sign)=>{
+          {props.setting.filter((item)=> item.key == 'admin.signs_footer')[0]?.value.split('\n').map((sign)=>{
            var sign_position=sign.split(':')[0];
            var sign_name=sign.split(':')[1];
 

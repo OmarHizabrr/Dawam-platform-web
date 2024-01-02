@@ -42,6 +42,7 @@ export default function GeneralSetting(props){
          formData.append('signs_footer',values['signs_footer']);
          formData.append('bonus_price',values['bonus_price']);
          formData.append('bonus_threshold',values['bonus_threshold']);
+         formData.append('vacations_tolerance',values['vacations_tolerance']);
 
        axios.post(Env.HOST_SERVER_NAME+'general-setting',formData)
         .then(res=>{
@@ -62,7 +63,8 @@ export default function GeneralSetting(props){
       'general_manager':props.setting.filter((item)=> item.key == 'admin.general_manager')[0]?.value,
       'signs_footer':props.setting.filter((item)=> item.key == 'admin.signs_footer')[0]?.value,
       'bonus_price':props.setting.filter((item)=> item.key == 'admin.bonus_price')[0]?.value,
-      'bonus_threshold':props.setting.filter((item)=> item.key == 'admin.bonus_threshold')[0]?.value
+      'bonus_threshold':props.setting.filter((item)=> item.key == 'admin.bonus_threshold')[0]?.value,
+      'vacations_tolerance':props.setting.filter((item)=> item.key == 'admin.vacations_tolerance')[0]?.value
 
     });
     const openNotification = (placement,text) => {
@@ -108,6 +110,9 @@ return (
               <Input/>
             </Form.Item>
             <Form.Item name={'bonus_threshold'} label={'أقل مدة للإضافي بالدقيقة'}>
+              <Input/>
+            </Form.Item>
+            <Form.Item name={'vacations_tolerance'} label={'سماحية تقديم الإجازات بالأيام'}>
               <Input/>
             </Form.Item>
             <Form.Item name={'signs_footer'} label={'توقيعات تذييل الصفحة'}>

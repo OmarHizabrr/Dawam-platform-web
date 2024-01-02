@@ -4,11 +4,9 @@ import excel from 'xlsx';
 import axios from 'axios';
 import './style.css';
 import moment from 'moment';
+import dayjs from 'dayjs';
 
-
-import logoText from '../../../assets/images/logo-text.png';
 import {Env} from '../../../styles';
-import { useCookies,CookiesProvider  } from 'react-cookie';
 import './style.css';
 import { DatePicker, Space,Form,Table, Button,Modal,Card,Spin,Input,Select,Progress,Popconfirm,notification,Typography } from 'antd';
 import {CheckCircleOutlined,MinusCircleOutlined,CloseCircleOutlined,ExportOutlined,FormOutlined,DeleteOutlined,PrinterOutlined} from '@ant-design/icons';
@@ -30,7 +28,6 @@ const exportToExcel=(type,fn,dl)=>{
 } 
 export default function tasksTable(props) {
   const [selectedIndex,setSelectedIndex]=useState(null);
-  const [cookies, setCookie, removeCookie]=useCookies(["userId"]);
   const [filteredInfo,setFilteredInfo]=useState({});
   const [sortedInfo,setSortedInfo]=useState({});
   const [isModalVisible,setIsModalVisible]=useState(false);
@@ -167,6 +164,18 @@ export default function tasksTable(props) {
     mywindow.document.write('</body></html>');
     mywindow.print();
   }
+
+  const disabledDate = (current) => {
+
+      // Calculate the date two days ago
+      var daysCount=props.setting.filter((item)=> item.key == "admin.vacations_tolerance")[0]?.value*1;
+      var count= isNaN(daysCount)?1:daysCount;
+
+      const twoDaysAgo =  dayjs().subtract(count, 'day').endOf('day');
+  
+    // Disable dates that are before two days ago
+    return current && current < twoDaysAgo;
+  };
 
   const getGivenRest=(e,start)=>{
     axios.get(Env.HOST_SERVER_NAME+'given-tasks/'+props.user.user_id+'/'+start+'/'+end).then(response=>{
@@ -665,7 +674,7 @@ return (
         <DatePicker  defaultValue={moment()} onChange={onChange} picker="month" />
       </div>  
         <div className='tasksRange' style={{marginBottom:'10px',marginLeft:'5px'}}><span>اختر فترة : </span>
-          <RangePicker value={[moment(start,"YYYY-MM-DD"),moment(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
+          <RangePicker  value={[moment(start,"YYYY-MM-DD"),moment(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
         </div>
         <div className='tasksBtn'>   
           <Button style={{marginBottom:'10px',marginLeft:'5px',backgroundColor:'#FAA61A',border:'none'}} onClick={showModal} type='primary'><FormOutlined /> تقديم إجازة </Button>
@@ -682,6 +691,7 @@ return (
      showTime={{
         defaultValue: [moment(props.setting.filter((item)=> item.key == 'duration_start')[0]?.value, 'HH:mm'), moment(props.setting.filter((item)=> item.key == 'duration_end')[0]?.value, 'HH:mm')],
       }}
+      disabledDate={disabledDate}
       format="YYYY-MM-DD HH:mm"  
       onCalendarChange={function(all,dates){onRangeChange(all,dates);}}
     />
