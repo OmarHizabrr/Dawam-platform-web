@@ -2,19 +2,16 @@
 import React, { useState, useEffect } from 'react';
 import moment from 'moment';
 import 'moment/locale/ar-ly';
+import dayjs from 'dayjs';
 
 import excel from 'xlsx';
 import './style.css';
-import logoText from '../../../assets/images/logo-text.png';
 import { Typography,notification ,Layout,Tabs,Table, Button,Progress, DatePicker,Form,Input, Spin,Select,Card,Modal } from 'antd';
 import {SwapOutlined,FormOutlined,ExportOutlined,PrinterOutlined,CopyOutlined} from '@ant-design/icons';
 import axios from 'axios';
-import { useCookies,CookiesProvider  } from 'react-cookie';
+import { useCookies  } from 'react-cookie';
 import {Env} from './../../../styles';
-const { Content } = Layout;
-const { Text,Space } = Typography;
-const { TabPane } = Tabs;
-const { Option } = Select; 
+const { Text } = Typography;
 const {RangePicker}=DatePicker;
 const {TextArea}=Input;
 const exportToExcel=(type,fn,dl)=>{
@@ -36,7 +33,6 @@ export default function attendanceTable(props){
       const [datefromValue,setDatefromValue]=useState(null);
       const [datetoValue,setDatetoValue]=useState(null);
 
-      const [eventsLog,setEventsLog]=useState([]);
       const [data,setData]=useState([]);
       const [load,setLoad]=useState(true);
       const [selected, setSelected] = useState([]);
@@ -66,13 +62,11 @@ export default function attendanceTable(props){
       const [tstypes,setTstypes]=useState([]);
 
       const [totalVacs,setTotalVacs]=useState([]);
-      const [selUser,setSelUser]=useState(null);
       const [pdata, setPData] = useState([]);
       const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
       const [detailedDay,setDetailedDay]=useState("");
       const [form] = Form.useForm();
 
-      const id=cookies.user;   
       var allWorkHours=0;
       var allLateTimes=0;
       var allVacHours=0;
@@ -113,8 +107,6 @@ export default function attendanceTable(props){
         });
         setLoad(true);
         
-
-
         axios.get(Env.HOST_SERVER_NAME+'get-tasks-types')
         .then(response => {
           setTstypes(response.data);
@@ -125,6 +117,16 @@ export default function attendanceTable(props){
 
        },[start,end,props.user]);
 
+       const disabledDate = (current) => {
+        // Calculate the date two days ago
+        var daysCount=props.setting.filter((item)=> item.key == "admin.vacations_tolerance")[0]?.value*1;
+        var count= isNaN(daysCount)?1:daysCount;
+  
+        const twoDaysAgo =  dayjs().subtract(count, 'day').endOf('day');
+    
+      // Disable dates that are before two days ago
+      return current && current < twoDaysAgo;
+    };
        const handleChange = (pagination, filters, sorter) => {
         setFilteredInfo(filters);
         setSortedInfo(sorter);
@@ -247,10 +249,17 @@ export default function attendanceTable(props){
       }
        });
       };
-    
-    const selectMonth=(value)=>{
-      }  
-    
+     
+      const isEligibleDays = (dateString)=> { 
+          // Calculate the date two days ago
+          var daysCount=props.setting.filter((item)=> item.key == "admin.vacations_tolerance")[0]?.value*1;
+          var count= isNaN(daysCount)?1:daysCount;
+          return new Date() > new Date(new Date(dateString).setDate(new Date(dateString).getDate() + count));
+      
+      }
+
+
+
     const columns = [
 
       {
@@ -363,6 +372,7 @@ export default function attendanceTable(props){
         key: 'action',
         render: (vid, record, index) => (
           <Button
+            disabled={isEligibleDays(record.date)}
             onClick={function () {
               showVacationModal(record);
             }}
@@ -514,7 +524,7 @@ return (
     <Modal title="تقديم إجازة / مهمة" confirmLoading={saving} visible={isVModalVisible} onOk={function(){setSaving(true);handleVOk()}} onCancel={function(){handleVCancel()}}>
       <Form form={form} >
         <Form.Item className='rangee' name={'date_range'} label="فترة الإجازة / المهمة :">
-          <RangePicker value={[moment(datefromValue,"YYYY-MM-DD HH:mm"), moment(datetoValue, "YYYY-MM-DD HH:mm")]} showTime={{defaultValue: [moment(props.setting.filter((item)=> item.key == 'duration_start')[0]?.value, 'HH:mm'), moment(props.setting.filter((item)=> item.key == 'duration_end')[0]?.value, 'HH:mm')],}} format="YYYY-MM-DD HH:mm"  onCalendarChange={function(all,dates){onRangeChange(all,dates);}} />
+          <RangePicker       disabledDate={disabledDate} value={[moment(datefromValue,"YYYY-MM-DD HH:mm"), moment(datetoValue, "YYYY-MM-DD HH:mm")]} showTime={{defaultValue: [moment(props.setting.filter((item)=> item.key == 'duration_start')[0]?.value, 'HH:mm'), moment(props.setting.filter((item)=> item.key == 'duration_end')[0]?.value, 'HH:mm')],}} format="YYYY-MM-DD HH:mm"  onCalendarChange={function(all,dates){onRangeChange(all,dates);}} />
           <div style={{marginTop:'10px',fontWeight:600}}>مدة الإجازة: <Text type="danger">{totalVac}</Text></div> 
         </Form.Item>
         <Form.Item style={{marginTop:'10px'}} name={'task_type'} label="نوع الإجازة">

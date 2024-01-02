@@ -166,7 +166,6 @@ export default function tasksTable(props) {
   }
 
   const disabledDate = (current) => {
-
       // Calculate the date two days ago
       var daysCount=props.setting.filter((item)=> item.key == "admin.vacations_tolerance")[0]?.value*1;
       var count= isNaN(daysCount)?1:daysCount;
@@ -735,6 +734,7 @@ return (
       format="YYYY-MM-DD HH:mm"
       value={[moment(datefromValue,"YYYY-MM-DD HH:mm"), moment(datetoValue, "YYYY-MM-DD HH:mm")]}
       showTime
+      disabledDate={disabledDate}
       onCalendarChange={function(all,dates){onRangeChange(all,dates);}}
     />
   </Space>
