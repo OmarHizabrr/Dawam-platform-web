@@ -127,7 +127,7 @@ export default function tasksTable(props) {
     setLoad(true);
     axios.get(Env.HOST_SERVER_NAME+'get-tasks/'+props.user.user_id+'/'+start+'/'+end)
     .then(response => {
-
+    
       let vacations=[];
       response.data.forEach(element => {  
         if(!vacations.some(item => element.name == item.text))      
@@ -238,7 +238,10 @@ export default function tasksTable(props) {
           const minutes=(new Date(date[1])-new Date(date[0]))/60000;
           var alerta="";
           if(minutes<=420) alerta=(Math.floor(minutes/60)+" ساعة و "+(minutes%60))+" دقيقة ";
-          else alerta=(Math.floor(minutes/1440)+1)+" يوم ";
+          else {
+            var per=(Math.floor(minutes/1440)+1)
+            alerta=per+per<=10?" أيام ":"يومًا";
+          }
           setTotalVac(alerta); 
         }
       }
@@ -260,7 +263,6 @@ export default function tasksTable(props) {
        
         axios.post(Env.HOST_SERVER_NAME+`add-task`,values)
           .then(function (response) { 
-          
             openNotification('bottomLeft',<Text>{'تم إرسال الإجازة بنجاح'}</Text>);
             setSaving(false);
             setIsModalVisible(false);    
@@ -271,7 +273,7 @@ export default function tasksTable(props) {
             setNotes(null);
             setGivenTasks(0);
             setRestTasks(0);
-            
+            setUpdate(update+1);
 
           })
        .catch(function (error) {
@@ -345,9 +347,10 @@ export default function tasksTable(props) {
       }
 
   const deleteTask = (record) => {
-       
+    
         axios.delete(Env.HOST_SERVER_NAME+'delete-task/'+record.id)
            .then(response => {
+            console.log(response)
              setVisible(false);
              setConfirmLoading(false);
              openNotification('bottomLeft',<span> {'تم حذف الإجازات/المهام بنجاح.' }</span>);

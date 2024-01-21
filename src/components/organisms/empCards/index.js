@@ -2,8 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import moment from 'moment';
-import { jsPDF } from "jspdf";
-import html2canvas from 'html2canvas';
 
 import {Env} from './../../../styles';
 import AttendanceTable from './../attendanceTable';
@@ -12,27 +10,17 @@ import BonusTable from './../bonusTable';
 
 import ReactApexChart from "react-apexcharts";
 
-import { Card, Avatar,Layout,Row,Col,Upload,Checkbox ,Typography,Switch,Badge,Dropdown,Rate,Menu,Skeleton,Space,InputNumber,Select,Modal, Button,Form,Input,notification, DatePicker,Collapse,Progress,Spin} from 'antd';
+import { Card, Divider,Avatar,Layout,Row,Col,Upload,Checkbox ,Typography,Badge,Dropdown,Rate,Menu,Skeleton,Space,InputNumber,Select,Modal, Button,Form,Input,notification, DatePicker,Collapse,Progress,Spin} from 'antd';
 import './style.css';
-import { NavHashLink as NavLink } from 'react-router-hash-link';
-import { PlusOutlined,UploadOutlined, TagsOutlined,ClockCircleOutlined, ClusterOutlined ,MoreOutlined,MinusCircleOutlined,PrinterOutlined,FileOutlined} from '@ant-design/icons';
-import {
-    BrowserRouter as Router,
-    Route,
-    Redirect,
-    Link,
-    useRouteMatch
-  } from "react-router-dom";
 
-const { Meta } = Card;
+import { PlusOutlined,UploadOutlined, FormOutlined,TagsOutlined,ClockCircleOutlined, ClusterOutlined ,MoreOutlined,MinusCircleOutlined,PrinterOutlined,FileOutlined} from '@ant-design/icons';
+
 const { Text } = Typography;
 const { Panel } = Collapse;
 const { RangePicker } = DatePicker;
 const {Option}=Select;
 
 export default function EmpCards(props){ 
-    let { path, url } = useRouteMatch(); 
-
     const [data,setData]=useState([]);
     const [categories,setCategories]=useState([]);
     const [durations,setDurations]=useState([]);
@@ -55,6 +43,8 @@ export default function EmpCards(props){
     const [isAVisibleModal,setIsAVisibleModal]=useState(false);
     const [isTVisibleModal,setIsTVisibleModal]=useState(false);
     const [isBVisibleModal,setIsBVisibleModal]=useState(false);
+    
+    const [isFactorModalVisible,setIsFactorModalVisible]=useState(false);
 
     const [start,setStart]=useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().slice(0,10));
     const [end,setEnd]=useState(new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().slice(0,10));
@@ -76,6 +66,8 @@ export default function EmpCards(props){
     const [spiderData,setSpiderData]=useState([]);
     const [reportLoad,setReportLoad]=useState(true);
     const [selectedUserName,setSelectedUserName]=useState("");
+    const [saving,setSaving]=useState(false);
+    const [loadUsers, setLoadUsers]=useState(false);
 
     const  UploadProps = {
       showUploadList: {
@@ -87,6 +79,8 @@ export default function EmpCards(props){
 
     const [userform] = Form.useForm();
     const [formDate] = Form.useForm();
+    const [factorForm] = Form.useForm();
+    const [ifactorForm] = Form.useForm();
 
   const printReport=()=>{
       var report=document.getElementById('prank-report');
@@ -143,28 +137,6 @@ export default function EmpCards(props){
      // console.log(key);
     }
 
-    function toTimestamp(strDate){
-      var datum = Date.parse(strDate);
-      return datum/1000;
-   }
-   
-  const printTestReport=()=>{
-    var report=document.getElementsByClassName('emp-report-modal')[0];
-    //var report=document.body;
-   var mywindow = window.open('');
-    mywindow.document.write("<html><head><title></title> <style>@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500&display=swap'); body{font-family:Tajawal;font-size:12px;margin:0}  </style><style type='text/css' media='print'>@page { size: A4 landscape; print-color-adjust: exact !important;  -webkit-print-color-adjust: exact !important;}</style>");
-    mywindow.document.write('</head><body dir="rtl" style="font-size:12px;" >');
-    mywindow.document.write(report.innerHTML);
-    mywindow.document.write('</body></html>');
-    
-    mywindow.document.close();  
-
-   mywindow.onload = function() { // wait until all resources loaded 
-    mywindow.focus(); // necessary for IE >= 10
-    mywindow.print();  // change window to mywindow
-    mywindow.close();// change window to mywindow
-};
-  }
    const intervals = [
     { label: 'سنوات', seconds: 31536000 },
     { label: 'أشهر', seconds: 2592000 },
@@ -213,42 +185,21 @@ for (let i = 0; i < 16; i++) {
 }
 
 const onFinish=()=>{
-  var formData=new FormData();
-  const config = {
-    headers: {
-      'content-type': 'application/json',
-    },
-  };
- var userData=userform.getFieldsValue();
-  userData.control_panel=userData.control_panel?1:0;
-  userData.general_manager=userData.general_manager?1:0;
-  for (const key in userData) {
-    if (Array.isArray(userData[key])) {
-      for(const attach in userData[key]){
-        for(const attachData in userData[key][attach]){
-          formData.append(key+"["+attach+"]["+attachData+"]",userData[key][attach][attachData]);
-        }
-        
-      }
-    }
-    else{ 
-      formData.append(key, userData[key]);
-    }
-  }
+  setSaving(true);
 
-  axios.post(Env.HOST_SERVER_NAME+'users/add',formData).then(res => {
-    
+ var userData=factorForm.getFieldsValue();
+
+  axios.post(Env.HOST_SERVER_NAME+'users/factor',userData).then(res => {
     if(res.status==200){
       notification.success({
         message:'تمت العملية بنجاح' ,
         placement:'bottomLeft',
         duration:10,
       });
-      userform.resetFields();
+      factorForm.resetFields();
       setUpdate(update+1);
-      setIsVisibleModal(false);
-      setModalLoad(false);
-      setUserFormDisable(true);   
+      setIsFactorModalVisible(false);
+      setSaving(false);
     }
     else{
     alert("فشل إضافة موظف");
@@ -650,6 +601,57 @@ const deleteUser=()=>{
         console.log(error);
       });
 }
+
+const showUsersDebt = () => {
+  setLoadUsers(true);
+  axios.get(Env.HOST_SERVER_NAME + 'get-users-factor-data/')
+    .then(response => {
+      setLoadUsers(false);
+
+      var users = response.data;
+
+      const roundValue = ifactorForm.getFieldValue('round'); // Assuming 'round' is the field for rounding
+
+      const finalData = users.map(item => {
+        const field = ifactorForm.getFieldValue('field');
+        const factorOperator = ifactorForm.getFieldValue('factor');
+        const old_value = parseFloat(item[field]);
+
+        let new_value;
+        const factorValue = parseFloat(ifactorForm.getFieldValue('amount'));
+        switch (factorOperator) {
+          case 'sum':
+            new_value = old_value + factorValue;
+            break;
+          case 'sub':
+            new_value = old_value - factorValue;
+            break;
+          case 'multi':
+            new_value = old_value * factorValue;
+            break;
+          case 'div':
+            new_value = old_value / factorValue;
+            break;
+          default:
+            // Handle default case if needed
+            new_value = old_value;
+        }
+
+        // Round the new_value to the nearest multiple of roundValue (e.g., 500)
+        if (roundValue !== undefined) {
+          new_value = Math.round(new_value / roundValue) * roundValue;
+        }
+
+        return { ...item, field, old_value, amount: new_value };
+      });
+
+      factorForm.setFieldsValue({ 'users': finalData });
+    })
+    .catch(function (error) {
+      console.log(error);
+      setLoadUsers(false);
+    });
+};
 
 return(
 <Layout>
@@ -1358,9 +1360,117 @@ return(
     <p>هل متأكد من حذف الموظف {duser.name} ؟</p>
   </Modal>
 
+  <Modal confirmLoading={saving} title="إضافة معامل" visible={isFactorModalVisible} width={1300} onCancel={()=>{setIsFactorModalVisible(false);factorForm.resetFields();ifactorForm.resetFields();}} onOk={onFinish} >
+      <Form form={ifactorForm} style={{display:'flex',flexDirection:'row',justifyContent:'space-between'}}>
+        <Form.Item style={{marginLeft:'20px'}} name='field' label="الحقل" rules={[{ required: true, message: 'Missing area' }]}>
+          <Select style={{ width: 200 }} showSearch  optionFilterProp="children"
+             notFoundContent={<Spin style={{textAlign:'center'}}></Spin>}
+              filterOption={(input, option) =>
+               option.props.children?.indexOf(input) >= 0 ||
+               option.props.value?.indexOf(input) >= 0 ||
+                option.props.label?.indexOf(input) >= 0
+              }
+            filterSort={(optionA, optionB) =>
+               optionA.props?.children?.localeCompare(optionB.props.children)
+            }>
+              <Option key={'salary'} value={'salary'}>  الإعانة الشهرية </Option>
+              <Option key={'symbiosis'} value={'symbiosis'}>التكافل </Option>
+
+          </Select>
+        </Form.Item>
+        <Form.Item style={{marginLeft:'20px'}}  name='factor' label="المعامل الرياضي">
+        <Select style={{ width: 100 }} showSearch  optionFilterProp="children"
+             notFoundContent={<Spin style={{textAlign:'center'}}></Spin>}
+              filterOption={(input, option) =>
+               option.props.children?.indexOf(input) >= 0 ||
+               option.props.value?.indexOf(input) >= 0 ||
+                option.props.label?.indexOf(input) >= 0
+              }
+            filterSort={(optionA, optionB) =>
+               optionA.props?.children?.localeCompare(optionB.props.children)
+            }>
+              <Option key={'sum'} value={'sum'}> جمع </Option>
+              <Option key={'sub'} value={'sub'}> طرح </Option>
+              <Option key={'multi'} value={'multi'}> ضرب </Option>
+              <Option key={'div'} value={'div'}> قسمة </Option>
+
+          </Select>
+          </Form.Item>  
+
+          <Form.Item style={{ width: 200 }} style={{marginLeft:'20px'}} name= 'amount' label={'القيمة'}>
+            <InputNumber  placeholder="القيمة" />
+          </Form.Item> 
+
+            <Form.Item style={{ width: 150 }} style={{ marginLeft: '20px' }} name='round' label="التدوير لأقرب">
+              <InputNumber placeholder="التدوير لأقرب" />
+            </Form.Item> 
+          <Button loading={loadUsers} onClick={function(){ showUsersDebt();}} style={{marginRight:'20px',marginBottom: '24px'}} type='primary'>جلب الموظفين</Button>  
+      
+      </Form>
+
+    <Divider/>  
+
+      <Form form={factorForm}>
+      
+      <Form.List name="users">
+        {(fields, { add, remove }) => {
+          return <>
+            {
+            fields.map(({ key, name, ...restField }) => (
+              <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
+                <Form.Item name="user_id" hidden={true} style={{display:"none"}} >
+                    <Input/>
+                 </Form.Item>
+
+                 <Form.Item {...restField} name={[name, 'name']} disabled label={'اسم الموظف'}>
+                    <Input disabled />
+                 </Form.Item>
+
+                 <Form.Item {...restField} name={[name, 'field']} label={'الحقل'} disabled >
+                 <Select  style={{ width: 200 }} showSearch  optionFilterProp="children"
+             notFoundContent={<Spin style={{textAlign:'center'}}></Spin>}
+              filterOption={(input, option) =>
+               option.props.children?.indexOf(input) >= 0 ||
+               option.props.value?.indexOf(input) >= 0 ||
+                option.props.label?.indexOf(input) >= 0
+              }
+            filterSort={(optionA, optionB) =>
+               optionA.props?.children?.localeCompare(optionB.props.children)
+            }>
+              <Option key={'salary'} value={'salary'}>  الإعانة الشهرية </Option>
+              <Option key={'symbiosis'} value={'symbiosis'}>التكافل </Option>
+
+          </Select>
+                 </Form.Item>
+
+                 <Form.Item {...restField}  name={[name, 'old_value']} label={'القيمة القديمة'} disabled >
+                    <Input disabled />
+                 </Form.Item>
+
+                <Form.Item
+                  {...restField}
+                  name={[name, 'amount']}
+                  label={'القيمة الجديدة'}
+                  rules={[{ required: true, message: 'هذا الحقل مطلوب' }]}
+                >
+                  <InputNumber  placeholder="القيمة الجديدة" />
+                </Form.Item> 
+
+
+              </Space>
+            ))}
+          </>
+        }}
+      </Form.List> 
+      </Form>
+      </Modal>
+
 <Row style={{margin:'15px 10px'}}>
-<Col span={24} style={{backgroundColor:'#fff',borderRadius:'10px',padding:'10px'}}>
-<Button style={{float:'left',backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button>
+<Col span={24} style={{backgroundColor:'#fff',borderRadius:'10px',padding:'10px',display:'flex',flexDirection:'row',justifyContent:'end'}}>
+
+<Button style={{marginLeft:'5px',marginRight:'5px',border:'none',backgroundColor:'#FAA61A',color:'#fff'}} onClick={function(){ setIsFactorModalVisible(true); }} ><FormOutlined /></Button>
+
+<Button style={{sbackgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button>
 </Col>
 </Row>
 <Row gutter={[{xs: 2, sm: 16, md: 24, lg: 32 },{xs:2, sm: 16, md: 24, lg: 32 }]} style={{padding:'0 20px'}}>

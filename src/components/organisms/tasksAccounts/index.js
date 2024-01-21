@@ -1,17 +1,14 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import React,{ useState, useEffect }  from 'react';
 import './style.css';
-import { DatePicker,Table, Button,Card,Input,Select,Typography,Form,Space, Modal,Spin,notification,InputNumber} from 'antd';
-import {SwapOutlined,MinusCircleOutlined, PlusOutlined ,FormOutlined,ExportOutlined,PrinterOutlined} from '@ant-design/icons';
+import { DatePicker,Table, Button,Card,Input,Select,Form,Space, Modal,Spin,notification,InputNumber,Divider} from 'antd';
+import {PlusOutlined ,FormOutlined,ExportOutlined,PrinterOutlined} from '@ant-design/icons';
 import axios from 'axios';
 import excel from 'xlsx';
 import moment from 'moment';
 
-import logoText from '../../../assets/images/logo-text.png';
 import {Env} from './../../../styles';
-const {Text}=Typography;
 
-const { RangePicker } = DatePicker;
 const {TextArea}=Input;
 const {Option}=Select;
  
@@ -27,9 +24,6 @@ export default function TasksAccounts (props){
   const [namesFilter,setNamesFilter]=useState([]);
   const [currentYear,setCurrentYear]=useState(moment().format('YYYY'));
 
-  const [isTextInput,setIsTextInput]=useState(false);
-  const [statment,setStatment]=useState(null);
-  const [amountValue,setAmountValue]=useState(null);
   const [isModalVisible,setIsModalVisible]=useState(false);
   const [isDModalVisible,setIsDModalVisible]=useState(false);
 
@@ -49,30 +43,6 @@ export default function TasksAccounts (props){
   const [annTasks, setAnnTasks] = useState([]);
   const [pannTasks, setPAnnTasks] = useState([]);
 
-  const getVacDuration=(user_id,vid)=>{
-    for(var i = 0; i < data.length; i++)
-      if(data[i].user_id == user_id && data[i].vid == vid ) 
-          return  parseInt(data[i].rest/60)+":"+data[i].rest%60;  
-      return 0;
-  }
-  const getOrganizedVacations=()=>{
-    if(data.length>0 && empNames.length>0 && tasksTypes.length>0){
-    var vacData='[';
-    empNames.map((user,index)=>{
-     
-    vacData+='{'+'"empName":"'+user.label+'","user_id":"'+user.value+'",';
-    var vacDetails="";
-    tasksTypes.map((task)=>{
-      vacDetails+='"'+task.label+'":"'+getVacDuration(user.value,task.value)+'",';    
-    });
-    vacData+=vacDetails.substring(0, vacDetails.length - 1);
-    vacData+='},';   
-    });  
-  
-    return JSON.parse(vacData.substring(0, vacData.length - 1)+']');
-  }
-  else return [];
-  }
   const showAccount=(user_id)=>{
     setIsModalVisible(true);
     axios.get(Env.HOST_SERVER_NAME+'get-tasks-statment/'+user_id)
@@ -314,7 +284,11 @@ export default function TasksAccounts (props){
         axios.get(Env.HOST_SERVER_NAME+'get-users-long-debts/')
             .then(response => {
               setLoadUsers(false);
-              form.setFieldsValue({'tasks':response.data});          
+
+              var tasks=response.data
+              const finalData = tasks.map(item => ({ ...item, amount:gform.getFieldValue('amount'),task_id:gform.getFieldValue('task_id'),type:gform.getFieldValue('type') }));
+
+              form.setFieldsValue({'tasks':finalData});          
             }).catch(function (error) {
               console.log(error);
               setLoadUsers(false);
@@ -322,6 +296,7 @@ export default function TasksAccounts (props){
        };
   const [form] = Form.useForm();
   const [dform] = Form.useForm();
+  const [gform] = Form.useForm();
 
   const onFinish = () => {
         
@@ -406,8 +381,52 @@ export default function TasksAccounts (props){
         return (
     <Card>
       <Modal confirmLoading={saving} title="إضافة رصيد إجازة موظف" visible={isModalVisible} width={1300} onCancel={handleCancel} onOk={onFinish} >
+      <Form form={gform} style={{display:'flex',flexDirection:'row',justifyContent:'space-between'}}>
+        <Form.Item style={{marginLeft:'20px'}} name='task_id' label="نوع الإجازة" rules={[{ required: true, message: 'Missing area' }]}>
+          <Select style={{ width: 100 }} showSearch  optionFilterProp="children"
+             notFoundContent={<Spin style={{textAlign:'center'}}></Spin>}
+              filterOption={(input, option) =>
+               option.props.children?.indexOf(input) >= 0 ||
+               option.props.value?.indexOf(input) >= 0 ||
+                option.props.label?.indexOf(input) >= 0
+              }
+            filterSort={(optionA, optionB) =>
+               optionA.props?.children?.localeCompare(optionB.props.children)
+            }>
+            {tasksTypes.map(item => (
+              <Option key={item.value} value={item.value}>
+                {item.label}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
+        <Form.Item style={{marginLeft:'20px'}}  name='type' label="نوع الرصيد">
+          <Select style={{ width: 100 }} showSearch  optionFilterProp="children"
+            options={types.filter(function(e){return e.parent==34;})}
+             notFoundContent={<Spin style={{textAlign:'center'}}></Spin>}
+              filterOption={(input, option) =>
+               option.props.children?.indexOf(input) >= 0 ||
+               option.props.value?.indexOf(input) >= 0 ||
+                option.props.label?.indexOf(input) >= 0
+              }
+            filterSort={(optionA, optionB) =>
+               optionA.props?.children?.localeCompare(optionB.props.children)
+            }
+          />
+          </Form.Item>   
+          <Form.Item style={{marginLeft:'20px'}} name= 'amount' label={'الرصيد بالدقائق'}>
+            <InputNumber  placeholder="الرصيد بالدقائق" />
+          </Form.Item> 
+          <Form.Item style={{marginLeft:'20px'}} name= 'note' label={'ملاحظات'}>
+            <Input  placeholder="ملاحظات" />
+          </Form.Item>  
+          <Button loading={loadUsers} onClick={function(){ showUsersDebt();}} style={{marginRight:'20px',marginBottom: '24px'}} type='primary'>جلب الموظفين</Button>  
+      </Form>
+
+    <Divider/>  
+
       <Form form={form}>
-      <Button loading={loadUsers} onClick={function(){ showUsersDebt();}} style={{marginRight:'20px',marginBottom: '24px'}} type='primary'>جلب الموظفين</Button>  
+      
       <Form.List name="tasks">
         {(fields, { add, remove }) => {
           return <>

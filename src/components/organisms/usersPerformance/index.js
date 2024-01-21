@@ -210,21 +210,8 @@ export default function UsersPerformance (props){
 
   useEffect(() => {
     
-    setLoad(true);   
-          axios.get(Env.HOST_SERVER_NAME+'get-emp-names')
-          .then(response => {
-            var names=[];
-            var filtered_names=response.data.filter(record => record.category==props.user.category.id);
-            setTstypes(filtered_names);
+          setLoad(true);   
 
-            filtered_names.forEach(element => {  
-
-            names.push({text:element['label'],value:element['label']});       
-          }); 
-          setNamesFilter(names);
-          }).catch(function (error) {
-            console.log(error);
-          });
 
     axios.get(Env.HOST_SERVER_NAME+'users-performance-rank/'+start+'/'+end)
     .then(response => {
@@ -240,12 +227,21 @@ export default function UsersPerformance (props){
       }
 
 
+      let names=[];
       let categories=[];
+      let ts=[];
       response.data.forEach(element => {  
-          if(!categories.some(item => element.category == item.text))      
-            categories.push({text:element['category'],value:element['category']});         
-      }); 
-      setCategoriesFilter([...categoriesFilter,...categories]);
+        if(!names.some(item => element.name == item.text)){      
+          names.push({text:element['name'],value:element['name']});
+          ts.push({label:element['name'],value:element['user_id']});
+        }
+        if(!categories.some(item => element.category == item.text))      
+          categories.push({text:element['category'],value:element['category']});        
+    }); 
+    setNamesFilter(names);
+    setCategoriesFilter(categories);
+  
+    setTstypes(ts);
 
       setLoad(false);
     }).catch(function (error) {
@@ -382,24 +378,24 @@ return (
                      <th style={{fontWeight: "100"}} >معدل الدوام</th>
                      <th style={{fontWeight: "100"}} >انضباط الحضور</th>
                      <th style={{fontWeight: "100"}} >انضباط الانصراف</th>
-                     <th style={{fontWeight: "100"}} >التأخرات بالساعة</th>
-                     <th style={{fontWeight: "100"}} >الوقت الفائض بالساعة</th>
+                     {/*<th style={{fontWeight: "100"}} >التأخرات بالساعة</th>
+                     <th style={{fontWeight: "100"}} >الوقت الفائض بالساعة</th>*/}
                      <th style={{fontWeight: "100"}} >إجمالي التقييم</th>
                 </tr>
             </thead>
             <tbody>
              
              {pdata.map(item=>(
-              <tr style={{height: " 25px",backgroundColor:data.indexOf(item) %2!=0?'#e6e6e6':'#fff'}}>
-                <td>{data.indexOf(item)+1}</td>
+              <tr style={{height: " 25px",backgroundColor:pdata.indexOf(item) %2!=0?'#e6e6e6':'#fff'}}>
+                <td>{pdata.indexOf(item)+1}</td>
                 <td>{item.name}</td>
                 <td>{item.category}</td>
                 <td>{item.job}</td>
                 <td>{Math.round(item.attendance_rate*100)+'%'}</td>
                 <td>{Math.round(Math.round(item.att_rate*100)*item.attendance_rate)+'%'}</td>
                 <td>{Math.round(Math.round(item.leave_rate*100)*item.attendance_rate)+'%'}</td>
-                <td>{ parseInt((item.lateTimes/60)/60)+":"+parseInt(item.lateTimes/60)%60}</td>
-                <td>{  parseInt((item.bonusTime/60)/60)+":"+parseInt(item.bonusTime/60)%60}</td>
+                {/*<td>{ parseInt((item.lateTimes/60)/60)+":"+parseInt(item.lateTimes/60)%60}</td>
+                <td>{  parseInt((item.bonusTime/60)/60)+":"+parseInt(item.bonusTime/60)%60}</td>*/}
                 <td>{Math.round((Math.round(item.attendance_rate*100)+Math.round(Math.round(item.att_rate*100)*item.attendance_rate)+Math.round(Math.round(item.leave_rate*100)*item.attendance_rate))/3)+'%'}</td>
               </tr>
              ))}
@@ -414,7 +410,7 @@ return (
          <div style={{backgroundColor: " #0972B6",width: " 95%",height: " 15px",borderTopLeftRadius: " 5px",borderBottomLeftRadius: " 5px",color: " #fff",paddingRight: " 20px"}}>نظام دوام | {new Date().toLocaleString('en-IT')} </div>
      </div>
  </div> 
- </div>
+    </div>
     </Layout>
 );
 
