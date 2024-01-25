@@ -447,7 +447,7 @@ return (
                 salallow+=parseFloat(item.status==16?item.salary:item.salary*count17)+parseFloat(item.allownces);
                 debts+=(item.debt*1);
                 
-                var ab=item.fingerprint_type=='22'? Math.round( ((((item.status==16?count*1:count17*1)-item.attendanceDays*1)*(item.status==16?parseInt(item.salary)/30:item.salary)) + parseFloat(item.lateTimePrice) )/dround )*dround:0;
+                var ab=item.fingerprint_type=='22'? Math.round( ((Math.max(((item.status==16?count*1:count17*1)-item.attendanceDays*1),0)*(item.status==16?parseInt(item.salary)/30:item.salary)) + parseFloat(item.lateTimePrice) )/dround )*dround:0;
                 ab=ab<0?0:parseFloat(ab);
                 
                 abs+=parseFloat(ab);

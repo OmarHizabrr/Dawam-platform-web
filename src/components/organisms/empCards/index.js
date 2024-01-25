@@ -184,7 +184,7 @@ for (let i = 0; i < 16; i++) {
   </Col>);
 }
 
-const onFinish=()=>{
+const onFactorFinish=()=>{
   setSaving(true);
 
  var userData=factorForm.getFieldsValue();
@@ -200,6 +200,32 @@ const onFinish=()=>{
       setUpdate(update+1);
       setIsFactorModalVisible(false);
       setSaving(false);
+    }
+    else{
+    alert("فشل إضافة موظف");
+    setModalLoad(false);
+  }
+}).catch(err =>{ console.log(err);
+  alert("فشل إضافة موظف");
+  setModalLoad(false);
+}); 
+}
+const onFinish=()=>{
+  setSaving(true);
+
+ var userData=userform.getFieldsValue();
+
+  axios.post(Env.HOST_SERVER_NAME+'users/add',userData).then(res => {
+    if(res.status==200){
+      notification.success({
+        message:'تمت العملية بنجاح' ,
+        placement:'bottomLeft',
+        duration:10,
+      });
+      factorForm.resetFields();
+      setUpdate(update+1);
+      setIsVisibleModal(false);
+      setModalLoad(false);
     }
     else{
     alert("فشل إضافة موظف");
@@ -1360,7 +1386,7 @@ return(
     <p>هل متأكد من حذف الموظف {duser.name} ؟</p>
   </Modal>
 
-  <Modal confirmLoading={saving} title="إضافة معامل" visible={isFactorModalVisible} width={1300} onCancel={()=>{setIsFactorModalVisible(false);factorForm.resetFields();ifactorForm.resetFields();}} onOk={onFinish} >
+  <Modal confirmLoading={saving} title="إضافة معامل" visible={isFactorModalVisible} width={1300} onCancel={()=>{setIsFactorModalVisible(false);factorForm.resetFields();ifactorForm.resetFields();}} onOk={onFactorFinish} >
       <Form form={ifactorForm} style={{display:'flex',flexDirection:'row',justifyContent:'space-between'}}>
         <Form.Item style={{marginLeft:'20px'}} name='field' label="الحقل" rules={[{ required: true, message: 'Missing area' }]}>
           <Select style={{ width: 200 }} showSearch  optionFilterProp="children"

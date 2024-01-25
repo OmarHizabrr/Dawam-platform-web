@@ -40,8 +40,7 @@ function App() {
   
   const id=cookies.user;
 
-  useEffect(() => {   
-    console.log(process.env.REACT_APP_API_URL);
+  useEffect(() => {  
      axios.get(Env.HOST_SERVER_NAME+'setting/'+id?.user_id)
      .then(response => {
         setSetting(response.data);
@@ -145,7 +144,7 @@ function App() {
         <Switch>
           <Route path={PROFILE_ROUTE} render={() => <Profile setting={setting} userData={id} />} />
           <Route path={CONTROL_PANEL_ROUTE} render={() =><ControlPanel setting={setting} userData={id} />} />
-          <Route path={LOGIN} component={Login} />
+          <Route path={LOGIN} component={Login}  />
           <Redirect to="/profile" />
         </Switch>
         </Layout>
