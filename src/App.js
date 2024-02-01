@@ -24,11 +24,11 @@ import 'moment/locale/ar-ly';
 import './App.css';
 
 import {
-
   CONTROL_PANEL_ROUTE  ,
   PROFILE_ROUTE,
   LOGIN
 } from './routes';
+
 import {Env} from './styles'
 
 function App() {
@@ -55,7 +55,10 @@ function App() {
     axios.post(Env.HOST_SERVER_NAME+`users/login`,  values)
     .then(function (response) {
       if(response.data){
-       setCookie("user",response.data);
+        console.log(response.data);
+       setCookie("user",response.data.user);
+       setSetting(response.data.settings);
+
        setUser(response.data);
       }
       else{

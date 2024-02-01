@@ -240,7 +240,8 @@ export default function tasksTable(props) {
           if(minutes<=420) alerta=(Math.floor(minutes/60)+" ساعة و "+(minutes%60))+" دقيقة ";
           else {
             var per=(Math.floor(minutes/1440)+1)
-            alerta=per+per<=10?" أيام ":"يومًا";
+            alerta=per
+            alerta+=(per<=10)?" أيام ":" يومًا ";
           }
           setTotalVac(alerta); 
         }
