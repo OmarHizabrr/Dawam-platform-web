@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useCookies,CookiesProvider  } from 'react-cookie';
 
 import './style.css';
-import {Table,Layout,Card,Progress,DatePicker,Button,Rate} from 'antd';
+import {Table,Layout,Card,Progress,DatePicker,Button,Rate,Typography} from 'antd';
 import ReactApexChart from "react-apexcharts";
 import {ExportOutlined,PrinterOutlined} from '@ant-design/icons';
 import excel from 'xlsx';
@@ -13,6 +13,7 @@ import Avatar from 'antd/lib/avatar/avatar';
 import axios from 'axios';
 import {Env} from './../../../styles';
 const {RangePicker}=DatePicker;
+const {Text}=Typography;
 
 export default function deptsTable(props){
       const [cookies, setCookie, removeCookie]=useCookies(["userId"]);
@@ -35,7 +36,6 @@ export default function deptsTable(props){
       }
     const  handleChange = (pagination, filters, sorter) => {
       console.log('Various parameters', pagination, filters, sorter);
-
           setFilteredInfo(filters);
           setSortedInfo(sorter);  
       };    
@@ -94,6 +94,11 @@ export default function deptsTable(props){
         key: 'name',
         ellipsis: false,
         width:'150px',
+        render:(name,record,_)=>(
+          <Text>
+          {name}
+          </Text>
+        )
       },
       {
         title: 'تقييم الإدارة',
@@ -200,11 +205,11 @@ return (
   <Card>
   <div style={{display:'flex',flexDirection:'row',marginBottom:'20px',justifyContent:'space-between'}}>
 
-  <div style={{display:'flex',flex:1,flexDirection:'row',justifyContent:'flex-end'}}>     
-    <div style={{marginBottom:'10px',marginLeft:'5px'}}><span>اختر يومًا : </span>
-    <DatePicker onChange={changeDate} />
+  <div style={{display:'flex',flex:1,flexDirection:'row',justifyContent:'flex-end',alignItems:'flex-end'}}>     
+    <div style={{marginLeft:'5px'}}><span>اختر يومًا : </span>
+    <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} onChange={changeDate} />
     </div>
-    <Button style={{display:'block',marginLeft:'5px',marginBottom:'10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
+    <Button style={{display:'block',marginLeft:'5px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
     <Button style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button>
     </div>
     </div>

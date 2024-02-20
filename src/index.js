@@ -4,13 +4,23 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { ConfigProvider } from 'antd';
-import arEG from 'antd/lib/locale/ar_EG';
-
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
+import locale from 'antd/locale/ar_EG';
+import dayjs from 'dayjs';
+
+import 'dayjs/locale/ar';
 
 ReactDOM.render(
   <React.StrictMode>
-  <ConfigProvider locale={arEG}  direction="rtl">
+  <ConfigProvider locale={locale}  theme={{
+        token: {
+          fontFamily: "Tajawal",
+          fontSize: 15, 
+          fontWeightStrong:500,
+          colorBorderSecondary:"#2f2b3d29",
+          colorBgLayout:"#fff",
+        }
+      }}  direction="rtl">
     <App />
   </ConfigProvider>
   </React.StrictMode>,

@@ -7,7 +7,7 @@ import axios from 'axios';
 import {Env} from './../../../styles';
 import excel from 'xlsx';
 import logoText from '../../../assets/images/logo-text.png';
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 const {Text}=Typography;
 
@@ -29,17 +29,23 @@ export default function DebtsReport (props){
   const [tstypes,setTstypes]=useState([]);
   const [loadUsers, setLoadUsers]=useState(false);
   const [loadForm, setLoadForm]=useState(false);
-  const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
-  const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
-  const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
+  const [start,setStart]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
+  const [end,setEnd]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
+  const [currentMonth,setCurrentMonth]=useState(dayjs().format('MMMM'));   
   const [namesFilter,setNamesFilter]=useState([]);
   const [categoriesFilter,setCategoriesFilter]=useState([]);
   const [categories,setCategories]=useState([]);
   const [pdata, setPData] = useState([]);
+  const [buttonLoading,setButtonLoading]=useState(false);
+  const [isModalVisible,setIsModalVisible]=useState(false);
+  const [empName,setEmpName]=useState(null);
+  const [update, setUpdate] = useState(0);
+  const [mamountValue,setMAmountValue]=useState(null);
 
   const [form] = Form.useForm();
-  const columns = [
+  const [updateForm] = Form.useForm();
 
+  const columns = [
     {
       title: 'الاسم',
       dataIndex: 'name',
@@ -79,7 +85,7 @@ export default function DebtsReport (props){
       ellipsis: false,
       render:(amount,record,index)=>{
         if(isTextInput && index==selectedIndex){
-          return (<Input onChange={function(e){setAmountValue(e.target.value);}} onPressEnter={function(){updateDebt(record.id,amountValue);}} defaultValue={amount}></Input>)
+          return (<Input onChange={function(e){setAmountValue(e.target.value);}}  defaultValue={amount}></Input>)
         }
         else{
           return (<Text onDoubleClick={function(){
@@ -89,17 +95,34 @@ export default function DebtsReport (props){
         }
         
       },
-    },   
+    }, 
     {
       title: "",
       render: (vid, record, index) => (
         <Button
+          onClick={function () {
+            setIsModalVisible(true);
+            updateForm.setFieldsValue({'id':record.id,'user_id':record.user_id,'amount':record.amount,'debt_date':dayjs(record.debt_date,'YYYY-MM-DD'),'note':record.note});
+          }}
+          style={{ backgroundColor: "#fff", borderColor: "#0972B6",color:"#0972B6" }}
+          type="primary"
+          shape="round"
+          icon={<FormOutlined />}
+        ></Button>)
+    },  
+    {
+      title: "",
+      render: (vid, record, index) => (
+        <>
+        <Button
           onClick={function () {deleteDebt(record);}}
-          style={{ backgroundColor: "#ff0000", borderColor: "#ff0000" }}
+          style={{ backgroundColor: "#fff", borderColor: "#ff0000",color:"#f00" }}
           type="primary"
           shape="round"
           icon={<DeleteOutlined />}
         ></Button>
+        </>
+
       ),
     } 
   ];
@@ -133,7 +156,6 @@ export default function DebtsReport (props){
   useEffect(() => {
         axios.get(Env.HOST_SERVER_NAME+'get-monthly-debts'+'/'+start+'/'+end)
           .then(response => {
-           
             let names=[];
           let categories=[];
           response.data["debts"].forEach(element => {  
@@ -160,7 +182,7 @@ export default function DebtsReport (props){
           }).catch(function (error) {
             console.log(error);
           });
-      },[start,end]);
+      },[start,end,update]);
   const openEdit=(index)=>{
           setIsTextInput(true);
           setSelectedIndex(index);
@@ -196,8 +218,8 @@ export default function DebtsReport (props){
         var startDay=props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value;
         var endDay=props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value;
   
-        setStart(moment(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
-        setEnd(moment(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
+        setStart(dayjs(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
+        setEnd(dayjs(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
   
   }
   const  addDebts = () => {
@@ -231,10 +253,11 @@ export default function DebtsReport (props){
             console.log(error);
           });
       };    
-      const onDateChange=(date,dateString)=>{
+  const onDateChange=(date,dateString)=>{
         //setDebtDate(dateString);
      }
-     const showUsersDebt=()=>{
+
+  const showUsersDebt=()=>{
       setLoadUsers(true);
       axios.get(Env.HOST_SERVER_NAME+'get-users-debts/')
           .then(response => {
@@ -245,9 +268,40 @@ export default function DebtsReport (props){
             setLoadUsers(false);
           });
      }
-     const changeRange=(all,date)=>{
+
+  const changeRange=(all,date)=>{
       setStart(date[0]);
       setEnd(date[1]);       
+    }
+    const handleCancel = () => {
+      setIsModalVisible(false);
+    };
+    const onFinish=()=>{
+      setButtonLoading(true);
+     axios.post(Env.HOST_SERVER_NAME+'update-debt',updateForm.getFieldsValue())
+          .then(response => {
+            console.log(response.data);
+            notification.success({
+              message:'تمت العملية بنجاح' ,
+              placement:'bottomLeft',
+              duration:10,
+            });
+            setUpdate(update+1);
+            setButtonLoading(false);
+            setIsModalVisible(false);
+          }).catch(function (error) {
+            console.log(error);
+            notification.error({
+              message:'فشلت العملية ' ,
+              placement:'bottomLeft',
+              duration:10,
+            });
+            setButtonLoading(false);
+          });
+    }
+
+    const handleSelectChange=(e,option)=>{
+      setEmpName(e);
     }
     var index=0;
     var tsal=0;
@@ -255,12 +309,12 @@ export default function DebtsReport (props){
 return (
   <Layout>
     <Card>
-    <Modal confirmLoading={loadForm} width={700} title="إضافة سلفة " visible={isVisibleModal}  onOk={function(){ addDebts();}} onCancel={function(){setIsVisibleModal(false);}}>
+    <Modal centered confirmLoading={loadForm} width={700} title="إضافة سلفة " visible={isVisibleModal}  onOk={function(){ addDebts();}} onCancel={function(){setIsVisibleModal(false);}}>
       <Form form={form}>
       <div>ادخل تاريخ السلفة:</div>
       
       <Form.Item style={{display:'inline-block'}}  name={'debt_date'}>
-         <DatePicker placeholder="تاريخ السلفة" />  
+         <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} placeholder="تاريخ السلفة" />  
       </Form.Item> 
       <Button loading={loadUsers} onClick={function(){ showUsersDebt();}} style={{marginRight:'20px'}} type='primary'>جلب الموظفين</Button>
      
@@ -319,13 +373,52 @@ return (
       </Form.List> 
       </Form>
     </Modal>
+
+    <Modal centered title="تعديل سلفة" confirmLoading={buttonLoading} visible={isModalVisible} onOk={onFinish} onCancel={handleCancel}>
+      <Form form={updateForm}>
+       <Form.Item
+        name="id"
+        hidden={true}
+        style={{display:"none"}}
+        >
+          <Input />
+       </Form.Item>
+       <Form.Item label="اسم الموظف" name="user_id" >
+        <Select
+          showSearch
+          style={{ width: 300 }}
+          onSelect={handleSelectChange}
+          options={tstypes}
+          placeholder="ابحث لاختيار موظف"
+          optionFilterProp="children"
+          notFoundContent={<Spin style={{textAlign:'center'}}></Spin>}
+          filterOption={(input, option) =>
+           option.props.children?.indexOf(input) >= 0 ||
+           option.props.value?.indexOf(input) >= 0 ||
+            option.props.label?.indexOf(input) >= 0
+          }
+        filterSort={(optionA, optionB) =>
+           optionA.props?.children?.localeCompare(optionB.props.children)
+        }
+        ></Select>
+        </Form.Item>
+        <Form.Item label="مبلغ السلفة" name="amount" >
+        <Input onChange={function(e){setAmountValue(e.target.value);}}  style={{marginTop:'10px',width:300}} />
+        </Form.Item>
+        <Form.Item label="تاريخ الصرف" name="debt_date" >
+           <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  onChange={onDateChange} /> 
+          </Form.Item>
+
+        </Form>
+    </Modal>
+
     <div className='attOper'>
       <div style={{marginLeft:'10px'}}>
         <span>اختر شهرًا : </span>
-        <DatePicker defaultValue={moment()} onChange={onChange} picker="month" />
+        <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} defaultValue={dayjs()} onChange={onChange} picker="month" />
       </div>
       <div className='attOperRange' style={{marginBottom:'10px',marginLeft:'10px'}}><span>اختر فترة : </span>
-          <RangePicker value={[moment(start,"YYYY-MM-DD"),moment(end,"YYYY-MM-DD")]} style={{width: '200px'}} onCalendarChange={changeRange} />
+          <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} value={[dayjs(start,"YYYY-MM-DD"),dayjs(end,"YYYY-MM-DD")]} style={{width: '200px'}} onCalendarChange={changeRange} />
       </div>    
       <div className='attOperBtn' style={{float: 'left'}}>
     <Button  style={{backgroundColor:'#FAA61A',borderColor:'#FAA61A',color:'#fff',marginLeft:'20px'}} onClick={function(){setIsVisibleModal(true);}} type='primary'><FormOutlined />  إضافة سلفة </Button>

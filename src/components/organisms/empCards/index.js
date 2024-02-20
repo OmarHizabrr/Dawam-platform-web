@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 import {Env} from './../../../styles';
 import AttendanceTable from './../attendanceTable';
@@ -247,7 +247,7 @@ var options = {
     style: {
       fontSize:  '14px',
       fontWeight:  'bold',
-      fontFamily:  'jannatR',
+      fontFamily:  'Tajawal',
       color:  '#263238'
     },
 },
@@ -280,7 +280,7 @@ var voptions = {
     style: {
       fontSize:  '14px',
       fontWeight:  'bold',
-      fontFamily:  'jannatR',
+      fontFamily:  'Tajawal',
       color:  '#263238'
     },
 },
@@ -308,14 +308,14 @@ xaxis: {
   categories:vacsCats,
   labels: {
     style: {
-      fontFamily:'jannatR',
+      fontFamily:'Tajawal',
       fontSize: '12px'
     }
   }
 },
 tooltip: {
   style:{
-    fontFamily:'jannatR',
+    fontFamily:'Tajawal',
     marginLeft:'5px',
   },
   y:{         
@@ -347,7 +347,7 @@ const sconfig = {
         style: {
           colors: ["#808080"],
           fontSize: "11px",
-          fontFamily: 'jannatR'
+          fontFamily: 'Tajawal'
         }
       }
     },
@@ -394,7 +394,7 @@ const config2={
       style: {
         fontSize:  '14px',
         fontWeight:  'bold',
-        fontFamily:  'jannatR',
+        fontFamily:  'Tajawal',
         color:  '#263238'
       },
   },
@@ -422,7 +422,7 @@ const config2={
     },
     tooltip: {
       style:{
-        fontFamily:'jannatR',
+        fontFamily:'Tajawal',
         marginLeft:'5px',
       },
       x: {
@@ -462,8 +462,8 @@ const openShowUser=(user)=>{
  var birth=user.birth_date;
  var assign=user.assignment_date;
   userform.setFieldsValue(user);
-  userform.setFieldsValue({'birth_date':moment(birth, 'YYYY-MM-DD')});
-  userform.setFieldsValue({'assignment_date':moment( assign, 'YYYY-MM-DD')});
+  userform.setFieldsValue({'birth_date':dayjs(birth, 'YYYY-MM-DD')});
+  userform.setFieldsValue({'assignment_date':dayjs( assign, 'YYYY-MM-DD')});
   userform.setFieldsValue({'password':null});
   setIsVisibleModal(true);
 
@@ -482,7 +482,7 @@ const openShowUser=(user)=>{
   quals=quals.filter(function (e) { return e.user_id == user.id; });
 
   quals.forEach(element => {
-    element.qual_year=moment(element.qual_year, 'YYYY');
+    element.qual_year=dayjs(element.qual_year, 'YYYY');
   });
   userform.setFieldsValue({'qualifications':quals});
   //setQualifications(quals);
@@ -490,7 +490,7 @@ const openShowUser=(user)=>{
   var pworks=preworks;
   pworks=pworks.filter(function (e) { return e.user_id == user.id; });
   pworks.forEach(element => {
-    element.work_period=[moment(element.date_from, 'YYYY'),moment(element.date_to, 'YYYY')]
+    element.work_period=[dayjs(element.date_from, 'YYYY'),dayjs(element.date_to, 'YYYY')]
   });
   userform.setFieldsValue({'preworks':pworks});
   //setPreworks(pworks);
@@ -686,7 +686,7 @@ return(
     onClick={function(){userform.resetFields();setUserFormDisable(false);setIsVisibleModal(true);}}
      style={{zIndex:'1000',position:'fixed',bottom:'20px',width:'55px',height:'55px',left:'20px'}} shape="circle" icon={<PlusOutlined />} type="primary">
     </Button>   
-    <Modal id='emp-report' title={<div style={{backgroundColor:'#fff'}}><Text>تقرير الموظف</Text><div style={{float:'left',marginLeft:'100px'}}><RangePicker value={[moment(start),moment(end)]} onCalendarChange={changeRange} /><Button style={{backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button></div></div>} footer={[]} centered={true} className='emp-report-modal' width={1400}  visible={isRVisibleModal}  onOk={function(){setModalLoad(true);onFinish();}} onCancel={function(){resetReport();setSelectedUser(null);setIsRVisibleModal(false);}}>
+    <Modal centered id='emp-report' title={<div style={{backgroundColor:'#fff'}}><Text>تقرير الموظف</Text><div style={{float:'left',marginLeft:'100px'}}><RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} value={[dayjs(start),dayjs(end)]} onCalendarChange={changeRange} /><Button style={{backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button></div></div>} footer={[]} centered={true} className='emp-report-modal' width={1400}  visible={isRVisibleModal}  onOk={function(){setModalLoad(true);onFinish();}} onCancel={function(){resetReport();setSelectedUser(null);setIsRVisibleModal(false);}}>
         <Spin spinning={reportLoad}>
         <Row>
           <Col xs={24} sm={24} md={5} lg={5} xl={5} span={5} style={{justifyContent:'center'}}>
@@ -819,7 +819,7 @@ return(
         </Row>
         </Spin>
     </Modal>
-    <Modal okButtonProps={{ disabled:  userFormDisable  }} confirmLoading={modalLoad} centered={true} className='emp-modal' width={1200} title="بيانات الموظف" visible={isVisibleModal}  onOk={function(){setModalLoad(true);onFinish();}} onCancel={function(){setSelectedUser(null);userform.resetFields();setIsVisibleModal(false);}}>
+    <Modal centered okButtonProps={{ disabled:  userFormDisable  }} confirmLoading={modalLoad} centered={true} className='emp-modal' width={1200} title="بيانات الموظف" visible={isVisibleModal}  onOk={function(){setModalLoad(true);onFinish();}} onCancel={function(){setSelectedUser(null);userform.resetFields();setIsVisibleModal(false);}}>
      <Form   form={userform} onFinish={onFinish}>
       <Row style={{backgroundColor:'#F6F6F6'}}>
         <Col xs={24} sm={24} md={8} lg={8} xl={8} className='personal-data' span={8} style={{padding:'20px'}}>
@@ -859,7 +859,7 @@ return(
         </Select>
       </Form.Item>
        <Form.Item name={'birth_date'} label="تاريخ الميلاد">
-        <DatePicker disabled={userFormDisable}  format="YYYY-MM-DD"  style={{width:'100%'}} />
+        <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} disabled={userFormDisable}  format="YYYY-MM-DD"  style={{width:'100%'}} />
       </Form.Item>
       <Form.Item name={'birth_place'} label="مكان الميلاد">
         <Input disabled={userFormDisable}    style={{width:'100%'}} />
@@ -962,7 +962,7 @@ return(
 
               <Col xs={24} sm={24} md={12} lg={12} xl={12} span={12} >
               <Form.Item style={{flex:1,marginLeft:'5px'}} label="تاريخ الانضمام" name="assignment_date">
-                <DatePicker style={{width:'100%'}} disabled={userFormDisable} />
+                <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} style={{width:'100%'}} disabled={userFormDisable} />
               </Form.Item>
               <Form.Item style={{flex:1,marginLeft:'5px'}} label="الإعانة" name="salary">
                 <Input disabled={userFormDisable} />
@@ -1240,7 +1240,7 @@ return(
                   label={'سنة الحصول عليه'}
                   rules={[{ required: true, message: 'هذا الحقل مطلوب' }]}
                 >
-                  <DatePicker disabled={userFormDisable} picker="year" />
+                  <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} disabled={userFormDisable} picker="year" />
                 </Form.Item>
                 <Form.Item
                   {...restField}
@@ -1290,7 +1290,7 @@ return(
                   label={'فترة العمل'}
                   rules={[{ required: true, message: 'هذا الحقل مطلوب' }]}
                 >
-                  <RangePicker  disabled={userFormDisable} picker="year" />
+                  <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  disabled={userFormDisable} picker="year" />
                 </Form.Item>
                 <Form.Item
                   {...restField}
@@ -1373,20 +1373,20 @@ return(
       </Row>
       </Form>
     </Modal>
-  <Modal centered={true} className='att-modal' width={1200} title={" سجل حضور | "+selectedUserName} visible={isAVisibleModal}  onOk={function(){ }} onCancel={function(){setIsAVisibleModal(false);setSelectedUser(null);}}>
+  <Modal centered centered={true} className='att-modal' width={1200} title={" سجل حضور | "+selectedUserName} visible={isAVisibleModal}  onOk={function(){ }} onCancel={function(){setIsAVisibleModal(false);setSelectedUser(null);}}>
       <AttendanceTable setting={props.setting} user={selectedUser} key={isAVisibleModal}></AttendanceTable>
   </Modal>
-  <Modal centered={true} className='task-modal' width={1200} title={"سجل إجازات | "+selectedUserName} visible={isTVisibleModal}  onOk={function(){ }} onCancel={function(){setIsTVisibleModal(false);setSelectedUser(null);}}>
+  <Modal centered centered={true} className='task-modal' width={1200} title={"سجل إجازات | "+selectedUserName} visible={isTVisibleModal}  onOk={function(){ }} onCancel={function(){setIsTVisibleModal(false);setSelectedUser(null);}}>
       <TasksTable setting={props.setting} user={selectedUser} key={isTVisibleModal}></TasksTable>
   </Modal>
-  <Modal centered={true} className='att-modal' width={1200} title={" سجل إضافي | "+selectedUserName} visible={isBVisibleModal}  onOk={function(){ }} onCancel={function(){setIsBVisibleModal(false);setSelectedUser(null);}}>
+  <Modal centered centered={true} className='att-modal' width={1200} title={" سجل إضافي | "+selectedUserName} visible={isBVisibleModal}  onOk={function(){ }} onCancel={function(){setIsBVisibleModal(false);setSelectedUser(null);}}>
       <BonusTable setting={props.setting} user={selectedUser} key={isBVisibleModal}></BonusTable>
   </Modal>
-  <Modal confirmLoading={modalLoad} title="حذف موظف" open={isDVisibleModal} onOk={deleteUser} onCancel={()=>{setIsDVisibleModal(false)}}>
+  <Modal centered confirmLoading={modalLoad} title="حذف موظف" open={isDVisibleModal} onOk={deleteUser} onCancel={()=>{setIsDVisibleModal(false)}}>
     <p>هل متأكد من حذف الموظف {duser.name} ؟</p>
   </Modal>
 
-  <Modal confirmLoading={saving} title="إضافة معامل" visible={isFactorModalVisible} width={1300} onCancel={()=>{setIsFactorModalVisible(false);factorForm.resetFields();ifactorForm.resetFields();}} onOk={onFactorFinish} >
+  <Modal centered confirmLoading={saving} title="إضافة معامل" visible={isFactorModalVisible} width={1300} onCancel={()=>{setIsFactorModalVisible(false);factorForm.resetFields();ifactorForm.resetFields();}} onOk={onFactorFinish} >
       <Form form={ifactorForm} style={{display:'flex',flexDirection:'row',justifyContent:'space-between'}}>
         <Form.Item style={{marginLeft:'20px'}} name='field' label="الحقل" rules={[{ required: true, message: 'Missing area' }]}>
           <Select style={{ width: 200 }} showSearch  optionFilterProp="children"
@@ -1492,19 +1492,22 @@ return(
       </Modal>
 
 <Row style={{margin:'15px 10px'}}>
-<Col span={24} style={{backgroundColor:'#fff',borderRadius:'10px',padding:'10px',display:'flex',flexDirection:'row',justifyContent:'end'}}>
-
+<Col span={24}>
+<Card bodyStyle={{padding: "10px"}} style={{width:'100%',display:'flex',flexDirection:'row',justifyContent:'end'}}>
 <Button style={{marginLeft:'5px',marginRight:'5px',border:'none',backgroundColor:'#FAA61A',color:'#fff'}} onClick={function(){ setIsFactorModalVisible(true); }} ><FormOutlined /></Button>
 
 <Button style={{sbackgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button>
+
+</Card>
 </Col>
 </Row>
+
 <Row gutter={[{xs: 2, sm: 16, md: 24, lg: 32 },{xs:2, sm: 16, md: 24, lg: 32 }]} style={{padding:'0 20px'}}>
 {listData}
 {data.map(user=>{
 
  return <Col className='card-col' xs={24} sm={12} md={12} lg={8} xl={6} style={{padding:'0px 10px'}}  span={6}>
-<Card className='content' style={{alignItems:'center',borderTopLeftRadius:'10px',borderTopRightRadius:'10px'}}>
+<Card className='content' style={{alignItems:'center',borderBottomLeftRadius:'0px',borderBottomRightRadius:'0px',borderBottom:"none"}}>
   <Dropdown  
   overlay={<Menu>
         <Menu.Item key="1" onClick={function(){setSelectedUserName(user.name);openAttModal(user);}}>
@@ -1565,7 +1568,7 @@ return(
      </Text>
 </div>
   </Card>
-  <Card className='footer' style={{borderBottomLeftRadius:'10px',borderBottomRightRadius:'10px'}}>
+  <Card className='footer' style={{borderTopLeftRadius:'0px',borderTopRightRadius:'0px'}}>
     <div style={{display:'flex',flexDirection:'row',justifyContent:'space-between'}}> 
     <Text style={{color:'#7E7D7C',fontSize:'12px'}}><ClusterOutlined /> {user.category} </Text>
     <Text style={{textAlign:'center',fontSize:'12px',color:'#7E7D7C'}}><TagsOutlined /> {user.job} </Text>

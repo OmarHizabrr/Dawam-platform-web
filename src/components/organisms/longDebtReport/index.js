@@ -3,7 +3,7 @@ import React,{ useState, useEffect }  from 'react';
 import './style.css';
 import { DatePicker,Table,Popconfirm, Button,Modal,Card,Input,Select,Typography,notification,Form,Space,Spin,InputNumber} from 'antd';
 import {PlusOutlined,PrinterOutlined,FormOutlined,LoadingOutlined,DeleteOutlined,MinusCircleOutlined} from '@ant-design/icons';
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 import axios from 'axios';
 import {Env} from './../../../styles';
@@ -45,9 +45,9 @@ export default function LongDebtReport (props){
   const [selected, setSelected] = useState([]);
   const [duration, setDuration] = useState(10);
   const [load,setLoad]=useState(true);
-  const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
-  const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
-  const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
+  const [start,setStart]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
+  const [end,setEnd]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
+  const [currentMonth,setCurrentMonth]=useState(dayjs().format('MMMM'));   
   const [categories,setCategories]=useState([]);
   const [pdata, setPData] = useState([]);
   const [namesFilter,setNamesFilter]=useState([]);
@@ -117,7 +117,7 @@ export default function LongDebtReport (props){
         <Button
           onClick={function () {
             setIsModalVisible(true);
-            updateForm.setFieldsValue({'id':record.id,'user_id':record.user_id,'amount':record.amount,'debt_date':moment(record.debt_date,'YYYY-MM-DD'),'note':record.note});
+            updateForm.setFieldsValue({'id':record.id,'user_id':record.user_id,'amount':record.amount,'debt_date':dayjs(record.debt_date,'YYYY-MM-DD'),'note':record.note});
           }}
           type="primary"
           shape="round"
@@ -208,8 +208,8 @@ export default function LongDebtReport (props){
     var startDay=props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value;
     var endDay=props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value;
 
-    setStart(moment(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
-    setEnd(moment(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
+    setStart(dayjs(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
+    setEnd(dayjs(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
 
     }
   const changeRange=(all,date)=>{
@@ -261,7 +261,7 @@ export default function LongDebtReport (props){
       const processRequest = (selected) => {
         
         setSelected(selected);
-        updateForm.setFieldsValue({'id':selected.id,'user_id':selected.user_id,'amount':selected.amount,'debt_date': moment(selected.debt_date,"YYYY-MM-DD") ,'note':selected.note});
+        updateForm.setFieldsValue({'id':selected.id,'user_id':selected.user_id,'amount':selected.amount,'debt_date': dayjs(selected.debt_date,"YYYY-MM-DD") ,'note':selected.note});
         setIsModalVisible(true);
       };
       const openEdit=(index)=>{
@@ -364,14 +364,12 @@ export default function LongDebtReport (props){
       };
       const handleSelectChange=(e,option)=>{
         setEmpName(e);
-        
       }
     const onDateChange=(date,dateString)=>{
        setDebtDate(dateString);
     }
     const onFinish=()=>{
       setButtonLoading(true);
-      console.log(updateForm.getFieldsValue());
      axios.post(Env.HOST_SERVER_NAME+'update-long-debt',updateForm.getFieldsValue())
           .then(response => {
             console.log(response.data);
@@ -391,7 +389,6 @@ export default function LongDebtReport (props){
               duration:10,
             });
             setButtonLoading(false);
-
           });
     }
 
@@ -401,11 +398,11 @@ export default function LongDebtReport (props){
 
 return (
     <Card>
-    <Modal confirmLoading={loadForm} width={900} title="إضافة أقساط " visible={isVisibleModal}  onOk={function(){ addDebts();}} onCancel={function(){setIsVisibleModal(false);}}>
+    <Modal centered confirmLoading={loadForm} width={900} title="إضافة أقساط " visible={isVisibleModal}  onOk={function(){ addDebts();}} onCancel={function(){setIsVisibleModal(false);}}>
       <Form form={form}>
       <div>ادخل تاريخ القسط:</div>   
       <Form.Item style={{display:'inline-block'}}  name={'debt_date'}>
-         <DatePicker placeholder="تاريخ التسديد" />  
+         <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} placeholder="تاريخ التسديد" />  
       </Form.Item> 
       <Button loading={loadUsers} onClick={function(){ showUsersDebt();}} style={{marginRight:'20px'}} type='primary'>جلب الموظفين</Button>  
       <Form.List name="debts">
@@ -470,7 +467,7 @@ return (
       </Form.List> 
       </Form>
     </Modal>  
-    <Modal title="تعديل قسط" confirmLoading={buttonLoading} visible={isModalVisible} onOk={onFinish} onCancel={handleCancel}>
+    <Modal centered title="تعديل قسط" confirmLoading={buttonLoading} visible={isModalVisible} onOk={onFinish} onCancel={handleCancel}>
       <Form form={updateForm}>
        <Form.Item
         name="id"
@@ -502,7 +499,7 @@ return (
         <Input onChange={function(e){setAmountValue(e.target.value);}}  style={{marginTop:'10px',width:300}} />
         </Form.Item>
         <Form.Item label="تاريخ التسديد" name="debt_date" >
-           <DatePicker  onChange={onDateChange} /> 
+           <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  onChange={onDateChange} /> 
           </Form.Item>
         <Form.Item label="التفاصيل" name="note" >
           <TextArea onChange={function(e){setMAmountValue(e.target.value);}}  style={{marginTop:'10px',width:300}} />
@@ -514,10 +511,10 @@ return (
 <div className='discountRange' >
 <div style={{marginLeft:'10px'}}>
   <span>اختر شهرًا : </span>
-  <DatePicker  defaultValue={moment()} onChange={onChange} picker="month" />
+  <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  defaultValue={dayjs()} onChange={onChange} picker="month" />
 </div>
   <div style={{marginLeft:'10px'}}><span>اختر فترة : </span>
-      <RangePicker value={[moment(start,"YYYY-MM-DD"),moment(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
+      <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} value={[dayjs(start,"YYYY-MM-DD"),dayjs(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
   </div>
   <div className='addbtn'>
   <Button style={{backgroundColor:'#FAA61A',borderColor:'#FAA61A',color:'#fff',marginLeft:'20px'}} onClick={function(){ setIsVisibleModal(true);}} ><PlusOutlined /> إضافة قسط </Button>

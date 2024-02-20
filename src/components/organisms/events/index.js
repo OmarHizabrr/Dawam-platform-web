@@ -184,7 +184,7 @@ return (
     <Card>
     <div className='discountHeader' >  
     <div className='discountRange' ><span>اختر فترة : </span>
-    <RangePicker  onCalendarChange={changeRange} />
+    <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  onCalendarChange={changeRange} />
     </div>   
    <Upload
     accept=".xlsx, .csv" 
@@ -195,7 +195,7 @@ return (
     <Button loading={uploading} className='discountBtn' style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6"}} type='primary'><ImportOutlined /> استيراد البصمات </Button>
     </Upload>
     </div>
-    <Modal title="تقديم إجازة / مهمة" visible={isModalVisible} onOk={function(){handleOk()}} onCancel={function(){handleCancel()}}>
+    <Modal centered title="تقديم إجازة / مهمة" visible={isModalVisible} onOk={function(){handleOk()}} onCancel={function(){handleCancel()}}>
     </Modal>
     <Table scroll={{x: '1000px' }} loading={load} columns={columns}  dataSource={data} onChange={handleChange} />
     </Card>

@@ -2,18 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import './style.css';
 import { Typography ,Layout,Tabs,Table, Button,Modal, DatePicker, Select,Card } from 'antd';
-import {SwapOutlined,FormOutlined} from '@ant-design/icons';
 import axios from 'axios';
 import { useCookies,CookiesProvider  } from 'react-cookie';
 import {Env} from './../../../styles';
-import moment from 'moment';
+import dayjs from 'dayjs';
 
-const { Content } = Layout;
-const { Text,Space } = Typography;
-const { TabPane } = Tabs;
-const { Option } = Select; 
-const {RangePicker}=DatePicker;
 
+import  { DatePickerProps, GetProps } from 'antd';
+
+const { RangePicker } = DatePicker;
 export default function transferTable(props){
       const [cookies, setCookie, removeCookie]=useCookies(["userId"]);
       const [filteredInfo,setFilteredInfo]=useState({});
@@ -23,9 +20,9 @@ export default function transferTable(props){
       const [data,setData]=useState([]);
       const [load,setLoad]=useState(true);
       const [total,setTotal]=useState(0);
-      const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
-      const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
-      const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
+      const [start,setStart]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
+      const [end,setEnd]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
+      const [currentMonth,setCurrentMonth]=useState(dayjs().format('MMMM'));   
      
      // eslint-disable-next-line react-hooks/rules-of-hooks
      useEffect(() => {
@@ -104,25 +101,36 @@ export default function transferTable(props){
       var startDay=props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value;
       var endDay=props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value;
   
-      setStart(moment(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
-      setEnd(moment(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
+      setStart(dayjs(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
+      setEnd(dayjs(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
   
       }
+
+      const onOk = (value: DatePickerProps['value'] | RangePickerProps['value']) => {
+        console.log('onOk: ', value);
+      };
+
 return (
     <Layout>
     <Card>
     <div className='transHeader'>
-    <div style={{float:'right',marginBottom:'20px'}}>إجمالي المبلغ المستحق : <span>{total}</span> | <span style={{marginRight:'10px'}}> عدد الايام: {data.length}</span></div>
+    <div style={{float:'right',marginBottom:'20px'}}> المبلغ المستحق : <span>{total}</span> | <span style={{marginRight:'10px'}}> عدد الايام: {data.length}</span></div>
     
     <div className='tasksOper'>
-    <div style={{marginLeft:'10px'}}>
+    <div style={{marginLeft:'10px',marginBottom:'10px'}}>
         <span>اختر شهرًا : </span>
-        <DatePicker  defaultValue={moment()} onChange={onChange} picker="month" />
-      </div> 
-    <div className='tasksRange' >
+        <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  defaultValue={dayjs()}  onChange={onChange} picker="month" />
+    </div> 
+    {window.innerWidth <= 760?<></>:<div className='tasksRange' >
     <span>اختر فترة : </span>
-    <RangePicker value={[moment(start,"YYYY-MM-DD"),moment(end,"YYYY-MM-DD")]}  onCalendarChange={changeRange} />
-    </div>
+    <RangePicker needConfirm={false} 
+    inputReadOnly={window.innerWidth <= 760}
+      format="YYYY-MM-DD"
+       value={[dayjs(start,"YYYY-MM-DD"),dayjs(end,"YYYY-MM-DD")]}
+      onChange={onChange}
+     // onOk={onChange}
+    />
+    </div>}
     </div>
     </div>
     <Table loading={load} style={{textAlign:'center!important'}} columns={columns} scroll={{x: '1000px' }} onRow={(record, rowIndex) => {return{className:record.status};}} dataSource={data} onCalendarChange={handleChange} />

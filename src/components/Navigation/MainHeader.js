@@ -47,7 +47,7 @@ export default function MainHeader() {
     axios.post(Env.HOST_SERVER_NAME+'password-change', formData).then(res => {
       if(res.status==200){
         notification.success({
-          message:'تم تعديل كلمة السر بنجاح' ,
+          message:'تم تعديل كلمة  المروربنجاح' ,
           placement:'bottomLeft',
           duration:10,
         });
@@ -155,7 +155,7 @@ export default function MainHeader() {
       console.log(error);
     });
   }
-   });
+   },[]);
    const controlPanel=()=>{
     if(id && id.role_id==1){
     return(
@@ -193,12 +193,12 @@ export default function MainHeader() {
         <Menu.Item key="0" style={{marginTop:'8px', textAlign:'center'}}>
           <a onClick={showModal}>
           <LockOutlined style={{marginLeft:'5px'}}/>
-          تعديل كلمة السر     
+          تعديل كلمة  المرور    
           </a>
         </Menu.Item>
         <Menu.Divider />
         <Menu.Item key="1" style={{marginTop:'8px', textAlign:'center'}}>
-        <Button style={{backgroundColor:'#f00',fontWeight:'900',borderColor:'#f00',color:'#fff'}} onClick={function(){handleRemoveCookie();}}>
+        <Button style={{backgroundColor:'#f00',fontWeight:'500',borderColor:'#f00',color:'#fff'}} onClick={function(){handleRemoveCookie();}}>
         <PoweroffOutlined />
             تسجيل الخروج
         </Button></Menu.Item>
@@ -207,50 +207,50 @@ export default function MainHeader() {
 
   return ( 
   <Header theme="light" className="header">
-  <Modal title="تعديل الصورة الشخصية" visible={isIModalVisible} onOk={()=>handleIOk()} onCancel={()=>handleICancel()}>
+  <Modal centered title="تعديل الصورة الشخصية" visible={isIModalVisible} onOk={()=>handleIOk()} onCancel={()=>handleICancel()}>
    اختر صورة شخصية:  
   
   <input onChange={(e)=>setProfileImage(e.target.files[0])} style={{marginRight:'10px'}} type="file" name="userImage" accept="image/*" />
 
   </Modal>
-  <Modal confirmLoading={isSaving} title="تعديل كلمة السر" visible={isModalVisible} onOk={()=>{setSaving(true);handleOk();}} onCancel={()=>handleCancel()}>
+  <Modal centered confirmLoading={isSaving} title="تعديل كلمةالمرور" visible={isModalVisible} onOk={()=>{setSaving(true);handleOk();}} onCancel={()=>handleCancel()}>
   <Form form={form}>
   <Form.Item
         name="password"
-        label="كلمة السر الجديدة"
+        label="كلمة  المرورالجديدة"
         rules={[
           {
             required: true,
-            message: 'أدخل كلمة السر!',
+            message: 'أدخل كلمةالمرور!',
           },
         ]}
         hasFeedback
       >
-  <Input.Password  placeholder="كلمة السر الجديدة" />
+  <Input.Password  placeholder="كلمة  المرورالجديدة" />
   </Form.Item>
   <Form.Item
         name="confirm"
-        label="تأكيد كلمة السر"
+        label="تأكيد كلمةالمرور"
         dependencies={['password']}
         hasFeedback
         rules={[
           {
             required: true,
-            message: 'أدخل تأكيد كلمة السر !',
+            message: 'أدخل تأكيد كلمة  المرور!',
           },
           ({ getFieldValue }) => ({
             validator(_, value) {
               if (!value || getFieldValue('password') === value) {
                 return Promise.resolve();
               }
-              return Promise.reject(new Error('تأكيد كلمة السر غير متطابقة مع كلمة السر!'));
+              return Promise.reject(new Error('تأكيد كلمة  المرورغير متطابقة مع كلمةالمرور!'));
             },
           }),
         ]}
       >
     <Input.Password
    
-      placeholder="تأكيد كلمة السر"
+      placeholder="تأكيد كلمةالمرور"
       style={{marginTop:'10px'}}
       iconRender={visible => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
     />

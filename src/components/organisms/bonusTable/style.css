@@ -11,7 +11,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500&display=swap');
 .attendance .ant-table-cell,.att-model .ant-table-cell{
     text-align: center!important;
-    font-weight: 700;
 }
 .table-info{
     display: table-header-group;
@@ -56,6 +55,8 @@ top:0;
 .attPer{
     display:flex;
     flex-direction:row;
+    align-items: center;
+
 }
 .disPer{
     display:flex;
@@ -66,7 +67,8 @@ top:0;
 .attOper{
     order:1;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: flex-end;
 }
 
 
@@ -74,7 +76,8 @@ top:0;
     padding-top: 14px;
 }
 .attHeader{
-    flex-direction:column;
+    flex-wrap: wrap;
+    justify-content: space-between;
 }
 .attPer{
 order: 2;

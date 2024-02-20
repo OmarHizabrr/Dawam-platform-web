@@ -39,7 +39,6 @@ export default function AlertsTable (props){
       useEffect(() => {
         axios.get(Env.HOST_SERVER_NAME+'user-type/'+props.user?.id)
         .then(response => {
-         
           setType(response.data);
         }).catch(function (error) {
           console.log(error);
@@ -130,7 +129,7 @@ export default function AlertsTable (props){
         };
 return(
   <Layout>
-    <Modal footer={[]} width={1000} style={{direction:'rtl'}}  title="إضافة إشعار" visible={isModalVisible} onCancel={()=>{setIsModalVisible(false)}}>
+    <Modal centered footer={[]} width={1000} style={{direction:'rtl'}}  title="إضافة إشعار" visible={isModalVisible} onCancel={()=>{setIsModalVisible(false)}}>
     <Form  form={form} name="dynamic_form_nest_item"  autoComplete="on" onFinish={function(record){onFinish(record);}}>
     <Form.Item label="نص الإشعار" name={'text'} >
           <TextArea/>
@@ -155,7 +154,7 @@ return(
   <div className='discountBtn' style={{display:'flex',flex:1,flexDirection:'row',justifyContent:'flex-end'}}>     
       <div className='discountRange' >
   <div style={{marginLeft:'10px'}}><span>اختر فترة : </span>
-  <RangePicker  onCalendarChange={changeRange} />
+  <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  onCalendarChange={changeRange} />
   </div>
   <div className='addbtn'>
   { 

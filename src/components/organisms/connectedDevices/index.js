@@ -141,7 +141,7 @@ return (
     <Button style={{display:'block',marginLeft:'5px',marginBottom:'10px'}} onClick={function(){testConnection()}} type='primary'><ExportOutlined /> سحب البصمات </Button>
     <Button style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){}} type='primary'><PrinterOutlined /> حذف البصمات </Button>
     </div>
-    <Modal title="تقديم إجازة / مهمة" visible={isModalVisible} onOk={function(){handleOk()}} onCancel={function(){handleCancel()}}>
+    <Modal centered title="تقديم إجازة / مهمة" visible={isModalVisible} onOk={function(){handleOk()}} onCancel={function(){handleCancel()}}>
     </Modal>
     <Table loading={load} columns={columns}  dataSource={data} onChange={handleChange} />
     </Card>

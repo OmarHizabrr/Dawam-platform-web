@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import React, { useState, useEffect } from 'react';
 import excel from 'xlsx';
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 import './style.css';
 import { Typography ,Layout,Tabs,Form, Spin,Table,Button, DatePicker,Col,TimePicker , Row,Popconfirm,Select,Card, notification,Input, InputNumber, Modal } from 'antd';
@@ -132,9 +132,9 @@ export default function AttendanceSetting(props){
                   'id':record.id,
                   'title':record.title,
                   'durationtype_id':record.durationtype_id,
-                  'date_range':[moment(record.startDate),moment(record.endDate)],
-                  'time_range':[moment(record.startTime,'HH:mm'),moment(record.endTime,'HH:mm')],
-                  'allowed_range':[moment(record.allowedStartTime,'HH:mm'),moment(record.allowedEndTime,'HH:mm')],
+                  'date_range':[dayjs(record.startDate),dayjs(record.endDate)],
+                  'time_range':[dayjs(record.startTime,'HH:mm'),dayjs(record.endTime,'HH:mm')],
+                  'allowed_range':[dayjs(record.allowedStartTime,'HH:mm'),dayjs(record.allowedEndTime,'HH:mm')],
                 });
               }}
               type="primary"
@@ -221,7 +221,7 @@ return (
       >
         إضافة فترة
       </Button>
-      <Modal confirmLoading={confirmLoading} title="إضافة فترة " visible={isModalVisible}  onOk={function(){ addDuration()}} onCancel={function(){setIsModalVisible(false);durationForm.resetFields()}}>
+      <Modal centered confirmLoading={confirmLoading} title="إضافة فترة " visible={isModalVisible}  onOk={function(){ addDuration()}} onCancel={function(){setIsModalVisible(false);durationForm.resetFields()}}>
         <Form form={durationForm}>
           <Form.Item
             name="id"
@@ -253,7 +253,7 @@ return (
         ></Select>
         </Form.Item>
         <Form.Item name={'date_range'} label="الفترة">
-          <RangePicker format="YYYY-MM-DD" />
+          <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} format="YYYY-MM-DD" />
         </Form.Item>
         <Form.Item name={'time_range'} label="وقت الحضور والانصراف">
             <TimePicker.RangePicker format="HH:mm" />

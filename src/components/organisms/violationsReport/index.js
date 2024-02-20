@@ -201,7 +201,7 @@ return (
         <div style={{marginBottom:'10px'}}>
       <div className='discountHeader' style={{marginBottom:'10px'}}>
         <div className='discountRange' style={{marginBottom:'10px'}}><span>اختر فترة : </span>
-          <RangePicker  onCalendarChange={changeRange} />
+          <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  onCalendarChange={changeRange} />
         </div>
         <div className='discountBtn'>
           <Button style={{display:'block',margin:'0 10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>

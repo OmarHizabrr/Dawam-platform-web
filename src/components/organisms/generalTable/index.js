@@ -3,16 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { useCookies,CookiesProvider  } from 'react-cookie';
 
 import './style.css';
-import {Table,Layout,Card,Rate,DatePicker,Button,Progress,Dropdown, Space,Menu} from 'antd';
-import ReactApexChart from "react-apexcharts";
+import {Table,Layout,Card,Rate,DatePicker,Button,Progress,Dropdown, Space,Menu,Typography} from 'antd';
 import {ExportOutlined,PrinterOutlined} from '@ant-design/icons';
 import excel from 'xlsx';
-import logoText from '../../../assets/images/logo-text.png';
 
 import Avatar from 'antd/lib/avatar/avatar';
 import axios from 'axios';
 import {Env} from './../../../styles';
-const {RangePicker}=DatePicker;
+const {Text}=Typography;
 
 export default function generalTable(props){
   const [cookies, setCookie, removeCookie]=useCookies(["userId"]);
@@ -22,8 +20,8 @@ export default function generalTable(props){
       const [data,setData]=useState([]);
       const [abData,setAbData]=useState([]);
       const [lateData,setLateData]=useState([]);
+      const [type,setType]=useState(null);
 
-      const [stdata,setStData]=useState([]);
       const [attAvg,setAttAvg]=useState(0);
       const [abCount,setAbCount]=useState(0);
       const [lateCount,setLateCount]=useState(0);
@@ -65,10 +63,16 @@ export default function generalTable(props){
      // eslint-disable-next-line react-hooks/rules-of-hooks
      useEffect(() => {
         setLoad(true);
+
+        axios.get(Env.HOST_SERVER_NAME+'user-type/'+props.user?.id)
+        .then(response => {
+          setType(response.data);
+        }).catch(function (error) {
+          console.log(error);
+        });
+
         axios.get(Env.HOST_SERVER_NAME+'all-users-log/'+today)
           .then(response => {
-
-
             const joinedData = response.data['users'].map(user => {
               const userAttendance =  response.data['logs_test'].find(item => item.user_id === user.user_id);
               return {
@@ -137,7 +141,7 @@ export default function generalTable(props){
         dataIndex: 'avatar',
         ellipsis: false,
         width:'70px',
-        render:(avatar,record,index)=>index+1,
+        render:(avatar,record,index)=>{ return <Text>{index+1}</Text>;},
       },
       {
         title: 'وقت الحضور',
@@ -147,7 +151,7 @@ export default function generalTable(props){
         sortOrder: sortedInfo.columnKey === 'attendance_time' && sortedInfo.order,
         ellipsis: false,
         width:'150px',
-        render:(attendance,record,index)=>record.attendance?.attendance_time,
+        render:(attendance,record,index)=>{return <Text>{record.attendance?.attendance_time}</Text>},
       }, 
       {
         title: 'الاسم',
@@ -159,7 +163,7 @@ export default function generalTable(props){
           <div>
           <Avatar src={Env.HOST_SERVER_STORAGE+record.avatar}>
           </Avatar>
-          <span style={{marginRight:'10px'}}>{user_name}</span>
+          <Text style={{marginRight:'10px'}}>{user_name}</Text>
           </div>
         )
       },
@@ -180,19 +184,20 @@ export default function generalTable(props){
         sorter: (a, b) => a.department - b.department,
         sortOrder: sortedInfo.columnKey === 'department' && sortedInfo.order,
         ellipsis: true,
+        render:(department,record,index)=>{return <Text>{department}</Text>},
+
       },
       {
         title: 'الوظيفة',
         dataIndex: 'job',
         key: 'job',
         ellipsis: true,
+        render:(job,record,index)=>{return <Text>{job}</Text>},
       },  
-   
     ];
- 
+
     const printReport=(element)=>{
       var report=document.getElementById(element);
-
         //var report=document.body;
         var mywindow = window.open('');
         mywindow.document.write("<html><head><title></title> <style>@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500&display=swap'); body{font-family:Tajawal;font-size:12px;margin:0}  </style><style type='text/css' media='print'>@page { size: portrait; }</style>");
@@ -200,8 +205,8 @@ export default function generalTable(props){
         mywindow.document.write(report.innerHTML);
         mywindow.document.write('</body></html>');
     
-      mywindow.document.close();
-       mywindow.onload = function() { // wait until all resources loaded 
+        mywindow.document.close();
+        mywindow.onload = function() { // wait until all resources loaded 
         mywindow.focus(); // necessary for IE >= 10
         mywindow.print();  // change window to mywindow
         mywindow.close();// change window to mywindow
@@ -248,32 +253,32 @@ export default function generalTable(props){
 
 return (
   <Layout>
-  <Card>
+  <Card bodyStyle={{padding:'10px'}}>
   <div className='generalHeader' >
   <div className='generalData'>
   <div className='attPer'><span>
-    <Progress type="circle" percent={Math.round(attAvg)} width={70} style={{marginLeft:'5px',display:'inline-block'}} /></span>
+    <Progress type="circle" percent={Math.round(attAvg)} width={window.innerWidth <= 760?50:70} style={{marginLeft:'5px',display:'inline-block'}} /></span>
       <span style={{display:'flex',flexDirection:'column',paddingTop:'10px',marginRight:'5px'}}>
         <div style={{marginBottom:'5px'}}>الحاضرون : <span>{data.length}</span> </div>
         <div>الغائبون : <span>{abCount}</span>  </div>
       </span>
     </div>
-    <div className='disPer'><span><Progress type="circle" percent={Math.round((timelyCount/data.length)*100)} width={70} style={{marginLeft:'5px',display:'inline-block'}} /></span>
+    <div className='disPer'><span><Progress type="circle" percent={Math.round((timelyCount/data.length)*100)} width={window.innerWidth <= 760?50:70} style={{marginLeft:'5px',display:'inline-block'}} /></span>
       <span style={{display:'flex',flexDirection:'column',paddingTop:'10px',marginRight:'5px'}}>
         <div style={{marginBottom:'5px'}}>المنضبطون : <span>{timelyCount} </span></div>
         <div>المتأخرون : <span>{lateCount}</span></div>
       </span>
     </div>
   </div>
-  <div className='generalOper'>     
+  { type && (props.user.role_id==1)?<div className='generalOper'>     
     <div className='date' style={{marginBottom:'10px',marginLeft:'5px'}}>
-      <span>اختر يومًا : </span> <DatePicker onChange={changeDate} />
+      <span>اختر يومًا : </span> <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} onChange={changeDate} />
     </div>
     <Button style={{display:'block',marginLeft:'5px',marginBottom:'10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
 
    <Space style={{display:'inline-block'}}>
     <Dropdown.Button menu={menuProps} trigger={['click']} style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport('att-report')}} type='primary'><PrinterOutlined /> طباعة الحاضرين</Dropdown.Button></Space> 
-    </div>
+  </div>:<></>}
     </div>
     <Table 
     className='genTable'

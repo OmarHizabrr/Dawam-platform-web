@@ -1,7 +1,9 @@
 #att-report tbody tr:nth-child(2n){
     border-bottom: 2px solid;
 }
-
+:where(.css-dev-only-do-not-override-dt6cet).ant-modal .ant-modal-content {
+    padding: 20px 10px;
+}
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500&display=swap');
 
 @media print{
@@ -48,10 +50,11 @@
     }
     .tasksOper{
         order: 1;
-        flex-direction: column;
+        flex-direction: row;
     }
     .tasksData{
         order: 2;
+        align-items: center;
     }
     .tasksBtn{
         flex-direction:row; 
@@ -62,4 +65,5 @@
         order: 2;
         margin-bottom: 10px;
     }
+
 }

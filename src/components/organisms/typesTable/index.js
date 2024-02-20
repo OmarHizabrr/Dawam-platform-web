@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import excel from 'xlsx';
 import axios from 'axios';
 import './style.css';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { useParams } from 'react-router';
 
 import {Env} from '../../../styles';
@@ -42,9 +42,9 @@ export default function TypesTable(props) {
   const [userType,setUserType]=useState(null);
 
   const [endVac,setEndVac]=useState("");
-  const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
-  const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
-  const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
+  const [start,setStart]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
+  const [end,setEnd]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
+  const [currentMonth,setCurrentMonth]=useState(dayjs().format('MMMM'));   
  
   const [notes,setNotes]=useState("");
   const [tstypes,setTstypes]=useState([]);
@@ -215,10 +215,10 @@ const openNotification = (placement,text) => {
           ellipsis: true,
           render:(amount,record,index)=>{
             if(index==edit){
-              return (<Input onChange={function(e){setDatefromValue(e.target.value)}} onPressEnter={function(){updateTask(record);setEdit(null);}} defaultValue={moment(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}></Input>)
+              return (<Input onChange={function(e){setDatefromValue(e.target.value)}} onPressEnter={function(){updateTask(record);setEdit(null);}} defaultValue={dayjs(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}></Input>)
             }
             else{
-              return (<Text>{moment(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}</Text>)
+              return (<Text>{dayjs(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}</Text>)
             }      
           },
         },
@@ -232,10 +232,10 @@ const openNotification = (placement,text) => {
           ellipsis: true,
           render:(amount,record,index)=>{
             if(index==edit){
-              return (<Input onChange={function(e){setDatetoValue(e.target.value)}} onPressEnter={function(){updateTask(record);setEdit(null)}} defaultValue={moment(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}></Input>)
+              return (<Input onChange={function(e){setDatetoValue(e.target.value)}} onPressEnter={function(){updateTask(record);setEdit(null)}} defaultValue={dayjs(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}></Input>)
             }
             else{
-              return (<Text>{moment(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}</Text>)
+              return (<Text>{dayjs(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}</Text>)
             }      
           }
         },     
@@ -259,7 +259,7 @@ const openNotification = (placement,text) => {
           render: (vid, record, index) => (
             <Button
               disabled={record.dept_manager!='في الانتظار' || record.gerenal_sec!='في الانتظار' || record.hr_manager!='في الانتظار'}
-              onClick={function () {uform.setFieldsValue({notes:record.description,date_range:[moment(record.date_from,"YYYY-MM-DD HH:mm") , moment(record.date_to, "YYYY-MM-DD HH:mm")],task_type:record.vac_id});setVacId(record.id);setVacType(record.vac_id);setDatefromValue(record.date_from);setDatetoValue(record.date_to);setNotes(record.description);setSelectedLogs(null);setIsUModalVisible(true);}}
+              onClick={function () {uform.setFieldsValue({notes:record.description,date_range:[dayjs(record.date_from,"YYYY-MM-DD HH:mm") , dayjs(record.date_to, "YYYY-MM-DD HH:mm")],task_type:record.vac_id});setVacId(record.id);setVacType(record.vac_id);setDatefromValue(record.date_from);setDatetoValue(record.date_to);setNotes(record.description);setSelectedLogs(null);setIsUModalVisible(true);}}
               className={'edit-btn'}
               style={{ backgroundColor: "#fff", borderColor: "#0972B6",color:"#0972B6" }}
               type="primary"
@@ -318,8 +318,8 @@ const openNotification = (placement,text) => {
         var startDay=props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value;
         var endDay=props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value;
     
-        setStart(moment(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
-        setEnd(moment(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
+        setStart(dayjs(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
+        setEnd(dayjs(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
     
         }
 return (
@@ -332,13 +332,14 @@ return (
         </div>
       </div>
     </div>
-<Modal title="تقديم إجازة / مهمة" confirmLoading={saving} visible={isModalVisible} onOk={function(){setSaving(true);handleOk()}} onCancel={function(){handleCancel()}}>
+<Modal centered title="تقديم إجازة / مهمة" confirmLoading={saving} visible={isModalVisible} onOk={function(){setSaving(true);handleOk()}} onCancel={function(){handleCancel()}}>
     <Form form={form} >
     <Form.Item className='rangee' name={'date_range'} label="فترة الإجازة / المهمة :">
     <Space>
-    <RangePicker
+    <RangePicker needConfirm={false} 
+    inputReadOnly={window.innerWidth <= 760}
      showTime={{
-        defaultValue: [moment(props.setting.filter((item)=> item.key == 'duration_start')[0]?.value, 'HH:mm'), moment(props.setting.filter((item)=> item.key == 'duration_end')[0]?.value, 'HH:mm')],
+        defaultValue: [dayjs(props.setting.filter((item)=> item.key == 'duration_start')[0]?.value, 'HH:mm'), dayjs(props.setting.filter((item)=> item.key == 'duration_end')[0]?.value, 'HH:mm')],
       }}
       format="YYYY-MM-DD HH:mm"  
     />
@@ -351,7 +352,7 @@ return (
     notFoundContent={<Spin style={{textAlign:'center'}}></Spin>}
     style={{ width: 200 }}
     options={tstypes}
-    placeholder="ابحث لاختيار إجازة"
+    placeholder="نوع الإجازة"
     optionFilterProp="children"
     filterOption={(input, option) =>
       option.props.children?.indexOf(input) >= 0 ||

@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import React, { useState, useEffect } from "react";
-import moment from 'moment';
+import dayjs from 'dayjs';
 import excel from "xlsx";
 import {ClusterOutlined,TagsOutlined,CheckCircleOutlined,MinusCircleOutlined,CloseCircleOutlined} from '@ant-design/icons';
 import axios from "axios";
@@ -50,11 +50,11 @@ export default function TasksRequests(props) {
   const [filteredInfo, setFilteredInfo] = useState({});
   const [sortedInfo, setSortedInfo] = useState({});
   const [data, setData] = useState([]);
-  const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
-//  const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
-  const [end,setEnd]=useState(moment().format('YYYY-MM-DD'));  
+  const [start,setStart]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
+//  const [end,setEnd]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
+  const [end,setEnd]=useState(dayjs().format('YYYY-MM-DD'));  
 
-  const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM')); 
+  const [currentMonth,setCurrentMonth]=useState(dayjs().format('MMMM')); 
   const [selected, setSelected] = useState(null);
   const [selectedLogs, setSelectedLogs] = useState(null);
 
@@ -146,7 +146,7 @@ export default function TasksRequests(props) {
     setNotes("");
 
     form.setFieldValue('request_type',selected.vactype);
-    form.setFieldValue('range_date',[moment(selected ? selected.date_from : "", "YYYY-MM-DD HH:mm"), moment(selected ? selected.date_to : "", "YYYY-MM-DD HH:mm")]);
+    form.setFieldValue('range_date',[dayjs(selected ? selected.date_from : "", "YYYY-MM-DD HH:mm"), dayjs(selected ? selected.date_to : "", "YYYY-MM-DD HH:mm")]);
 
     setTotalVac(selected?.days > 0 ? (parseInt(selected?.days)+1) + " يوم " : "" + selected?.period != 0 ? selected?.period : "");
     setVacationtype(selected.vacation);
@@ -179,8 +179,8 @@ export default function TasksRequests(props) {
         var startMon=props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value
 
         var perMonth=(30*7*60)/12;
-        var curr=parseInt(moment(selected.date_from,"YYYY-MM-DD HH:mm").format('MM'));
-        var currMonth=parseInt(moment(selected.date_from,"YYYY-MM-DD HH:mm").format('DD'))>=startMon?curr+1:curr;
+        var curr=parseInt(dayjs(selected.date_from,"YYYY-MM-DD HH:mm").format('MM'));
+        var currMonth=parseInt(dayjs(selected.date_from,"YYYY-MM-DD HH:mm").format('DD'))>=startMon?curr+1:curr;
          var restMin=min- (perMonth*(12-currMonth));
       setRestTasks( parseInt(restMin/60).toString().padStart(2, '0') + ":" +(restMin%60).toString().padStart(2, '0'));
       }
@@ -213,6 +213,7 @@ export default function TasksRequests(props) {
     setTotalVac(checkPeriod(all,dates));       
   }
   const handleOk = () => {
+    if(statusType!=null){
     setSaving(true); 
 
     var values = {
@@ -243,6 +244,15 @@ export default function TasksRequests(props) {
       console.log("Refused Request : "+error);
       setSaving(false);
     });
+  }
+
+  else{
+    notification.warning({
+      message:"يرجى تحديد حالة الطلب" ,
+      placement:'bottomLeft',
+      duration:10,
+    });
+  }
 
   };
   const changeType = (e) => {
@@ -271,6 +281,11 @@ export default function TasksRequests(props) {
       sorter: (a, b) => a.user.length - b.user.length,
       sortOrder: sortedInfo.columnKey === "user" && sortedInfo.order,
       ellipsis: false,
+      render:(user,record,_)=>(
+        <Text>
+        {user}
+        </Text>
+      )
     },
     {
       title: "الإدارة",
@@ -282,6 +297,11 @@ export default function TasksRequests(props) {
       sorter: (a, b) => a.category.length - b.category.length,
       sortOrder: sortedInfo.columnKey === "category" && sortedInfo.order,
       ellipsis: false,
+      render:(category,record,_)=>(
+        <Text>
+        {category}
+        </Text>
+      )
     },
     {
       title: "النوع",
@@ -293,6 +313,11 @@ export default function TasksRequests(props) {
       sorter: (a, b) => a.vactype.length - b.vactype.length,
       sortOrder: sortedInfo.columnKey === "category" && sortedInfo.order,
       ellipsis: false,
+      render:(vactype,record,_)=>(
+        <Text>
+        {vactype}
+        </Text>
+      )
     },
     {
       title: "من",
@@ -302,6 +327,11 @@ export default function TasksRequests(props) {
       sorter: (a, b) => a.date_from - b.date_from,
       sortOrder: sortedInfo.columnKey === "date_from" && sortedInfo.order,
       ellipsis: false,
+      render:(date_from,record,_)=>(
+        <Text>
+        {date_from.split(':').slice(0, 2).join(':')}
+        </Text>
+      )
     },
     {
       title: "إلى",
@@ -311,6 +341,11 @@ export default function TasksRequests(props) {
       sorter: (a, b) => a.date_to.length - b.date_to.length,
       sortOrder: sortedInfo.columnKey === "address" && sortedInfo.order,
       ellipsis: false,
+      render:(date_to,record,_)=>(
+        <Text>
+        {date_to.split(':').slice(0, 2).join(':')}
+        </Text>
+      )
     },
     {
       title: 'تاريخ التقديم',
@@ -320,7 +355,11 @@ export default function TasksRequests(props) {
       sorter: (a, b) => a.created_at.length - b.created_at.length,
       sortOrder: sortedInfo.columnKey === 'address' && sortedInfo.order,
       ellipsis: false,
-
+      render:(created_at,record,_)=>(
+        <Text>
+        {created_at}
+        </Text>
+      )
     }, 
     {
       title: "مدير الإدارة",
@@ -437,12 +476,13 @@ export default function TasksRequests(props) {
     var startDay=props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value;
     var endDay=props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value;
 
-    setStart(moment(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
-    setEnd(moment(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
+    setStart(dayjs(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
+    setEnd(dayjs(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
 
     }
+
   return (
-    <Card>
+    <Card bodyStyle={{padding:'20px 15px'}}>
       <div
       className="requestsHeader"
       >
@@ -451,7 +491,7 @@ export default function TasksRequests(props) {
             <Progress
               type="circle"
               percent={countPer}
-              width={80}
+              width={window.innerWidth <= 760?55:80}
               style={{ marginLeft: "5px", display: "inline-block" }}
             />
           </span>
@@ -463,50 +503,52 @@ export default function TasksRequests(props) {
               marginRight: "5px",
             }}
           >
-            <div style={{ marginBottom: "5px" }}>الطلبات المنجزة</div>
-            <div style={{ color: "#828282" }}> بقي لديك {countRest} طلباً</div>
+            <div style={{ marginBottom: "5px",textAlign:'center'}}>الطلبات المنجزة</div>
+            {window.innerWidth <= 760?<></>:<div style={{ color: "#828282" }}> بقي لديك {countRest} طلباً</div>}
           </span>
         </div>
     <div className="requestsRange" > 
-    <div style={{marginLeft:'10px'}}>
+    <div style={{marginLeft:'10px',display:'flex',alignItems:'baseline'}}>
         <span>اختر شهرًا : </span>
-        <DatePicker  defaultValue={moment()} onChange={onChange} picker="month" />
-      </div>  
-    <div style={{marginBottom:'10px',marginLeft:'5px'}}><span>اختر فترة : </span>
-    <RangePicker value={[moment(start,"YYYY-MM-DD"),moment(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
-    </div>
+        <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  defaultValue={dayjs()} onChange={onChange} picker="month" />
+    </div>  
+    {window.innerWidth <= 760?<></>:<div style={{marginBottom:'10px',marginLeft:'5px'}}><span>اختر فترة : </span>
+    <RangePicker needConfirm={false}   inputReadOnly={window.innerWidth <= 760} value={[dayjs(start,"YYYY-MM-DD"),dayjs(end,"YYYY-MM-DD")]} onChange={changeRange} />
+    </div>}
     <div className="requestsBtn">   
-    <Button style={{display:'block',float:"left",marginBottom:'10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
+    {window.innerWidth <= 760?<></>:<Button style={{display:'block',float:"left",marginBottom:'10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>}
     </div>
     </div>
       </div>
       <Modal
+        centered
         title="مراجعة الطلبات"
         visible={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
         confirmLoading={saving}
-        width={'600px'}
+        width={'530px'}
       >
       <Form form={form}>
         <div style={{ marginBottom: "20px" }}>
-        <div className="taggedInfo" style={{fontFamily: 'jannatR'}}>
+        <div className="taggedInfo" style={{fontWeight:'700',fontFamily: 'Tajawal'}}>
           {" "}
           مقدم الطلب : {" "}
-          <span style={{ fontWeight: "900", fontFamily: "jannatR" }}>
+          <span style={{ fontWeight: "400", fontFamily: "Tajawal" }}>
             {" "}
             {selected ? selected.user : ""}{" "}
           </span>{" "}
-          <Text><ClusterOutlined /> {selected ? selected.category : ""} , {selected ? selected.job : ""} </Text></div>          
-          <div className="taggedInfo"> التفاصيل : <Text  style={{fontFamily: 'jannatR'}}>{selected ? selected.description : ""}</Text></div>
-          <div className="taggedInfo"> الإجمالي : <Text  style={{fontFamily: 'jannatR',color:'#f00'}}>
-          {totalVac}
+          <Text style={{display:'block',marginTop:'10px',fontWeight:'400'}}> <span style={{fontWeight:'700'}}>الإدارة:</span>  {selected ? selected.category : ""} , {selected ? selected.job : ""} </Text></div>          
+          <div className="taggedInfo" style={{fontWeight:'700'}}> التفاصيل : <Text  style={{fontFamily: 'Tajawal',fontWeight:'400'}}>{selected ? selected.description : ""}</Text></div>
+          <div className="taggedInfo" style={{fontWeight:'700'}}> الإجمالي : <Text  style={{fontFamily: 'Tajawal',fontWeight:'400',color:'#f00'}}>
+           {totalVac.split(':').slice(0, 2).join(':')}
           </Text></div>
-          <div className="taggedInfo" style={{fontFamily: 'jannatR'}}><Text>الفترة :   </Text></div>
+          <div className="taggedInfo" style={{fontFamily: 'Tajawal'}}><Text>الفترة :   </Text></div>
           <FormItem name={'range_date'}>
-          <RangePicker
+          <RangePicker needConfirm={false} 
+    inputReadOnly={window.innerWidth <= 760}
             showTime={{ format: "HH:mm" }}
-            value={[moment(selected ? selected.date_from : "", "YYYY-MM-DD HH:mm"), moment(selected ? selected.date_to : "", "YYYY-MM-DD HH:mm")]}
+            value={[dayjs(selected ? selected.date_from : "", "YYYY-MM-DD HH:mm"), dayjs(selected ? selected.date_to : "", "YYYY-MM-DD HH:mm")]}
             format="YYYY-MM-DD HH:mm"
             onChange= {onRangeChange}
           />
@@ -514,12 +556,12 @@ export default function TasksRequests(props) {
             <Table loading={logload}  pagination={false} style={{textAlign:'center!important'}}   columns={dcolumns}  dataSource={selectedLogs} onCalendarChange={handleChange} />         
         </div>
         <div style={{display:'flex',flexDirection:'row',justifyContent:'space-between'}}>        
-        <FormItem style={{marginBottom:'0px'}} name={'request_type'} label={'نوع الطلب '}>
+        <FormItem style={{marginBottom:'0px',fontFamily:'Tajawal'}} name={'request_type'} label={'نوع الطلب '}>
           <Select
-            showSearch
+            
             value={selected? selected.vactype:""}
             style={{ width: 150, marginBottom: "20px" }}
-            placeholder="قم بتعيين نوع الطلب"
+            placeholder="اختر نوع الطلب"
             optionFilterProp="children"
             onSelect={changeVType}
             filterOption={(input, option) =>
@@ -534,11 +576,10 @@ export default function TasksRequests(props) {
             {vacationsTypes?.map(function(item){return (<Option key={item.id}  value={item.id}>{item.name}</Option>)})}           
           </Select>
         </FormItem>
-        <FormItem style={{marginBottom:'0px'}} name={'request_status'} label={'حالة الطلب'}>
+        <FormItem rules={[{ required: true, message: 'اختر حالة الطلب' }]} style={{marginBottom:'0px'}} name={'request_status'} label={'حالة الطلب'}>
           <Select
-            showSearch
             style={{ width: 200, marginBottom: "20px" }}
-            placeholder="قم بتعيين حالة الطلب"
+            placeholder="اختر حالة الطلب"
             optionFilterProp="children"
             onSelect={changeType}
             filterOption={(input, option) =>

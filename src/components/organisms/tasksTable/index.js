@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import excel from 'xlsx';
 import axios from 'axios';
 import './style.css';
-import moment from 'moment';
 import dayjs from 'dayjs';
 
 import {Env} from '../../../styles';
@@ -38,11 +37,11 @@ export default function tasksTable(props) {
   const [userType,setUserType]=useState(null);
 
   const [endVac,setEndVac]=useState("");
-  const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
-//  const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
-  const [end,setEnd]=useState(moment().format('YYYY-MM-DD'));  
+  const [start,setStart]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
+//  const [end,setEnd]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
+  const [end,setEnd]=useState(dayjs().format('YYYY-MM-DD'));  
 
-  const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
+  const [currentMonth,setCurrentMonth]=useState(dayjs().format('MMMM'));   
   const [star,setStar]=useState(0); 
 
   const [notes,setNotes]=useState("");
@@ -176,12 +175,12 @@ export default function tasksTable(props) {
     return current && current < twoDaysAgo;
   };
 
-  const getGivenRest=(e,start)=>{
+  const getGivenRest=(e,start,end)=>{
+
     axios.get(Env.HOST_SERVER_NAME+'given-tasks/'+props.user.user_id+'/'+start+'/'+end).then(response=>{
       setGivenTasks(response.data.vacs.filter(record => record.id== e)[0]?.cumHours);
-      
-      var min=response.data.tasksAmount.filter(record => record.vid== e)[0]?.rest;
 
+      var min=response.data.tasksAmount.filter(record => record.vid== e)[0]?.rest;
 
       if(typeof min === 'undefined')
       setRestTasks('-');
@@ -194,8 +193,8 @@ export default function tasksTable(props) {
         else{
           var perMonth=0;
         }
-        var curr=parseInt(moment(start,"YYYY-MM-DD HH:mm").format('MM'));
-        var currMonth=parseInt(moment(start,"YYYY-MM-DD HH:mm").format('DD'))>=startMon?curr+1:curr;
+        var curr=parseInt(dayjs(start,"YYYY-MM-DD HH:mm").format('MM'));
+        var currMonth=parseInt(dayjs(start,"YYYY-MM-DD HH:mm").format('DD'))>=startMon?curr+1:curr;
         var restMin=min- (perMonth*(12-currMonth));
       setRestTasks( parseInt(restMin/60).toString().padStart(2, '0') + ":" +(restMin%60).toString().padStart(2, '0'));
       }
@@ -208,11 +207,11 @@ export default function tasksTable(props) {
   }
   const handleTypeChange=(e)=>{
       setType(e);
-      getGivenRest(e,startVac);
+      getGivenRest(e,startVac,endVac);
     }
   const handleUTypeChange=(e)=>{
       setVacType(e);
-      getGivenRest(e,startVac);
+      getGivenRest(e,startVac,endVac);
     }
   const  handleChange = (pagination, filters, sorter) => {
           setFilteredInfo(filters);
@@ -272,8 +271,8 @@ export default function tasksTable(props) {
             setTotalVac("");
             setType(null);
             setNotes(null);
-            setGivenTasks(0);
-            setRestTasks(0);
+            setGivenTasks(null);
+            setRestTasks(null);
             setUpdate(update+1);
 
           })
@@ -322,8 +321,8 @@ export default function tasksTable(props) {
              setTotalVac("");
              setVacType(null);
              setNotes(null);
-             setGivenTasks(0);
-             setRestTasks(0);
+             setGivenTasks(null);
+             setRestTasks(null);
            })
         .catch(function (error) {
          console.log(error);
@@ -372,8 +371,8 @@ export default function tasksTable(props) {
         setIsUModalVisible(false);
         setTotalVac("");
         setVacType(null);
-        setGivenTasks(0);
-        setRestTasks(0);
+        setGivenTasks(null);
+        setRestTasks(null);
         setNotes(null);
         uform.resetFields(['date_range','task_type','notes']);
       };
@@ -437,16 +436,16 @@ export default function tasksTable(props) {
           title: 'من',
           dataIndex: 'date_from',
           key: 'date_from',
-          
+          width:120,
           sorter: (a, b) => a.date_from - b.date_from,
           sortOrder: sortedInfo.columnKey === 'date_from' && sortedInfo.order,
           ellipsis: false,
           render:(amount,record,index)=>{
             if(index==edit){
-              return (<Input onChange={function(e){setDatefromValue(e.target.value)}} onPressEnter={function(){updateTask(record);setEdit(null);}} defaultValue={moment(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}></Input>)
+              return (<Input onChange={function(e){setDatefromValue(e.target.value)}} onPressEnter={function(){updateTask(record);setEdit(null);}} defaultValue={dayjs(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}></Input>)
             }
             else{
-              return (<Text>{moment(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}</Text>)
+              return (<Text>{dayjs(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}</Text>)
             }      
           },
         },
@@ -454,16 +453,16 @@ export default function tasksTable(props) {
           title: 'إلى',
           dataIndex: 'date_to',
           key: 'date_to',
-          
+          width:120,
           sorter: (a, b) => a.date_to.length - b.date_to.length,
           sortOrder: sortedInfo.columnKey === 'address' && sortedInfo.order,
           ellipsis: false,
           render:(amount,record,index)=>{
             if(index==edit){
-              return (<Input onChange={function(e){setDatetoValue(e.target.value)}} onPressEnter={function(){updateTask(record);setEdit(null)}} defaultValue={moment(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}></Input>)
+              return (<Input onChange={function(e){setDatetoValue(e.target.value)}} onPressEnter={function(){updateTask(record);setEdit(null)}} defaultValue={dayjs(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}></Input>)
             }
             else{
-              return (<Text>{moment(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}</Text>)
+              return (<Text>{dayjs(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}</Text>)
             }      
           }
         },
@@ -471,9 +470,13 @@ export default function tasksTable(props) {
           title: 'تاريخ التقديم',
           dataIndex: 'created_at',
           key: 'created_at',
+          width:120,
           sorter: (a, b) => a.created_at.length - b.created_at.length,
           sortOrder: sortedInfo.columnKey === 'address' && sortedInfo.order,
           ellipsis: false,
+          render:(created_at,record,index)=>{
+            return (<Text>{dayjs(created_at,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}</Text>)
+          }
         },        
          {
           title: 'التفاصيل',
@@ -482,6 +485,9 @@ export default function tasksTable(props) {
           sorter: (a, b) => a.description.length - b.description.length,
           sortOrder: sortedInfo.columnKey === 'description' && sortedInfo.order,
           ellipsis: true,
+          render:(description,record,index)=>{
+            return (<Text>{description}</Text>)
+          }
         },
 
         {
@@ -492,10 +498,7 @@ export default function tasksTable(props) {
           sortOrder: sortedInfo.columnKey === 'period' && sortedInfo.order,
           ellipsis: true,
           render:(period,record,index)=>{
-            if(record.days>0)
-               return parseInt(record.days)+1;
-               else
-               return period;
+            return <Text>{record.days>0?parseInt(record.days)+1:period}</Text>;
           },
         },
         {
@@ -554,7 +557,7 @@ export default function tasksTable(props) {
           render: (vid, record, index) => (
             <Button
               disabled={record.dept_manager!='في الانتظار' || record.gerenal_sec!='في الانتظار' || record.hr_manager!='في الانتظار'}
-              onClick={function () {uform.setFieldsValue({notes:record.description,date_range:[moment(record.date_from,"YYYY-MM-DD HH:mm") , moment(record.date_to, "YYYY-MM-DD HH:mm")],task_type:record.vac_id});setVacId(record.id);setVacType(record.vac_id);setDatefromValue(record.date_from);setDatetoValue(record.date_to);getGivenRest(record.vac_id,record.date_from);setNotes(record.description);setSelectedLogs(null);setIsUModalVisible(true);}}
+              onClick={function () {uform.setFieldsValue({notes:record.description,date_range:[dayjs(record.date_from,"YYYY-MM-DD HH:mm") , dayjs(record.date_to, "YYYY-MM-DD HH:mm")],task_type:record.vac_id});setVacId(record.id);setVacType(record.vac_id);setDatefromValue(record.date_from);setDatetoValue(record.date_to);getGivenRest(record.vac_id,record.date_from,record.date_to);setNotes(record.description);setSelectedLogs(null);setIsUModalVisible(true);}}
               className={'edit-btn'}
               style={{ backgroundColor: "#fff", borderColor: "#0972B6",color:"#0972B6" }}
               type="primary"
@@ -632,8 +635,8 @@ export default function tasksTable(props) {
       const handleCancel=()=>{
         setIsModalVisible(false);
         setType(null);
-        setGivenTasks(0);
-        setRestTasks(0);
+        setGivenTasks(null);
+        setRestTasks(null);
         setTotalVac("");
         setNotes(null);
         form.resetFields(['date_range','task_type','notes']); 
@@ -655,16 +658,25 @@ export default function tasksTable(props) {
         var startDay=props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value;
         var endDay=props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value;
     
-        setStart(moment(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
-        setEnd(moment(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
+        setStart(dayjs(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
+        setEnd(dayjs(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
     
         }
-
+        const formItemLayout = {
+          labelCol: {
+            xs: { span: 6 },
+            sm: { span: 6 }
+          },
+          wrapperCol: {
+            xs: { span: 18 },
+            sm: { span: 18 }
+          }
+        };
 return (
-    <Card>
+    <Card bodyStyle={{padding: '20px 15px'}}>
     <div className='tasksHeader'>
       <div className='tasksData'>
-        <span><Progress type="circle" percent={Math.round(annuPerc?annuPerc:0)} width={80} style={{marginLeft:'5px',display:'inline-block'}} /></span>
+        <span><Progress type="circle" percent={Math.round(annuPerc?annuPerc:0)} width={window.innerWidth <= 760?55:80} style={{marginLeft:'5px',display:'inline-block'}} /></span>
         <span style={{display:'flex',flexDirection:'column',paddingTop:'10px',marginRight:'5px'}}>
           <div style={{marginBottom:'5px'}}>رصيد السنوية</div>
           <div> المتبقي : {annuDays?  (Math.round(annuDays/60/7*100)/100) :0} يوم </div>
@@ -672,29 +684,30 @@ return (
       </div>
   
       <div className='tasksOper'>
-      <div style={{marginLeft:'10px'}}>
-        <span>اختر شهرًا : </span>
-        <DatePicker  defaultValue={moment()} onChange={onChange} picker="month" />
+      <div style={{marginLeft:'5px'}}>
+        {window.innerWidth <= 760?<span style={{fontSize:'12px'}}>اختر شهرًا : </span>:<span>اختر شهرًا : </span>}
+        <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  defaultValue={dayjs()} onChange={onChange} picker="month" />
       </div>  
-        <div className='tasksRange' style={{marginBottom:'10px',marginLeft:'5px'}}><span>اختر فترة : </span>
-          <RangePicker  value={[moment(start,"YYYY-MM-DD"),moment(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
-        </div>
+        {window.innerWidth <= 760?<></>:<div className='tasksRange' style={{marginBottom:'10px',marginLeft:'5px'}}><span>اختر فترة : </span>
+          <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  value={[dayjs(start,"YYYY-MM-DD"),dayjs(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
+        </div>}
         <div className='tasksBtn'>   
-          <Button style={{marginBottom:'10px',marginLeft:'5px',backgroundColor:'#FAA61A',border:'none'}} onClick={showModal} type='primary'><FormOutlined /> تقديم إجازة </Button>
-          <Button disabled={load} style={{display:'block',marginLeft:'5px',marginBottom:'10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
+          <Button style={{marginBottom:'10px',marginLeft:'5px',backgroundColor:'#FAA61A',border:'none'}} onClick={showModal} type='primary'><FormOutlined />{window.innerWidth > 760??"تقديم إجازة"}</Button>
+          {window.innerWidth <= 760?<></>:<Button disabled={load} style={{display:'block',marginLeft:'5px',marginBottom:'10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>}
           <Button disabled={load} style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button>
         </div>
       </div>
     </div>
-<Modal title="تقديم إجازة / مهمة" confirmLoading={saving} visible={isModalVisible} onOk={function(){setSaving(true);handleOk()}} onCancel={function(){handleCancel()}}>
+<Modal centered title="تقديم إجازة / مهمة" confirmLoading={saving} visible={isModalVisible} onOk={function(){setSaving(true);handleOk()}} onCancel={function(){handleCancel()}}>
     <Form form={form} >
     <Form.Item className='rangee' name={'date_range'} label="فترة الإجازة / المهمة :">
     <Space>
-    <RangePicker
+    <RangePicker needConfirm={false} 
+    inputReadOnly={window.innerWidth <= 760}
      showTime={{
-        defaultValue: [moment(props.setting.filter((item)=> item.key == 'duration_start')[0]?.value, 'HH:mm'), moment(props.setting.filter((item)=> item.key == 'duration_end')[0]?.value, 'HH:mm')],
+        defaultValue: [dayjs(props.setting.filter((item)=> item.key == 'duration_start')[0]?.value, 'HH:mm'), dayjs(props.setting.filter((item)=> item.key == 'duration_end')[0]?.value, 'HH:mm')],
       }}
-      disabledDate={disabledDate}
+      width={50}
       format="YYYY-MM-DD HH:mm"  
       onCalendarChange={function(all,dates){onRangeChange(all,dates);}}
     />
@@ -702,14 +715,13 @@ return (
   <div style={{marginTop:'10px',fontWeight:600}}>مدة الإجازة: <Text type="danger">{totalVac}</Text></div> 
     </Form.Item>
     <Table loading={logload}  pagination={false} style={{textAlign:'center!important'}}   columns={dcolumns}  dataSource={selectedLogs} onCalendarChange={handleChange} />         
-    <Form.Item style={{marginTop:'10px'}} name={'task_type'} label="نوع الإجازة">
-    <Select
-    showSearch
+    <Form.Item {...formItemLayout} labelWrap={false} style={{marginTop:'10px',marginBottom:'10px'}} name={'task_type'} label="نوع الإجازة">
+    <Select    
     notFoundContent={<Spin style={{textAlign:'center'}}></Spin>}
     style={{ width: 150 }}
     onSelect={handleTypeChange}
     options={tstypes}
-    placeholder="ابحث لاختيار إجازة"
+    placeholder="نوع الإجازة"
     optionFilterProp="children"
     filterOption={(input, option) =>
       option.props.children?.indexOf(input) >= 0 ||
@@ -720,8 +732,9 @@ return (
     }
   >
   </Select>
-  <div style={{marginRight: '10px',display: 'inline-block'}}>
-    <div>الممنوحة: <span style={{fontWeight:'600',color:'#f00',marginLeft:'20px'}}>{givenTasks??0}</span>      المتبقية: <span style={{fontWeight:'600',color:'#f00'}}>{restTasks??0}</span> </div>
+  <div style={{marginTop:"20px",display:'flex',flexDirection:'row',justifyContent:'flex-start'}}>
+    <div>الممنوحة: <span style={{fontWeight:'600',color:'#f00',marginLeft:'20px'}}>{givenTasks??"-"}</span></div>
+    <div>المتبقية: <span style={{fontWeight:'600',color:'#f00'}}>{restTasks??"-"}</span> </div>
   </div>
     </Form.Item>
     <Form.Item name={'notes'} label="تفاصيل ">
@@ -730,13 +743,14 @@ return (
     </Form>
     </Modal>
 
-    <Modal title="تعديل إجازة / مهمة" confirmLoading={usaving} visible={isuModalVisible} onOk={function(){setUSaving(true);handleuOk()}} onCancel={function(){handleuCancel()}}>
+    <Modal centered title="تعديل إجازة / مهمة" confirmLoading={usaving} visible={isuModalVisible} onOk={function(){setUSaving(true);handleuOk()}} onCancel={function(){handleuCancel()}}>
     <Form form={uform} >
     <Form.Item className='rangee' name={'date_range'} label="فترة الإجازة / المهمة :">
     <Space>
-    <RangePicker
+    <RangePicker needConfirm={false} 
+    inputReadOnly={window.innerWidth <= 760}
       format="YYYY-MM-DD HH:mm"
-      value={[moment(datefromValue,"YYYY-MM-DD HH:mm"), moment(datetoValue, "YYYY-MM-DD HH:mm")]}
+      value={[dayjs(datefromValue,"YYYY-MM-DD HH:mm"), dayjs(datetoValue, "YYYY-MM-DD HH:mm")]}
       showTime
       disabledDate={disabledDate}
       onCalendarChange={function(all,dates){onRangeChange(all,dates);}}
@@ -746,7 +760,7 @@ return (
 
     </Form.Item>
     <Table loading={logload}  pagination={false} style={{textAlign:'center!important'}}   columns={dcolumns}  dataSource={selectedLogs} onCalendarChange={handleChange} />         
-    <Form.Item name={'task_type'} label="نوع الإجازة">
+    <Form.Item {...formItemLayout} style={{marginBottom:'10px'}} name={'task_type'} label="نوع الإجازة">
     <Select
     showSearch
     notFoundContent={<Spin style={{textAlign:'center'}}></Spin>}
@@ -754,7 +768,7 @@ return (
     onSelect={handleUTypeChange}
     value={vacType}
     options={tstypes}
-    placeholder="ابحث لاختيار إجازة"
+    placeholder="اختر إجازة"
     optionFilterProp="children"
     filterOption={(input, option) =>
       option.props.children?.indexOf(input) >= 0 ||
@@ -765,8 +779,9 @@ return (
     }
   >
   </Select>
-  <div style={{marginRight: '10px',display: 'inline-block'}}>
-    <div>الممنوحة: <span style={{fontWeight:'600',color:'#f00',marginLeft:'20px'}}>{givenTasks??0}</span>      المتبقية: <span style={{fontWeight:'600',color:'#f00'}}>{restTasks??0}</span> </div>
+  <div style={{marginTop:"20px",display:'flex',flexDirection:'row',justifyContent:'flex-start'}}>
+    <div>الممنوحة: <span style={{fontWeight:'600',color:'#f00',marginLeft:'20px'}}>{givenTasks??0}</span></div>
+    <div>المتبقية: <span style={{fontWeight:'600',color:'#f00'}}>{restTasks??0}</span> </div>
   </div>
     </Form.Item>
     <Form.Item name={'notes'} label="تفاصيل ">
@@ -830,7 +845,7 @@ return (
                 <td style={{backgroundColor: index%2==0?'#e6e6e6':'#fff'}}>من</td>
                 <td style={{backgroundColor: index%2==0?'#e6e6e6':'#fff'}}>{days[new Date(item.date_from ).getDay()]}</td>
                 <td style={{backgroundColor: index%2==0?'#e6e6e6':'#fff'}}>{item.date_from.split(" ")[0]}</td>
-                <td style={{backgroundColor: index%2==0?'#e6e6e6':'#fff'}}>{moment(item.date_from.split(" ")[1],'HH:mm:ss').format('hh:mm A')}</td>
+                <td style={{backgroundColor: index%2==0?'#e6e6e6':'#fff'}}>{dayjs(item.date_from.split(" ")[1],'HH:mm:ss').format('hh:mm A')}</td>
                 <td style={{backgroundColor: index%2==0?'#e6e6e6':'#fff'}} rowSpan={2}>{item.days>0 ? parseInt(item.days)+1:item.days}</td>
                 <td style={{backgroundColor: index%2==0?'#e6e6e6':'#fff'}} rowSpan={2}>{item.period?.replace(/(\d{1,2}:\d{2}):\d{2}/, "$1")}</td>
                 <td style={{backgroundColor: index%2==0?'#e6e6e6':'#fff'}} rowSpan={2}>{item.name}</td>
@@ -842,7 +857,7 @@ return (
                 <td style={{backgroundColor: index%2==0?'#e6e6e6':'#fff'}}>إلى</td>
                 <td style={{backgroundColor: index%2==0?'#e6e6e6':'#fff'}}>{days[new Date(item.date_to ).getDay()]}</td>
                 <td style={{backgroundColor: index%2==0?'#e6e6e6':'#fff'}}>{item.date_to?.split(" ")[0]}</td>
-                <td style={{backgroundColor: index++%2==0?'#e6e6e6':'#fff'}}>{moment(item.date_to?.split(" ")[1],'HH:mm:ss').format('hh:mm A')}</td>
+                <td style={{backgroundColor: index++%2==0?'#e6e6e6':'#fff'}}>{dayjs(item.date_to?.split(" ")[1],'HH:mm:ss').format('hh:mm A')}</td>
               </tr>
               </>
               );

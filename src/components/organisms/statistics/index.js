@@ -23,7 +23,7 @@ export default function Statistics (props) {
                  text:'توزيع الموظفين على الإدارات',
                  align:'center',
                  style:{
-                     fontFamily:'jannatR',
+                     fontFamily:'Tajawal',
                  }
                 },
               chart: {
@@ -74,7 +74,7 @@ export default function Statistics (props) {
         style: {
           fontSize:  '14px',
           fontWeight:  'bold',
-          fontFamily:  'jannatR',
+          fontFamily:  'Tajawal',
           color:  '#263238'
         },
     },
@@ -102,14 +102,14 @@ export default function Statistics (props) {
       categories:qlabels,
       labels: {
         style: {
-          fontFamily:'jannatR',
+          fontFamily:'Tajawal',
           fontSize: '12px'
         }
       }
     },
     tooltip: {
       style:{
-        fontFamily:'jannatR',
+        fontFamily:'Tajawal',
         marginLeft:'5px',
       },
       y:{         

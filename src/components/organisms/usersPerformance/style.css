@@ -10,7 +10,7 @@ border-radius: 32px;
     background-color: #0972B6!important;
     color:#fff!important;
 }
-.discountHeader{
+.performanceHeader{
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
@@ -31,15 +31,16 @@ padding-right: 5px;
 }
 @media only screen and (max-width: 600px) {
 
-    .discountHeader{
-        flex-direction: column;
+    .performanceHeader{
+        flex-direction: row;
+        align-items: flex-end;
     }
     .discountRange{
         order: 2;
     }
-    .discountBtn{
+    .performanceHeader .discountBtn{
         justify-content: flex-end;
-        margin-bottom: 10px;
+        margin-bottom: 0px;
         margin-top: 6px;
         order: 2;
         }

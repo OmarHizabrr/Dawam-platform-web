@@ -5,7 +5,7 @@ import { DatePicker,Table, Button,Card,Input,Select,Form,Space, Modal,Spin,notif
 import {PlusOutlined ,FormOutlined,ExportOutlined,PrinterOutlined} from '@ant-design/icons';
 import axios from 'axios';
 import excel from 'xlsx';
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 import {Env} from './../../../styles';
 
@@ -22,7 +22,7 @@ export default function TasksAccounts (props){
   const [tstypes,setTstypes]=useState([]);
   const [types,setTypes]=useState([]);
   const [namesFilter,setNamesFilter]=useState([]);
-  const [currentYear,setCurrentYear]=useState(moment().format('YYYY'));
+  const [currentYear,setCurrentYear]=useState(dayjs().format('YYYY'));
 
   const [isModalVisible,setIsModalVisible]=useState(false);
   const [isDModalVisible,setIsDModalVisible]=useState(false);
@@ -380,7 +380,7 @@ export default function TasksAccounts (props){
         }
         return (
     <Card>
-      <Modal confirmLoading={saving} title="إضافة رصيد إجازة موظف" visible={isModalVisible} width={1300} onCancel={handleCancel} onOk={onFinish} >
+      <Modal centered confirmLoading={saving} title="إضافة رصيد إجازة موظف" visible={isModalVisible} width={1300} onCancel={handleCancel} onOk={onFinish} >
       <Form form={gform} style={{display:'flex',flexDirection:'row',justifyContent:'space-between'}}>
         <Form.Item style={{marginLeft:'20px'}} name='task_id' label="نوع الإجازة" rules={[{ required: true, message: 'Missing area' }]}>
           <Select style={{ width: 100 }} showSearch  optionFilterProp="children"
@@ -523,7 +523,7 @@ export default function TasksAccounts (props){
       </Form>
       </Modal>
       
-      <Modal confirmLoading={dsaving} title="خصم رصيد إجازة" visible={isDModalVisible} onCancel={handleDCancel} onOk={onDFinish} >
+      <Modal centered confirmLoading={dsaving} title="خصم رصيد إجازة" visible={isDModalVisible} onCancel={handleDCancel} onOk={onDFinish} >
       <Form form={dform}>
       <Form.Item 
                  name={ 'user_id'} label="اسم الموظف" rules={[{ required: true,  message: 'هذا الحقل مطلوب'  }]}>
@@ -567,7 +567,7 @@ export default function TasksAccounts (props){
           <InputNumber  placeholder="الرصيد بالدقائق" />
       </Form.Item> 
       <Form.Item name={'discount_date'} label={'تاريخ الخصم'}  rules={[{ required: true, message: 'هذا الحقل مطلوب' }]} >
-          <DatePicker />
+          <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} />
       </Form.Item>
       <Form.Item name={'note'} label={'ملاحظات'} rules={[{ required: true, message: 'هذا الحقل مطلوب' }]} >
         <TextArea  placeholder="ملاحظات" />
@@ -577,7 +577,7 @@ export default function TasksAccounts (props){
       <div style={{marginBottom:'10px'}}>
       <div className='discountHeader' style={{marginBottom:'10px'}}>
         <div className='discountBtn'>
-          <DatePicker value={moment(currentYear,'YYYY')} onChange={onChange} placeholder="اختر سنة" picker="year" />
+          <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} value={dayjs(currentYear,'YYYY')} onChange={onChange} placeholder="اختر سنة" picker="year" />
           <Button style={{marginLeft:'5px',marginRight:'5px',border:'none',backgroundColor:'#FAA61A',color:'#fff'}} onClick={function(){  setIsDModalVisible(true);}} ><FormOutlined />  خصم رصيد </Button>
 
           <Button style={{marginLeft:'5px',marginRight:'5px',border:'none',backgroundColor:'#FAA61A',color:'#fff'}} onClick={function(){  setIsModalVisible(true);}} ><FormOutlined /> إضافة رصيد</Button>

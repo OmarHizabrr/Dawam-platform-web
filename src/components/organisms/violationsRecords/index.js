@@ -5,7 +5,7 @@ import { DatePicker,Table, Button,Card,Input,Select,Typography,Form, Popconfirm,
 import {DeleteOutlined,MinusCircleOutlined, PlusOutlined ,FormOutlined,ExportOutlined,PrinterOutlined} from '@ant-design/icons';
 import axios from 'axios';
 import excel from 'xlsx';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import {useLocation} from 'react-router-dom';
 
 import {Env} from './../../../styles';
@@ -33,9 +33,9 @@ export default function ViolationsRecords (props){
   const [selectedName,setSelectedName]=useState(null);
   const [selectedUser,setSelectedUser]=useState(null);
   const [viosTypes,setViosTypes]=useState([]);
-  const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting?.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
-  const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting?.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
-  const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
+  const [start,setStart]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting?.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
+  const [end,setEnd]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting?.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
+  const [currentMonth,setCurrentMonth]=useState(dayjs().format('MMMM'));   
  const [type,setType]=useState(null);
  const [confirmLoading, setConfirmLoading] = useState(false);
  const [visible, setVisible] = React.useState(false);
@@ -66,7 +66,7 @@ const handlePOk = (record) => {
   });
 };
 const processVio=(record)=>{
-  form.setFieldsValue({vio_id:record.id,user_id:record.uid,vio_type:record.vio_id,vio_date:moment(record.vio_date),discount:record.money_discount,note:record.note});
+  form.setFieldsValue({vio_id:record.id,user_id:record.uid,vio_type:record.vio_id,vio_date:dayjs(record.vio_date),discount:record.money_discount,note:record.note});
   setIsModalVisible(true);
 }
   const columns = [
@@ -300,8 +300,8 @@ const processVio=(record)=>{
           var startDay=props.setting?.filter((item)=> item.key == "admin.month_start")[0]?.value;
           var endDay=props.setting?.filter((item)=> item.key == "admin.month_end")[0]?.value;
       
-          setStart(moment(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
-          setEnd(moment(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
+          setStart(dayjs(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
+          setEnd(dayjs(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
       
           }
 return (
@@ -312,11 +312,11 @@ return (
       <div className='discountRange' >
       <div style={{marginLeft:'10px'}}>
         <span>اختر شهرًا : </span>
-        <DatePicker  defaultValue={moment()} onChange={onChange} picker="month" />
+        <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  defaultValue={dayjs()} onChange={onChange} picker="month" />
       </div>
-        <div style={{marginLeft:'10px'}}><span>اختر فترة : </span>
-            <RangePicker value={[moment(start,"YYYY-MM-DD"),moment(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
-        </div>
+        {window.innerWidth <= 760?<></>:<div style={{marginLeft:'10px'}}><span>اختر فترة : </span>
+            <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} value={[dayjs(start,"YYYY-MM-DD"),dayjs(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
+        </div>}
         <div className='addbtn'>
         { 
         type && (props.type=="Admin" ||  type!=3)? 
@@ -329,7 +329,7 @@ return (
 
   </div>   
     </div>
-    <Modal footer={[]} style={{direction:'rtl'}}  title="إضافة مخالفات موظف" visible={isModalVisible} onCancel={handleCancel}>
+    <Modal centered footer={[]} style={{direction:'rtl'}}  title="إضافة مخالفات موظف" visible={isModalVisible} onCancel={handleCancel}>
     <Form  form={form} name="dynamic_form_nest_item"  autoComplete="on" onFinish={function(record){onFinish(record);}}>
       <Form.Item name="vio_id" hidden>
           <Input defaultValue={0}></Input>
@@ -379,7 +379,7 @@ return (
                   name={'vio_date'}
                   rules={[{ required: true, message: 'لم تقم بإدخال تاريخ المخالفة!' }]}
                 >
-                   <DatePicker
+                   <DatePicker needConfirm={false} 
                       format="YYYY-MM-DD"
                     />
                 </Form.Item>

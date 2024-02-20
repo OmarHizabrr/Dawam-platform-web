@@ -177,7 +177,7 @@ return(
     onClick={function(){userform.resetFields();setUserFormDisable(false);setIsVisibleModal(true);}}
      style={{zIndex:'1000',position:'fixed',bottom:'20px',width:'55px',height:'55px',left:'20px'}} shape="circle" icon={<PlusOutlined />} type="primary">
 </Button>
-<Modal okButtonProps={{ disabled:  userFormDisable  }} confirmLoading={modalLoad}  title="بيانات الإدارة" visible={isVisibleModal}  onOk={function(){setModalLoad(true);onFinish();}} onCancel={function(){setSelectedDept(null);userform.resetFields();setIsVisibleModal(false);}}>
+<Modal centered okButtonProps={{ disabled:  userFormDisable  }} confirmLoading={modalLoad}  title="بيانات الإدارة" visible={isVisibleModal}  onOk={function(){setModalLoad(true);onFinish();}} onCancel={function(){setSelectedDept(null);userform.resetFields();setIsVisibleModal(false);}}>
   <Form form={userform} onFinish={onFinish}>
       <Form.Item
         name="id"
@@ -235,7 +235,7 @@ return(
 
   </Form>
 </Modal>  
-<Modal confirmLoading={modalLoad} title="حذف إدارة" open={isDVisibleModal} onOk={deleteDept} onCancel={()=>{setIsDVisibleModal(false)}}>
+<Modal centered confirmLoading={modalLoad} title="حذف إدارة" open={isDVisibleModal} onOk={deleteDept} onCancel={()=>{setIsDVisibleModal(false)}}>
     <p>هل متأكد من حذف الإدارة {ddept.name} ؟</p>
   </Modal>
 <Row gutter={[ {xs: 10, sm: 16, md: 24, lg: 32 },{xs: 10, sm: 16, md: 24, lg: 32 }]} style={{padding:20}}>

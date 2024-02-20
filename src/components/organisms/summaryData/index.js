@@ -3,7 +3,7 @@ import './style.css';
 import axios from 'axios';
 import {Typography,Row,Col,Avatar,Button,Card, Spin, Form,Input, Layout,Badge,Radio, Rate } from 'antd';
 
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 import { useCookies,CookiesProvider  } from 'react-cookie';
 import {useLocation} from 'react-router-dom';
@@ -100,7 +100,7 @@ export default function summaryData (props) {
       },
       tooltip: {
         style:{
-          fontFamily:'jannatR',
+          fontFamily:'Tajawal',
           marginLeft:'5px',
         },
         x: {
@@ -138,7 +138,7 @@ export default function summaryData (props) {
           style: {
             colors: ["#808080"],
             fontSize: "11px",
-            fontFamily: 'jannatR'
+            fontFamily: 'Tajawal'
           }
         }
       },
@@ -194,16 +194,16 @@ function getMinutesTime(amPmString) {
 useEffect(() => {
 
     if(props.setting.length){  
-    setStart(props.setting?moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'):null);
-    setEnd(props.setting?moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'):null);
+    setStart(props.setting?dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'):null);
+    setEnd(props.setting?dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'):null);
   }
   else{
     var setting;
     axios.get(Env.HOST_SERVER_NAME+'setting/'+props.userData.user_id)
     .then(response => {
        setting=response.data;
-       setStart(moment(moment().format('YYYY-MM')+"-"+setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
-       setEnd(moment(moment().format('YYYY-MM')+"-"+setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));   
+       setStart(dayjs(dayjs().format('YYYY-MM')+"-"+setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
+       setEnd(dayjs(dayjs().format('YYYY-MM')+"-"+setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));   
     }).catch(function (error) {
       console.log(error);
     }); 
@@ -294,8 +294,8 @@ useEffect(() => {
   </Card>
     <Row className="summary" style={{paddingBottom:'10px'}}>
 
-    <Col className='pieColumn' lg={10} sm={24}>
-    <Card>
+    <Col style={{padding:'10px'}} className='pieColumn' lg={10} sm={24}>
+    <Card style={{height:'100%'}}>
     <Spin spinning={salSpin}>
     <ReactApexChart
       className="pie-chart"
@@ -304,7 +304,7 @@ useEffect(() => {
       type="pie"
       height="400"
       width="400"
-      style={{padding:0,textAlign:'center'}}
+      style={{padding:0,textAlign:'center',display:'flex',flexDirection:'row',justifyContent:'center'}}
     />
     <div style={{textAlign:'center',paddingBottom:'20px'}}>
     <Text>ملخص المستحقات للفترة  {start+" - "+end} </Text>
@@ -312,7 +312,7 @@ useEffect(() => {
     </Spin>
     </Card>
     </Col>
-    <Col className='pieColumn' lg={14} sm={24}>
+    <Col style={{padding:'10px'}} className='pieColumn' lg={14} sm={24}>
     <Card>
     <Spin spinning={attSpin}>
     <ReactApexChart

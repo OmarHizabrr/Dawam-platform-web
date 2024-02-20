@@ -1,10 +1,8 @@
-@font-face {
-  font-family: jannatR;
-  src: url(assets/fonts/alfont_com_Janna-LT-Bold.ttf);
-}
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@200;300;400;500;700;800;900&display=swap');
+
 body {
   margin: 0;
-  font-family: jannatR, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;

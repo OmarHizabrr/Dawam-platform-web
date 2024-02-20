@@ -1,6 +1,4 @@
-td,th{
-    font-size: 12px;
-}
+
 .requestsHeader{
     display: flex;
     flex-direction: row;
@@ -17,8 +15,14 @@ td,th{
 }
 
 @media only screen and (max-width: 600px) {
+
+    :where(.css-dev-only-do-not-override-1rqnfsa).ant-col{
+        font-family: 'Tajawal';
+    }
     .requestsHeader{
-        flex-direction: column;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
     }
     .requestsRange{
         order:1;
@@ -28,6 +32,8 @@ td,th{
     }
     .reauestsProgress{
         order: 2;
+        flex-direction: column;
+        align-items: center;
     }
     .requestsBtn{
         width: 100%;

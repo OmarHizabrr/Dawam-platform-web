@@ -4,7 +4,7 @@ import './style.css';
 import {Env} from '../../styles';
 import {useLocation} from 'react-router-dom';
 import { useCookies,CookiesProvider  } from 'react-cookie';
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 import { Typography ,Layout,Breadcrumb,Card,Row,Col,Avatar,Badge,Modal,Tabs,Radio,Collapse,InputNumber,Form,Upload,Button,Rate,Input,Select,DatePicker,Space} from 'antd';
 import {
@@ -83,8 +83,8 @@ export default function Profile(props){
 
   const [start,setStart]=useState(new Date(new Date().setDate(new Date().getDate() - 31)).toISOString().slice(0,10));
   const [end,setEnd]=useState(new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().slice(0,10));
-// const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
-// const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
+// const [start,setStart]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
+// const [end,setEnd]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
 
   const [star,setStar]=useState(0); 
   const [spiderData,setSpiderData]=useState([]);
@@ -112,8 +112,8 @@ export default function Profile(props){
         var birth=user.birth_date;
         var assign=user.assignment_date;
          userform.setFieldsValue(user);
-         userform.setFieldsValue({'birth_date':moment(birth, 'YYYY-MM-DD')});
-         userform.setFieldsValue({'assignment_date':moment( assign, 'YYYY-MM-DD')});
+         userform.setFieldsValue({'birth_date':dayjs(birth, 'YYYY-MM-DD')});
+         userform.setFieldsValue({'assignment_date':dayjs( assign, 'YYYY-MM-DD')});
          userform.setFieldsValue({'password':null});
          setIsVisibleModal(true);
        
@@ -125,7 +125,7 @@ export default function Profile(props){
          quals=quals.filter(function (e) { return e.user_id == user.id; });
        
          quals.forEach(element => {
-           element.qual_year=moment(element.qual_year, 'YYYY');
+           element.qual_year=dayjs(element.qual_year, 'YYYY');
          });
          userform.setFieldsValue({'qualifications':quals});
          //setQualifications(quals);
@@ -133,7 +133,7 @@ export default function Profile(props){
          var pworks=preworks;
          pworks=pworks.filter(function (e) { return e.user_id == user.id; });
          pworks.forEach(element => {
-           element.work_period=[moment(element.date_from, 'YYYY'),moment(element.date_to, 'YYYY')]
+           element.work_period=[dayjs(element.date_from, 'YYYY'),dayjs(element.date_to, 'YYYY')]
          });
          userform.setFieldsValue({'preworks':pworks});
          //setPreworks(pworks);
@@ -213,7 +213,7 @@ export default function Profile(props){
           style: {
             colors: ["#808080"],
             fontSize: "11px",
-            fontFamily: 'jannatR'
+            fontFamily: 'Tajawal'
           }
         }
       },
@@ -318,7 +318,7 @@ return (
     }}
   >
  <Row className='userProfile'>
- <Modal okButtonProps={{ disabled:  true  }} confirmLoading={modalLoad} centered={true} className='emp-modal' width={1200} title="بيانات الموظف" visible={isVisibleModal}  onOk={function(){setModalLoad(true);onFinish();}} onCancel={function(){userform.resetFields();setIsVisibleModal(false);}}>
+ <Modal centered okButtonProps={{ disabled:  true  }} confirmLoading={modalLoad} centered={true} className='emp-modal' width={1200} title="بيانات الموظف" visible={isVisibleModal}  onOk={function(){setModalLoad(true);onFinish();}} onCancel={function(){userform.resetFields();setIsVisibleModal(false);}}>
  <Form   form={userform} onFinish={onFinish}>
       <Row style={{backgroundColor:'#F6F6F6'}}>
         <Col xs={24} sm={24} md={8} lg={8} xl={8} className='personal-data' span={8} style={{padding:'20px'}}>
@@ -359,7 +359,7 @@ return (
         </Select>
       </Form.Item>
        <Form.Item name={'birth_date'} label="تاريخ الميلاد">
-        <DatePicker disabled={userFormDisable}  format="YYYY-MM-DD"  style={{width:'100%'}} />
+        <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} disabled={userFormDisable}  format="YYYY-MM-DD"  style={{width:'100%'}} />
       </Form.Item>
       <Form.Item name={'birth_place'} label="مكان الميلاد">
         <Input disabled={userFormDisable}    style={{width:'100%'}} />
@@ -435,7 +435,7 @@ return (
               </div>
               <div style={{display:'flex',flexDirection:'row'}}>
               <Form.Item style={{flex:3,marginLeft:'5px'}} label="تاريخ الانضمام" name="assignment_date">
-                <DatePicker disabled={userFormDisable} />
+                <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} disabled={userFormDisable} />
               </Form.Item>
               <Form.Item style={{flex:3}} label="نوع الدوام" name="durationtype_id">
                 <Select
@@ -593,7 +593,7 @@ return (
                   label={'سنة الحصول عليه'}
                   rules={[{ required: true, message: 'هذا الحقل مطلوب' }]}
                 >
-                  <DatePicker disabled={userFormDisable} picker="year" />
+                  <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} disabled={userFormDisable} picker="year" />
                 </Form.Item>
                 <Form.Item
                   {...restField}
@@ -643,7 +643,7 @@ return (
                   label={'فترة العمل'}
                   rules={[{ required: true, message: 'هذا الحقل مطلوب' }]}
                 >
-                  <RangePicker  disabled={userFormDisable} picker="year" />
+                  <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  disabled={userFormDisable} picker="year" />
                 </Form.Item>
                 <Form.Item
                   {...restField}

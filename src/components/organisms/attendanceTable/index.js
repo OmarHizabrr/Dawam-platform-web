@@ -1,7 +1,5 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import React, { useState, useEffect } from 'react';
-import moment from 'moment';
-import 'moment/locale/ar-ly';
 import dayjs from 'dayjs';
 
 import excel from 'xlsx';
@@ -14,6 +12,7 @@ import {Env} from './../../../styles';
 const { Text } = Typography;
 const {RangePicker}=DatePicker;
 const {TextArea}=Input;
+
 const exportToExcel=(type,fn,dl)=>{
 
   var elt = document.getElementsByTagName('table')[0];
@@ -41,8 +40,8 @@ export default function attendanceTable(props){
       const [totalLate,setTotalLate]=useState(0);
       const [totalLatePrice,setTotalLatePrice]=useState(0);
       const [salary,setSalary]=useState(0);
-      const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
-      const [end,setEnd]=useState(moment().format('YYYY-MM-DD'));  
+      const [start,setStart]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
+      const [end,setEnd]=useState(dayjs().format('YYYY-MM-DD'));  
       const [notes,setNotes]=useState("");
 
       const [dsalary,setDsalary]=useState(0);
@@ -63,7 +62,7 @@ export default function attendanceTable(props){
 
       const [totalVacs,setTotalVacs]=useState([]);
       const [pdata, setPData] = useState([]);
-      const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
+      const [currentMonth,setCurrentMonth]=useState(dayjs().format('MMMM'));   
       const [detailedDay,setDetailedDay]=useState("");
       const [form] = Form.useForm();
 
@@ -258,8 +257,6 @@ export default function attendanceTable(props){
       
       }
 
-
-
     const columns = [
 
       {
@@ -268,19 +265,23 @@ export default function attendanceTable(props){
         key: 'dayName',
         ellipsis: true,
         render:(dayName,record,_)=>(
-          <>
-          {/*record.have_vac=='1' && <CopyOutlined style={{marginLeft:'10px'}} />*/}
+          <Text>
           {dayName}
-          </>
+          </Text>
         )
       },
       {
         title: 'التاريخ',
         dataIndex: 'date',
         key: 'date',
-        sorter: (a, b) => moment(a.date).unix() - moment(b.date).unix(),
+        sorter: (a, b) => dayjs(a.date).unix() - dayjs(b.date).unix(),
         sortOrder: sortedInfo.columnKey === 'date' && sortedInfo.order,
         ellipsis: true,
+        render:(date,record,_)=>(
+          <Text>
+          {date}
+          </Text>
+        )
       },
       {
         title: 'وقت الحضور',
@@ -298,6 +299,11 @@ export default function attendanceTable(props){
       },
         sortOrder: sortedInfo.columnKey === 'attendance_time' && sortedInfo.order,
         ellipsis: true,
+        render:(attendance_time,record,_)=>(
+          <Text>
+          {attendance_time}
+          </Text>
+        )
       },     
        {
         title: 'وقت الانصراف',
@@ -315,6 +321,11 @@ export default function attendanceTable(props){
       },
         sortOrder: sortedInfo.columnKey === 'leave_time' && sortedInfo.order,
         ellipsis: true,
+        render:(leave_time,record,_)=>(
+          <Text>
+          {leave_time}
+          </Text>
+        )
       },
       {
         title: 'صافي الدوام',
@@ -323,6 +334,11 @@ export default function attendanceTable(props){
         sorter: (a, b) => a.workHours?.localeCompare(b.workHours),
         sortOrder: sortedInfo.columnKey === 'workHours' && sortedInfo.order,
         ellipsis: true,
+        render:(workHours,record,_)=>(
+          <Text>
+          {workHours}
+          </Text>
+        )
       },
       {
         title: 'التأخرات',
@@ -331,6 +347,11 @@ export default function attendanceTable(props){
         sorter: (a, b) => a.lateTime.length - b.lateTime.length,
         sortOrder: sortedInfo.columnKey === 'lateTime' && sortedInfo.order,
         ellipsis: true,
+        render:(lateTime,record,_)=>(
+          <Text>
+          {lateTime}
+          </Text>
+        )
       },
       {
         title:  'خصميات',
@@ -339,7 +360,7 @@ export default function attendanceTable(props){
         sorter: (a, b) => a.discount - b.discount,
         sortOrder: sortedInfo.columnKey === 'discount' && sortedInfo.order,
         ellipsis: false,
-        render:(discount)=>Math.round(discount)+" "+curr        
+        render:(discount)=> {return <Text>{Math.round(discount)+" "+curr}</Text> }     
       },
       {
         title: 'الإجازات',
@@ -483,8 +504,8 @@ export default function attendanceTable(props){
         var startMon=props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value
 
         var perMonth=(30*7*60)/12;
-        var curr=parseInt(moment(start,"YYYY-MM-DD HH:mm").format('MM'));
-        var currMonth=parseInt(moment(start,"YYYY-MM-DD HH:mm").format('DD'))>=startMon?curr+1:curr;
+        var curr=parseInt(dayjs(start,"YYYY-MM-DD HH:mm").format('MM'));
+        var currMonth=parseInt(dayjs(start,"YYYY-MM-DD HH:mm").format('DD'))>=startMon?curr+1:curr;
          var restMin=min- (perMonth*(12-currMonth));
       setRestTasks( parseInt(restMin/60).toString().padStart(2, '0') + ":" +(restMin%60).toString().padStart(2, '0'));
       }
@@ -501,8 +522,8 @@ export default function attendanceTable(props){
     var startDay=props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value;
     var endDay=props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value;
 
-    setStart(moment(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
-    setEnd(moment(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
+    setStart(dayjs(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
+    setEnd(dayjs(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
 
     }
     const checkPeriod=(all,date)=>{
@@ -521,10 +542,10 @@ export default function attendanceTable(props){
     }
 return (
     <Layout className='attendance'>
-    <Modal title="تقديم إجازة / مهمة" confirmLoading={saving} visible={isVModalVisible} onOk={function(){setSaving(true);handleVOk()}} onCancel={function(){handleVCancel()}}>
+    <Modal centered title="تقديم إجازة / مهمة" confirmLoading={saving} visible={isVModalVisible} onOk={function(){setSaving(true);handleVOk()}} onCancel={function(){handleVCancel()}}>
       <Form form={form} >
         <Form.Item className='rangee' name={'date_range'} label="فترة الإجازة / المهمة :">
-          <RangePicker       disabledDate={disabledDate} value={[moment(datefromValue,"YYYY-MM-DD HH:mm"), moment(datetoValue, "YYYY-MM-DD HH:mm")]} showTime={{defaultValue: [moment(props.setting.filter((item)=> item.key == 'duration_start')[0]?.value, 'HH:mm'), moment(props.setting.filter((item)=> item.key == 'duration_end')[0]?.value, 'HH:mm')],}} format="YYYY-MM-DD HH:mm"  onCalendarChange={function(all,dates){onRangeChange(all,dates);}} />
+          <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}       disabledDate={disabledDate} value={[dayjs(datefromValue,"YYYY-MM-DD HH:mm"), dayjs(datetoValue, "YYYY-MM-DD HH:mm")]} showTime={{defaultValue: [dayjs(props.setting.filter((item)=> item.key == 'duration_start')[0]?.value, 'HH:mm'), dayjs(props.setting.filter((item)=> item.key == 'duration_end')[0]?.value, 'HH:mm')],}} format="YYYY-MM-DD HH:mm"  onCalendarChange={function(all,dates){onRangeChange(all,dates);}} />
           <div style={{marginTop:'10px',fontWeight:600}}>مدة الإجازة: <Text type="danger">{totalVac}</Text></div> 
         </Form.Item>
         <Form.Item style={{marginTop:'10px'}} name={'task_type'} label="نوع الإجازة">
@@ -534,7 +555,7 @@ return (
           style={{ width: 150 }}
           onSelect={handleTypeChange}
           options={tstypes}
-          placeholder="ابحث لاختيار إجازة"
+          placeholder="نوع الإجازة"
           optionFilterProp="children"
           filterOption={(input, option) =>
             option.props.children?.indexOf(input) >= 0 ||
@@ -554,33 +575,36 @@ return (
     </Form.Item>
     </Form>
     </Modal>
-    <Modal className='att-model' width={1100} title={"أحداث اليوم | "+detailedDay}  visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
+    <Modal centered className='att-model' width={1100} title={"أحداث اليوم | "+detailedDay}  visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
     <Table pagination={false} style={{textAlign:'center!important'}}  scroll={{x: '1000px' }} columns={dcolumns}  dataSource={selected} onCalendarChange={handleChange} />
     </Modal>
-    <Card>
+    <Card bordered>
   <div className='attHeader'>
-    <div className='attPer'><span><Progress type="circle" percent={Math.round((totalAtt/totalDays)*100)} width={70} style={{marginLeft:'5px',display:'inline-block'}} /></span>
-      <span style={{display:'flex',flexDirection:'column',paddingTop:'10px',marginRight:'5px'}}>
+    <div className='attPer'>
+      <span>
+      <Progress type="circle" percent={Math.round((totalAtt/totalDays)*100)} width={window.innerWidth <= 760?60:70} style={{marginLeft:'5px',display:'inline-block'}} />
+      </span>
+      {window.innerWidth <= 760?<>{totalAtt+" من "+totalDays} يومًا </>:<span style={{display:'flex',flexDirection:'column',paddingTop:'10px',marginRight:'5px'}}>
         <div style={{marginBottom:'5px'}}>الدوام المطلوب : <span>{totalDays}</span> يوم </div>
         <div>الدوام الفعلي : <span>{totalAtt}</span> يوم </div>
+      </span>}
+    </div>
+    <div className='disPer'><span><Progress type="circle" percent={Math.round((totalLatePrice/salary)*100)} width={window.innerWidth <= 760?60:70} style={{marginLeft:'5px',display:'inline-block'}} /></span>
+      <span style={{display:'flex',flexDirection:'column',paddingTop:'10px',marginRight:'5px',fontSize:'14px'}}>
+        <div style={{marginBottom:'5px'}}>التأخرات : {window.innerWidth <= 760?<>{parseInt(totalLate/60)+":"+(totalLate%60)}</>:<span>{parseInt(totalLate/60)} ساعة و {totalLate%60} دقيقة </span>}</div>
+        <div>{window.innerWidth <= 760?"الخصم":"إجمالي الخصم"} : <span>{totalLatePrice}</span> {curr}</div>
       </span>
     </div>
-    <div className='disPer'><span><Progress type="circle" percent={Math.round((totalLatePrice/salary)*100)} width={70} style={{marginLeft:'5px',display:'inline-block'}} /></span>
-      <span style={{display:'flex',flexDirection:'column',paddingTop:'10px',marginRight:'5px'}}>
-        <div style={{marginBottom:'5px'}}>التأخرات : <span>{parseInt(totalLate/60)} ساعة و {totalLate%60} دقيقة </span></div>
-        <div>إجمالي الخصم : <span>{totalLatePrice}</span> {curr}</div>
-      </span>
-    </div>
-    <div className='attOper'>
-    <div style={{marginLeft:'10px'}}>
+    <div className='attOper' style={{marginBottom:'20px'}}>
+    {window.innerWidth <= 760?<></>:<div style={{marginLeft:'10px'}}>
         <span>اختر شهرًا : </span>
-        <DatePicker defaultValue={moment()} onChange={onChange} picker="month" />
-      </div>
-      <div className='attOperRange' style={{marginBottom:'10px'}}><span>اختر فترة : </span>
-          <RangePicker value={[moment(start,"YYYY-MM-DD"),moment(end,"YYYY-MM-DD")]} style={{width: '230px'}} onCalendarChange={changeRange} />
+        <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} defaultValue={dayjs()} onChange={onChange} picker="month" />
+      </div>}
+      <div className='attOperRange'><span>اختر فترة : </span>
+          <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} value={[dayjs(start,"YYYY-MM-DD"),dayjs(end,"YYYY-MM-DD")]} style={{width: '230px'}} onCalendarChange={changeRange} />
       </div>    
       <div className='attOperBtn' style={{textAlign: 'left'}}>
-       <Button disabled={load} style={{margin:'0 10px',textAlign:'center',marginLeft:'5px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
+        {window.innerWidth <= 760?<></>:<Button disabled={load} style={{margin:'0 10px',textAlign:'center',marginLeft:'5px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>}
         <Button disabled={load} style={{backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button>
       </div>    
     </div>

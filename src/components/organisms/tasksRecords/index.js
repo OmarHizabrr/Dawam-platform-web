@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import React,{ useState, useEffect }  from 'react';
 import './style.css';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { DatePicker,Popconfirm,Table, Button,Card,Input,Select,Typography,Form, Space,Spin,notification,Checkbox,Divider} from 'antd';
 import {MenuUnfoldOutlined,MinusCircleOutlined, PlusOutlined,DeleteOutlined,FormOutlined,ExportOutlined,PrinterOutlined} from '@ant-design/icons';
 import axios from 'axios';
@@ -168,10 +168,10 @@ const selectRecord=(e,record)=>{
       ellipsis: false,
       render:(amount,record,index)=>{
         if(index==edit){
-          return (<Input onChange={function(e){setDatefromValue(e.target.value)}} onPressEnter={function(){updateTask(record);setEdit(null);}} defaultValue={moment(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}></Input>)
+          return (<Input onChange={function(e){setDatefromValue(e.target.value)}} onPressEnter={function(){updateTask(record);setEdit(null);}} defaultValue={dayjs(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}></Input>)
         }
         else{
-          return (<Text>{moment(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}</Text>)
+          return (<Text>{dayjs(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}</Text>)
         }      
       },
     },   
@@ -184,10 +184,10 @@ const selectRecord=(e,record)=>{
       ellipsis: false,
       render:(amount,record,index)=>{
         if(index==edit){
-          return (<Input onChange={function(e){setDatetoValue(e.target.value)}} onPressEnter={function(){updateTask(record);setEdit(null)}} defaultValue={moment(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}></Input>)
+          return (<Input onChange={function(e){setDatetoValue(e.target.value)}} onPressEnter={function(){updateTask(record);setEdit(null)}} defaultValue={dayjs(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}></Input>)
         }
         else{
-          return (<Text>{moment(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}</Text>)
+          return (<Text>{dayjs(amount,'YYYY-MM-DD HH:mm:ss').format('YYYY-MM-DD HH:mm')}</Text>)
         }      
       }
     },
@@ -444,7 +444,7 @@ return (
     <div className='discountHeader' >
       <div className='discountRange'  >
         <div style={{marginLeft:'10px'}}><span>اختر فترة : </span>
-          <RangePicker  onCalendarChange={changeRange} />
+          <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  onCalendarChange={changeRange} />
         </div>
       </div>
     <div className='discountBtn'>     
@@ -454,7 +454,7 @@ return (
       <Button style={{display:'block',marginLeft:'5px',marginBottom:'10px',backgroundColor:"#f00",borderColor:"#f00",border:'none'}} onClick={function(){deleteAll()}} type='primary'><DeleteOutlined /></Button>
     </div>   
     </div>
-    <Modal footer={[]} width={1000} style={{direction:'rtl'}}  title="إضافة إجازة جماعية" visible={isAModalVisible} onCancel={function(){setIsAModalVisible(false)}}>
+    <Modal centered footer={[]} width={1000} style={{direction:'rtl'}}  title="إضافة إجازة جماعية" visible={isAModalVisible} onCancel={function(){setIsAModalVisible(false)}}>
     <Form  form={form} name="dynamic_form_nest_item"  autoComplete="on" >
               <div className='groupTasks'>
               <Form.Item>
@@ -488,7 +488,8 @@ return (
                   name={'date_range'}
                   rules={[{ required: true, message: 'لم تقم بإدخال فترة الطلب!' }]}
                 >
-                 <RangePicker
+                 <RangePicker needConfirm={false} 
+    inputReadOnly={window.innerWidth <= 760}
                       showTime={{ format: 'HH:mm' }}
                       onCalendarChange={function(all,date){checkPeriod(all,date,1)}}
                       onChange={function(all,date){changeTRange(all,date)}}
@@ -519,7 +520,7 @@ return (
       </Form.Item>
     </Form>
     </Modal>
-    <Modal footer={[]} width={1000} style={{direction:'rtl'}}  title="إضافة إجازات موظف" visible={isModalVisible} onCancel={handleCancel}>
+    <Modal centered footer={[]} width={1000} style={{direction:'rtl'}}  title="إضافة إجازات موظف" visible={isModalVisible} onCancel={handleCancel}>
     <Form  form={form} name="dynamic_form_nest_item"  autoComplete="on" onFinish={function(record){onFinish(record);}}>
       <Form.Item name="user_id" label="اسم الموظف" rules={[{ required: true, message: 'Missing area' }]}>
         <Select 
@@ -582,7 +583,8 @@ return (
                   name={[field.name, 'date_range']}
                   rules={[{ required: true, message: 'لم تقم بإدخال فترة الطلب!' }]}                 
                 >
-                 <RangePicker
+                 <RangePicker needConfirm={false} 
+    inputReadOnly={window.innerWidth <= 760}
                       showTime={{ format: 'HH:mm' }}
                       onCalendarChange={function(all,date){checkPeriod(all,date,field.key)}}
                       format="YYYY-MM-DD HH:mm"

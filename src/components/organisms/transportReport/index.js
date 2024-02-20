@@ -9,7 +9,7 @@ import axios from 'axios';
 import { useCookies,CookiesProvider  } from 'react-cookie';
 import {FileExcelOutlined} from '@ant-design/icons';
 import {Env} from './../../../styles';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { getConfirmLocale } from 'antd/lib/modal/locale';
 
 const { Content } = Layout;
@@ -42,9 +42,9 @@ export default function TransportReport(props){
 
       const [data,setData]=useState([]);
       const [load,setLoad]=useState(true);
-      const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
-      const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
-      const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
+      const [start,setStart]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
+      const [end,setEnd]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
+      const [currentMonth,setCurrentMonth]=useState(dayjs().format('MMMM'));   
       const [pdata, setPData] = useState([]);
       const [form] = Form.useForm();
       const [tstypes,setTstypes]=useState([]);
@@ -191,8 +191,8 @@ export default function TransportReport(props){
       var startDay=props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value;
       var endDay=props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value;
   
-      setStart(moment(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
-      setEnd(moment(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
+      setStart(dayjs(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
+      setEnd(dayjs(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
   
       }
     var index=0;
@@ -209,16 +209,16 @@ return (
       <div className='discountHeader' style={{marginBottom:'10px'}}>
       <div style={{marginLeft:'10px'}}>
         <span>اختر شهرًا : </span>
-        <DatePicker  defaultValue={moment()} onChange={onChange} picker="month" />
+        <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  defaultValue={dayjs()} onChange={onChange} picker="month" />
       </div> 
         <div className='discountRange' style={{marginBottom:'10px'}}><span>اختر فترة : </span>
-          <RangePicker value={[moment(start,"YYYY-MM-DD"),moment(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
+          <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} value={[dayjs(start,"YYYY-MM-DD"),dayjs(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
         </div>
         <div className='discountBtn'>
           <Button style={{display:'block',margin:'0 10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
           <Button style={{display:'block',margin:'0 10px',backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button>
           <Button loading={loadUsers} style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){showUsersDebt()}} type='primary'><PlusOutlined /></Button>       
-          <Modal confirmLoading={loadForm} width={900} title="إعدادات قبل الطباعة " visible={isVisibleModal}  onOk={function(){ settingBefore();}} onCancel={function(){setIsVisibleModal(false);}}>
+          <Modal centered confirmLoading={loadForm} width={900} title="إعدادات قبل الطباعة " visible={isVisibleModal}  onOk={function(){ settingBefore();}} onCancel={function(){setIsVisibleModal(false);}}>
       <Form form={form}>
       <Form.List name="users">
         {(fields, { add, remove }) => {

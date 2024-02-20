@@ -7,7 +7,7 @@ import {
 } from "react-router-dom";
 import {React,Suspense, useState,useEffect } from 'react';
 
-import { Row, Col,Layout, Form, Input, Button } from 'antd';
+import { Row, Col,Layout, Form, Input, Button,Card,Typography } from 'antd';
 import axios from 'axios';
 import illstarte from './assets/images/loginM.png';
 import logo from './assets/images/logo.png';
@@ -19,7 +19,8 @@ import Profile from './scenes/profile' ;
 import ControlPanel from './scenes/control-panel/' ;
 import Login  from './scenes/login/' ;
 
-import 'moment/locale/ar-ly';
+
+import 'antd/dist/reset.css'
 
 import './App.css';
 
@@ -30,6 +31,7 @@ import {
 } from './routes';
 
 import {Env} from './styles'
+const {Text}=Typography;
 
 function App() {
   const [cookies, setCookie]=useCookies(["user"]);
@@ -78,7 +80,8 @@ function App() {
 
     routes = (
       <Layout  className="loginParent"  theme="light" >
-      <Row justify="center" className="loginBox">
+      <Card bordered className="loginBox">
+      <Row justify={'space-between'}>
       <Col span={11} className="mainColumn">
       <img className="illstarteImage" style={{width:'100%'}} src={illstarte} />
       </Col>
@@ -128,7 +131,8 @@ function App() {
       </Form.Item>
     </Form>
       </Col>
-    </Row>
+      </Row>
+    </Card>
     <Row justify="center" className="illustrateBox">
     <img
       className="illstarteImage"
@@ -136,12 +140,13 @@ function App() {
       src={illstarte}
      />
     </Row>
+    <div className="powerd-by"><Text >Powered by HYAC Software - V2.0.0</Text></div>  
      </Layout>   
     );
   } else {
     routes = (
      
-      <Layout  theme="light"  style={{textAlign:'right',fontFamily:'jannatR',height:'100%'}}>
+      <Layout  theme="light"  style={{textAlign:'right',fontFamily:'Tajawal',height:'100%'}}>
       <MainHeader></MainHeader>
       <Layout>    
         <Switch>

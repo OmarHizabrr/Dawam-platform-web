@@ -7,7 +7,7 @@ import './style.css';
 import { Typography ,Layout,Tabs,Table, Button,Modal, DatePicker, Spin,Select,Card ,Space,Form,Dropdown,Menu,Switch,Input} from 'antd';
 import {SettingOutlined,MinusCircleOutlined,PlusOutlined,FormOutlined,ExportOutlined,PrinterOutlined} from '@ant-design/icons';
 import axios from 'axios';
-import moment from 'moment';
+import dayjs from 'dayjs';
 
 import {Env} from './../../../styles';
 const { Content } = Layout;
@@ -38,7 +38,7 @@ export default function wagesReport(props){
       const [isVisibleModal,setIsVisibleModal]=useState(false);
 
       const [data,setData]=useState([]);
-      const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
+      const [currentMonth,setCurrentMonth]=useState(dayjs().format('MMMM'));   
       const [selectedRowKeys, setSelectedRowKeys] = useState([]);
       const [loadForm, setLoadForm]=useState(false);
 
@@ -49,8 +49,8 @@ export default function wagesReport(props){
       const [count,setCount]=useState(0);
       const [count17,setCount17]=useState(0);
 
-      const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
-      const [end,setEnd]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
+      const [start,setStart]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
+      const [end,setEnd]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
       const [form] = Form.useForm();
 
       // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -112,13 +112,14 @@ export default function wagesReport(props){
         setEnd(date[1]);       
       }
     const onChange=(all,data)=>{
+      console.log(dayjs.months())
       setCurrentMonth(all.format('MMMM'));
 
       var startDay=props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value;
       var endDay=props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value;
 
-      setStart(moment(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
-      setEnd(moment(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
+      setStart(dayjs(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
+      setEnd(dayjs(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
 
       }
     const columns = [
@@ -301,16 +302,16 @@ return (
       <div className='discountHeader' style={{marginBottom:'10px'}}>
       <div style={{marginLeft:'10px'}}>
         <span>اختر شهرًا : </span>
-        <DatePicker defaultValue={moment()} onChange={onChange} picker="month" />
+        <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} defaultValue={dayjs()} onChange={onChange} picker="month" />
       </div>
         <div className='discountRange' style={{marginBottom:'10px'}}><span>اختر فترة : </span>
-          <RangePicker value={[moment(start,"YYYY-MM-DD"),moment(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
+          <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} value={[dayjs(start,"YYYY-MM-DD"),dayjs(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
         </div>
         <div className='discountBtn'>
           <Button style={{display:'block',margin:'0 10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
           <Button style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6",marginLeft:'10px'}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button>
           <Button loading={loadUsers} style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){showUsersDebt()}} type='primary'><SettingOutlined /></Button>       
-          <Modal confirmLoading={loadForm} width={900} title="إعدادات قبل الطباعة " visible={isVisibleModal}  onOk={function(){ settingBefore();}} onCancel={function(){setIsVisibleModal(false);}}>
+          <Modal centered confirmLoading={loadForm} width={900} title="إعدادات قبل الطباعة " visible={isVisibleModal}  onOk={function(){ settingBefore();}} onCancel={function(){setIsVisibleModal(false);}}>
       <Form form={form}>
       <Form.List name="users">
         {(fields, { add, remove }) => {

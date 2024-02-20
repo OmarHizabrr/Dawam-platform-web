@@ -8,6 +8,7 @@
     background-color: #fff3cd;
     border-color: #ffecb5;
 }
+
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500&display=swap');
 
 @media print{
@@ -38,7 +39,7 @@
     display:flex;
     flex:1;
     flex-direction:row;
-    justify-content:space-between;
+    justify-content:space-evenly;
 }
 .generalHeader .generalOper{
     display:flex;
@@ -56,6 +57,7 @@
     .generalHeader .generalData{
         order: 2;
         margin-top: 10px;
+        font-size: 13px;
      }
      .generalHeader .generalOper{
         justify-content:end;

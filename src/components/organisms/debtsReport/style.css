@@ -9,14 +9,16 @@
     .attOper{
         order:1;
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
+        align-items: flex-end;
     }
 
     .attOperBtn{
         padding-top: 14px;
     }
     .attHeader{
-        flex-direction:column;
+        flex-wrap: wrap;
+        justify-content: space-between;
     }
     .attPer{
     order: 2;

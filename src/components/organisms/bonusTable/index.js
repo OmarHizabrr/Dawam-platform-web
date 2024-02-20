@@ -1,12 +1,11 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import React, { useState, useEffect } from 'react';
-import moment from 'moment';
-import 'moment/locale/ar-ly';
+import dayjs from 'dayjs';
 
 import excel from 'xlsx';
 import './style.css';
-import logoText from '../../../assets/images/logo-text.png';
-import { Typography,notification ,Layout,Tabs,Table, Button,Progress, DatePicker,Form,Input, Spin,Select,Card,Modal } from 'antd';
+
+import { Typography,notification ,Layout,Tabs,Table, Button, DatePicker,Form,Input, Spin,Select,Card,Modal } from 'antd';
 import {SwapOutlined,FormOutlined,ExportOutlined,PrinterOutlined,CopyOutlined} from '@ant-design/icons';
 import axios from 'axios';
 import { useCookies,CookiesProvider  } from 'react-cookie';
@@ -17,6 +16,7 @@ const { TabPane } = Tabs;
 const { Option } = Select; 
 const {RangePicker}=DatePicker;
 const {TextArea}=Input;
+
 const exportToExcel=(type,fn,dl)=>{
 
   var elt = document.getElementsByTagName('table')[0];
@@ -39,8 +39,8 @@ export default function bonusTable(props){
       const [data,setData]=useState([]);
       const [load,setLoad]=useState(true);
       const [selected, setSelected] = useState([]);
-      const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
-      const [end,setEnd]=useState(moment().format('YYYY-MM-DD'));  
+      const [start,setStart]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
+      const [end,setEnd]=useState(dayjs().format('YYYY-MM-DD'));  
       const [notes,setNotes]=useState("");
 
       const [saving,setSaving]=useState(false);
@@ -52,7 +52,7 @@ export default function bonusTable(props){
       const [givenLoad, setGivenLoad] = useState(true);
 
       const [pdata, setPData] = useState([]);
-      const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
+      const [currentMonth,setCurrentMonth]=useState(dayjs().format('MMMM'));   
       const [detailedDay,setDetailedDay]=useState("");
       const [form] = Form.useForm();
 
@@ -146,18 +146,23 @@ export default function bonusTable(props){
         key: 'dayName',
         ellipsis: true,
         render:(dayName,record,_)=>(
-          <>
+          <Text>
           {dayName}
-          </>
+          </Text>
         )
       },
       {
         title: 'التاريخ',
         dataIndex: 'date',
         key: 'date',
-        sorter: (a, b) => moment(a.date).unix() - moment(b.date).unix(),
+        sorter: (a, b) => dayjs(a.date).unix() - dayjs(b.date).unix(),
         sortOrder: sortedInfo.columnKey === 'date' && sortedInfo.order,
         ellipsis: true,
+        render:(date,record,_)=>(
+          <Text>
+          {date}
+          </Text>
+        )
       },
       {
         title: 'وقت الحضور',
@@ -175,6 +180,11 @@ export default function bonusTable(props){
       },
         sortOrder: sortedInfo.columnKey === 'attendance_time' && sortedInfo.order,
         ellipsis: true,
+        render:(attendance_time,record,_)=>(
+          <Text>
+          {attendance_time}
+          </Text>
+        )
       },     
        {
         title: 'وقت الانصراف',
@@ -192,6 +202,11 @@ export default function bonusTable(props){
       },
         sortOrder: sortedInfo.columnKey === 'leave_time' && sortedInfo.order,
         ellipsis: true,
+        render:(leave_time,record,_)=>(
+          <Text>
+          {leave_time}
+          </Text>
+        )
       },
       {
         title: 'صافي الدوام',
@@ -200,6 +215,11 @@ export default function bonusTable(props){
         sorter: (a, b) => a.workHours?.localeCompare(b.workHours),
         sortOrder: sortedInfo.columnKey === 'workHours' && sortedInfo.order,
         ellipsis: true,
+        render:(workHours,record,_)=>(
+          <Text>
+          {workHours}
+          </Text>
+        )
       },
       {
         title: 'الوقت الإضافي',
@@ -208,6 +228,11 @@ export default function bonusTable(props){
         sorter: (a, b) => a.bonusTime?.localeCompare(b.bonusTime),
         sortOrder: sortedInfo.columnKey === 'bonusTime' && sortedInfo.order,
         ellipsis: true,
+        render:(bonusTime,record,_)=>(
+          <Text>
+          {bonusTime}
+          </Text>
+        )
       },
       {
         title: 'التفاصيل',
@@ -292,8 +317,8 @@ export default function bonusTable(props){
     var startDay=props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value;
     var endDay=props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value;
 
-    setStart(moment(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
-    setEnd(moment(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
+    setStart(dayjs(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
+    setEnd(dayjs(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
     }
     const checkPeriod=(all,date)=>{
       if(date[1]!=''){
@@ -308,7 +333,7 @@ export default function bonusTable(props){
 return (
     <Layout className='attendance'>
 
-    <Modal className='att-model' width={1100} title={"أحداث اليوم | "+detailedDay}  visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
+    <Modal centered className='att-model' width={1100} title={"أحداث اليوم | "+detailedDay}  visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
     <Table pagination={false} style={{textAlign:'center!important'}}  scroll={{x: '1000px' }} columns={dcolumns}  dataSource={selected} onCalendarChange={handleChange} />
     </Modal>
     <Card>
@@ -322,13 +347,13 @@ return (
     <div className='attOper'>
     <div style={{marginLeft:'10px'}}>
         <span>اختر شهرًا : </span>
-        <DatePicker defaultValue={moment()} onChange={onChange} picker="month" />
+        <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} defaultValue={dayjs()} onChange={onChange} picker="month" />
       </div>
-      <div className='attOperRange' style={{marginBottom:'10px'}}><span>اختر فترة : </span>
-          <RangePicker value={[moment(start,"YYYY-MM-DD"),moment(end,"YYYY-MM-DD")]} style={{width: '230px'}} onCalendarChange={changeRange} />
-      </div>    
+     {window.innerWidth <= 760?<></>:<div className='attOperRange' style={{marginBottom:'10px'}}><span>اختر فترة : </span>
+          <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} value={[dayjs(start,"YYYY-MM-DD"),dayjs(end,"YYYY-MM-DD")]} style={{width: '230px'}} onCalendarChange={changeRange} />
+      </div> }   
       <div className='attOperBtn' style={{textAlign: 'left'}}>
-       <Button disabled={load} style={{margin:'0 10px',textAlign:'center',marginLeft:'5px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
+       {window.innerWidth <= 760?<></>:<Button disabled={load} style={{margin:'0 10px',textAlign:'center',marginLeft:'5px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>}
         <Button disabled={load} style={{backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button>
       </div>    
     </div>

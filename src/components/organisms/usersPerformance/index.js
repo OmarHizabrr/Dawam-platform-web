@@ -7,7 +7,7 @@ import axios from 'axios';
 import excel from 'xlsx';
 import logoText from '../../../assets/images/logo-text.png';
 import {useLocation} from 'react-router-dom';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import AttendanceTable from './../attendanceTable';
 import TasksTable from './../tasksTable';
 
@@ -28,9 +28,9 @@ export default function UsersPerformance (props){
   const [tstypes,setTstypes]=useState([]);
 
   const [update,setUpdate]=useState(false);
-  const [start,setStart]=useState(moment(moment().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
-  const [end,setEnd]=useState(moment().format('YYYY-MM-DD'));  
-  const [currentMonth,setCurrentMonth]=useState(moment().format('MMMM'));   
+  const [start,setStart]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
+  const [end,setEnd]=useState(dayjs().format('YYYY-MM-DD'));  
+  const [currentMonth,setCurrentMonth]=useState(dayjs().format('MMMM'));   
   const [selectedUserName,setSelectedUserName]=useState("");
   const [selectedUser,setSelectedUser]=useState(null);
 
@@ -308,8 +308,8 @@ export default function UsersPerformance (props){
       var startDay=props.setting?.filter((item)=> item.key == "admin.month_start")[0]?.value;
       var endDay=props.setting?.filter((item)=> item.key == "admin.month_end")[0]?.value;
   
-      setStart(moment(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
-      setEnd(moment(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
+      setStart(dayjs(data+"-"+startDay, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
+      setEnd(dayjs(data+"-"+endDay, 'YYYY-MM-DD').format('YYYY-MM-DD'));
   
       }
       const openAttModal=(user)=>{
@@ -326,25 +326,25 @@ export default function UsersPerformance (props){
 
 return (
   <Layout>
-  <Modal centered={true} className='att-modal' width={1200} title={" سجل حضور | "+selectedUserName} visible={isAVisibleModal}  onOk={function(){ }} onCancel={function(){setIsAVisibleModal(false);setSelectedUser(null);}}>
+  <Modal centered centered={true} className='att-modal' width={1200} title={" سجل حضور | "+selectedUserName} visible={isAVisibleModal}  onOk={function(){ }} onCancel={function(){setIsAVisibleModal(false);setSelectedUser(null);}}>
       <AttendanceTable setting={props.setting} user={selectedUser} key={isAVisibleModal}></AttendanceTable>
   </Modal>
-  <Modal centered={true} className='task-modal' width={1200} title={"سجل إجازات | "+selectedUserName} visible={isTVisibleModal}  onOk={function(){ }} onCancel={function(){setIsTVisibleModal(false);setSelectedUser(null);}}>
+  <Modal centered centered={true} className='task-modal' width={1200} title={"سجل إجازات | "+selectedUserName} visible={isTVisibleModal}  onOk={function(){ }} onCancel={function(){setIsTVisibleModal(false);setSelectedUser(null);}}>
       <TasksTable setting={props.setting} user={selectedUser} key={isTVisibleModal}></TasksTable>
   </Modal>
     <Card>
-    <div className='discountHeader' >
+    <div className='performanceHeader' >
       <div className='discountRange'  >
-      <div style={{marginLeft:'10px'}}>
+      {window.innerWidth <= 760?<></>:<div style={{marginLeft:'10px'}}>
         <span>اختر شهرًا : </span>
-        <DatePicker  defaultValue={moment()} onChange={onChange} picker="month" />
-      </div>
+        <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  defaultValue={dayjs()} onChange={onChange} picker="month" />
+      </div>}
         <div style={{marginLeft:'10px'}}><span>اختر فترة : </span>
-          <RangePicker  value={[moment(start,"YYYY-MM-DD"),moment(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
+          <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  value={[dayjs(start,"YYYY-MM-DD"),dayjs(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
         </div>
       </div>
     <div className='discountBtn'>     
-      <Button style={{display:'block',marginLeft:'5px',marginBottom:'10px',backgroundColor:"#0972B6",borderColor:"#0972B6",border:'none'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
+    {window.innerWidth <= 760?<></>: <Button style={{display:'block',marginLeft:'5px',marginBottom:'10px',backgroundColor:"#0972B6",borderColor:"#0972B6",border:'none'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>}
       <Button style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button>
     </div>   
     </div>   
