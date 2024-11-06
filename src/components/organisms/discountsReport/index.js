@@ -38,6 +38,9 @@ export default function DiscountsReport(props){
       const [categoriesFilter,setCategoriesFilter]=useState([]);
       const [load,setLoad]=useState(true);
       const [count,setCount]=useState(0);
+      const [requiredCount,setRequiredCount]=useState(0);
+      const [fridaysData,setFridaysData]=useState([]);
+
       const [start,setStart]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
       const [end,setEnd]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
       const [currentMonth,setCurrentMonth]=useState(dayjs().format('MMMM'));   
@@ -64,6 +67,9 @@ export default function DiscountsReport(props){
           setPData(response.data.lists);
 
           setCount(response.data.count[0].count);
+
+          setRequiredCount(parseInt(response.data.requiredCount[0].count))
+          setFridaysData(response.data.fridaysData)
           setCategories(response.data.categories);
           setLoad(false);
         }).catch(function (error) {
@@ -239,7 +245,7 @@ return (
         <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  defaultValue={dayjs()} onChange={onChange} picker="month" />
       </div> 
         <div className='discountRange' style={{marginBottom:'10px'}}><span>اختر فترة : </span>
-          <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} value={[dayjs(start,"YYYY-MM-DD"),dayjs(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
+          <RangePicker needConfirm={true}  inputReadOnly={window.innerWidth <= 760} value={[dayjs(start,"YYYY-MM-DD"),dayjs(end,"YYYY-MM-DD")]} onChange={changeRange} />
         </div>
         <div className='discountBtn'>
           <Button style={{display:'block',margin:'0 10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
@@ -310,22 +316,26 @@ return (
             <>
               {
               catData.map(item=>{
-
+               
                 item.lateTimePrice=item.fingerprint_type=='22'? item.lateTimePrice:0;
-                
-                item.lateTime=item.fingerprint_type=='22'? item.lateTime:0;
-                item.attendanceDays=item.fingerprint_type=='22'? item.attendanceDays:count;
+                item.lateTimePrice=item.lateTimePrice==null?0:item.lateTimePrice;
 
-                sal+=parseFloat(item.salary);
+                item.lateTime=item.fingerprint_type=='22'? item.lateTime:0;
+                item.lateTime=item.lateTime==null?0:item.lateTime;
+                
+                item.attendanceDays=item.fingerprint_type=='22'? item.attendanceDays:(requiredCount);
+                var s=parseFloat(item.status==16?item.salary:item.salary*requiredCount);
+                sal+=s;
 
                 //ltimes+=getMinutesTime(item.lateTime);
-                ltimes+=Math.round(getMinutesTime(item.lateTime))<0?0:Math.round(getMinutesTime(item.lateTime));
+                ltimes+=(Math.round(getMinutesTime(item.lateTime))<0)?0:Math.round(getMinutesTime(item.lateTime));
                 ldiscounts+=Math.round(item.lateTimePrice)<0?0:Math.round(item.lateTimePrice);
 
-                var atim=count-item.attendanceDays;
-                atim=atim<0?0:atim;
+                var atim=requiredCount-(parseInt(item.attendanceDays??0)+(item.status==16?parseInt(fridaysData?.filter(user => user.user_id == item.user_id)[0]?.weeks ?? 0):0));
+
+                atim= (atim==null || atim<0)?0:atim;
                 atimes+=atim;
-                var adis=parseFloat((item.salary/30)*(atim));
+                var adis=parseFloat((item.status==16?(item.salary/30):(item.salary))*(atim));
                 adiscounts+=adis;
                 var tot=parseFloat(item.lateTimePrice)+adis;
                 total+=tot;
@@ -345,7 +355,7 @@ return (
                 <td>{index}</td>
                 <td style={{fontSize:'10px'}}>{item.name}</td>
                 <td style={{fontSize:'8px',width:'60px'}}>{item.job}</td>
-                <td>{new Intl.NumberFormat('en-EN').format(item.salary)}</td>
+                <td>{new Intl.NumberFormat('en-EN').format(item.status==16?item.salary:item.salary*requiredCount)}</td>
                 <td>{item.lateTime}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(Math.round(item.lateTimePrice))}</td>
                 <td>{atim}</td>
@@ -384,7 +394,6 @@ return (
                 <td>{new Intl.NumberFormat('en-EN').format(Math.round(tadiscounts/5)*5)}</td>
                 <td>{parseInt(tttotalateTime/60)+":"+(tttotalateTime%60)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(Math.round(ttotal/5)*5)}</td>
-
                 <td>{Math.round(ttotal/tsal*100)}%</td>
 
               </tr>

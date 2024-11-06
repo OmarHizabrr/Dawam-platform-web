@@ -444,7 +444,7 @@ return (
     <div className='discountHeader' >
       <div className='discountRange'  >
         <div style={{marginLeft:'10px'}}><span>اختر فترة : </span>
-          <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  onCalendarChange={changeRange} />
+          <RangePicker needConfirm={true}  inputReadOnly={window.innerWidth <= 760}  onChange={changeRange} />
         </div>
       </div>
     <div className='discountBtn'>     
@@ -488,10 +488,10 @@ return (
                   name={'date_range'}
                   rules={[{ required: true, message: 'لم تقم بإدخال فترة الطلب!' }]}
                 >
-                 <RangePicker needConfirm={false} 
+                 <RangePicker needConfirm={true} 
     inputReadOnly={window.innerWidth <= 760}
                       showTime={{ format: 'HH:mm' }}
-                      onCalendarChange={function(all,date){checkPeriod(all,date,1)}}
+                      onChange={function(all,date){checkPeriod(all,date,1)}}
                       onChange={function(all,date){changeTRange(all,date)}}
                       format="YYYY-MM-DD HH:mm"
                   />
@@ -583,10 +583,10 @@ return (
                   name={[field.name, 'date_range']}
                   rules={[{ required: true, message: 'لم تقم بإدخال فترة الطلب!' }]}                 
                 >
-                 <RangePicker needConfirm={false} 
+                 <RangePicker needConfirm={true} 
     inputReadOnly={window.innerWidth <= 760}
                       showTime={{ format: 'HH:mm' }}
-                      onCalendarChange={function(all,date){checkPeriod(all,date,field.key)}}
+                      onChange={function(all,date){checkPeriod(all,date,field.key)}}
                       format="YYYY-MM-DD HH:mm"
                     />
 

@@ -13,7 +13,8 @@ import {Env} from './../../../styles';
 const {Text}=Typography;
 
 export default function generalTable(props){
-  const [cookies, setCookie, removeCookie]=useCookies(["userId"]);
+
+      const [cookies, setCookie, removeCookie]=useCookies(["userId"]);
 
       const [filteredInfo,setFilteredInfo]=useState({});
       const [sortedInfo,setSortedInfo]=useState({});
@@ -277,7 +278,7 @@ return (
     <Button style={{display:'block',marginLeft:'5px',marginBottom:'10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
 
    <Space style={{display:'inline-block'}}>
-    <Dropdown.Button menu={menuProps} trigger={['click']} style={{display:'block',backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport('att-report')}} type='primary'><PrinterOutlined /> طباعة الحاضرين</Dropdown.Button></Space> 
+    <Dropdown.Button menu={menuProps} trigger={['click']} style={{display:'block',backgroundColor:"#0972B6"}} onClick={function(){printReport('att-report')}} type='primary'><PrinterOutlined /> طباعة الحاضرين</Dropdown.Button></Space> 
   </div>:<></>}
     </div>
     <Table 

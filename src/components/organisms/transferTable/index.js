@@ -123,7 +123,7 @@ return (
     </div> 
     {window.innerWidth <= 760?<></>:<div className='tasksRange' >
     <span>اختر فترة : </span>
-    <RangePicker needConfirm={false} 
+    <RangePicker needConfirm={true} 
     inputReadOnly={window.innerWidth <= 760}
       format="YYYY-MM-DD"
        value={[dayjs(start,"YYYY-MM-DD"),dayjs(end,"YYYY-MM-DD")]}
@@ -133,7 +133,7 @@ return (
     </div>}
     </div>
     </div>
-    <Table loading={load} style={{textAlign:'center!important'}} columns={columns} scroll={{x: '1000px' }} onRow={(record, rowIndex) => {return{className:record.status};}} dataSource={data} onCalendarChange={handleChange} />
+    <Table loading={load} style={{textAlign:'center!important'}} columns={columns} scroll={{x: '1000px' }} onRow={(record, rowIndex) => {return{className:record.status};}} dataSource={data} onChange={handleChange} />
     </Card>
     </Layout>
 );

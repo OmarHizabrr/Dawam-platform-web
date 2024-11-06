@@ -8,6 +8,7 @@ import { Typography ,Layout,Tabs,Table, Button,Modal, DatePicker, Spin,Select,Ca
 import {SettingOutlined,MinusCircleOutlined,PlusOutlined,FormOutlined,ExportOutlined,PrinterOutlined} from '@ant-design/icons';
 import axios from 'axios';
 import dayjs from 'dayjs';
+import 'dayjs/locale/ar'
 
 import {Env} from './../../../styles';
 const { Content } = Layout;
@@ -48,6 +49,8 @@ export default function wagesReport(props){
       const [load,setLoad]=useState(true);
       const [count,setCount]=useState(0);
       const [count17,setCount17]=useState(0);
+      const [fridaysData,setFridaysData]=useState([]);
+      const [requiredCount,setRequiredCount]=useState(0);
 
       const [start,setStart]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));     
       const [end,setEnd]=useState(dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));  
@@ -77,8 +80,11 @@ export default function wagesReport(props){
         setCategoriesFilter(categories);
       
         setTstypes(ts);
-        setCount(response.data.count[0].count);
+        setCount(parseInt(response.data.count[0].count));
         setCount17(response.data.count17[0].count);
+        setFridaysData(response.data.fridaysData)
+        setRequiredCount(parseInt(response.data.requiredCount[0].count))
+
         setData(response.data.lists);
         setPData(response.data.lists);
         
@@ -305,7 +311,7 @@ return (
         <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} defaultValue={dayjs()} onChange={onChange} picker="month" />
       </div>
         <div className='discountRange' style={{marginBottom:'10px'}}><span>اختر فترة : </span>
-          <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} value={[dayjs(start,"YYYY-MM-DD"),dayjs(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
+          <RangePicker needConfirm={true}  inputReadOnly={window.innerWidth <= 760} value={[dayjs(start,"YYYY-MM-DD"),dayjs(end,"YYYY-MM-DD")]} onChange={changeRange} />
         </div>
         <div className='discountBtn'>
           <Button style={{display:'block',margin:'0 10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>
@@ -378,7 +384,7 @@ return (
     <table style={{fontSize: "11px",width: " 100%",textAlign: " center"}}>
     <thead>
     <tr style={{border:'none'}}>
-    <th colSpan={16}>  
+    <th colSpan={17}>  
     <header style={{display: "flex",flexDirection: "row",borderColor:'#000',borderBottomStyle: "solid",borderBottomWidth:"1px"}}>
        <div style={{width: "20%"}}>
            <img loading="eager" style={{width: "250px"}} src={Env.HOST_SERVER_STORAGE+props.setting.filter((item)=> item.key == 'admin.logo')[0]?.value}/>
@@ -403,7 +409,7 @@ return (
 
                      <th style={{fontWeight: "100",fontSize:'8px'}} colSpan="3">الاستحقاق</th>
                    
-                     <th style={{fontWeight: "100"}} colSpan="6">الاستقطاعات</th>
+                     <th style={{fontWeight: "100"}} colSpan="7">الاستقطاعات</th>
                      <th style={{fontWeight: "100"}} rowSpan="2" colSpan={"2"}> صافي<br/>الاستحقاق </th>
                      <th style={{fontWeight: "100"}} rowSpan="2">التوقيع</th>
                 </tr>
@@ -416,7 +422,7 @@ return (
                 <th style={{fontWeight: "100"}}>تكافل</th>
                 <th style={{fontWeight: "100"}}>أقساط</th>
                 <th style={{fontWeight: "100"}}>جزاءات</th>
-                {//<th style={{fontWeight: "100"}}>اشتراكات</th>
+                {<th style={{fontWeight: "100"}}>اشتراكات</th>
                 }
                 <th style={{fontWeight: "100",width:'20px'}}>إجمالي</th>
                 </tr>
@@ -447,8 +453,8 @@ return (
                 allow+=parseFloat(item.allownces);
                 salallow+=parseFloat(item.status==16?item.salary:item.salary*count17)+parseFloat(item.allownces);
                 debts+=(item.debt*1);
-                
-                var ab=item.fingerprint_type=='22'? Math.round( ((Math.max(((item.status==16?count*1:count17*1)-item.attendanceDays*1),0)*(item.status==16?parseInt(item.salary)/30:item.salary)) + parseFloat(item.lateTimePrice) )/dround )*dround:0;
+
+                var ab=item.fingerprint_type=='22'? Math.round(((Math.max(((item.status==16?requiredCount*1:count17*1)-(item.attendanceDays*1+parseInt(fridaysData?.filter(user => user.user_id == item.user_id)[0]?.weeks ?? 0))),0)*(item.status==16?parseInt(item.salary)/30:item.salary)) + parseFloat(item.lateTimePrice) )/dround )*dround:0;
                 ab=ab<0?0:parseFloat(ab);
                 
                 abs+=parseFloat(ab);
@@ -479,8 +485,8 @@ return (
 
               return  (<tr style={{height: "30px",backgroundColor:++index %2!=0?'#e6e6e6':'#fff'}}>
                   <td>{index}</td>
-                  <td style={{fontSize:'9px',minWidth:'100px'}}>{item.name}</td>
-                  <td style={{fontSize: "7px",width:'50px'}}>{item.job}</td>
+                  <td style={{fontSize:'8px',minWidth:'80px'}}>{item.name}</td>
+                  <td style={{fontSize: "7px",width:'30px'}}>{item.job}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(item.status==16?item.salary:item.salary*count17)}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(item.allownces)}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(parseFloat(item.status==16?item.salary:item.salary*count17)+parseFloat(item.allownces))}</td>
@@ -490,12 +496,12 @@ return (
                   <td>{new Intl.NumberFormat('en-EN').format(Math.round(parseFloat(item.symbiosis)))}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(item.long_debt)}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(item.vdiscount)}</td>
-                  {//<td>{new Intl.NumberFormat('en-EN').format(item.deductions)}</td>
+                  {<td>{new Intl.NumberFormat('en-EN').format(item.deductions)}</td>
               }
                   <td>{new Intl.NumberFormat('en-EN').format(toD)}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(tot)}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(tor)}</td>
-                  <td><pre>{item.note?item.note:'             '}</pre></td>
+                  <td >{item.note?item.note:'             '}</td>
                 </tr>);
              })
               }
@@ -510,7 +516,7 @@ return (
                 <td>{new Intl.NumberFormat('en-EN').format(sym)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(ldebts)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(vio)}</td>
-                {//<td>{new Intl.NumberFormat('en-EN').format(ded)}</td>
+                {<td>{new Intl.NumberFormat('en-EN').format(ded)}</td>
                 }
                 <td>{new Intl.NumberFormat('en-EN').format(totD)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(total)}</td>
@@ -531,7 +537,7 @@ return (
                 <td>{new Intl.NumberFormat('en-EN').format(tsym)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(tldebts)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(tvio)}</td>
-                {//<td>{new Intl.NumberFormat('en-EN').format(tded)}</td>
+                {<td>{new Intl.NumberFormat('en-EN').format(tded)}</td>
 }
                 <td>{new Intl.NumberFormat('en-EN').format(ttotD)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(ttotal)}</td>
@@ -541,7 +547,7 @@ return (
             </tbody>
     <tfoot>
       <tr>
-        <th colSpan={16}>
+        <th colSpan={17}>
           <div style={{display: "flex",flexDirection: "row",marginTop: "20px",textAlign: "center"}}>
 {props.setting.filter((item)=> item.key == 'admin.signs_footer')[0]?.value.split('\n').map((sign)=>{
            var sign_position=sign.split(':')[0];

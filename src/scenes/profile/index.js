@@ -643,7 +643,7 @@ return (
                   label={'فترة العمل'}
                   rules={[{ required: true, message: 'هذا الحقل مطلوب' }]}
                 >
-                  <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  disabled={userFormDisable} picker="year" />
+                  <RangePicker needConfirm={true}  inputReadOnly={window.innerWidth <= 760}  disabled={userFormDisable} picker="year" />
                 </Form.Item>
                 <Form.Item
                   {...restField}
@@ -913,7 +913,7 @@ return (
             <SummaryData spiderData={spiderData} showModal={openShowUser} setting={setting} userData={user} star={star} />
           </Route>
           <Route path={`${path}/general-table`}>
-            <GeneralTable setting={props.setting}/>
+            <GeneralTable setting={props.setting} user={user}/>
           </Route>
           <Route path={`${path}/depts-table`}>
             <DeptsTable setting={props.setting}/>

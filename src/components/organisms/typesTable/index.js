@@ -336,7 +336,7 @@ return (
     <Form form={form} >
     <Form.Item className='rangee' name={'date_range'} label="فترة الإجازة / المهمة :">
     <Space>
-    <RangePicker needConfirm={false} 
+    <RangePicker needConfirm={true} 
     inputReadOnly={window.innerWidth <= 760}
      showTime={{
         defaultValue: [dayjs(props.setting.filter((item)=> item.key == 'duration_start')[0]?.value, 'HH:mm'), dayjs(props.setting.filter((item)=> item.key == 'duration_end')[0]?.value, 'HH:mm')],

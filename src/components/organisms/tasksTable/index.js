@@ -4,6 +4,7 @@ import excel from 'xlsx';
 import axios from 'axios';
 import './style.css';
 import dayjs from 'dayjs';
+import locale from 'antd/locale/ar_EG';
 
 import {Env} from '../../../styles';
 import './style.css';
@@ -689,7 +690,7 @@ return (
         <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  defaultValue={dayjs()} onChange={onChange} picker="month" />
       </div>  
         {window.innerWidth <= 760?<></>:<div className='tasksRange' style={{marginBottom:'10px',marginLeft:'5px'}}><span>اختر فترة : </span>
-          <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  value={[dayjs(start,"YYYY-MM-DD"),dayjs(end,"YYYY-MM-DD")]} onCalendarChange={changeRange} />
+          <RangePicker needConfirm={true}  inputReadOnly={window.innerWidth <= 760}  value={[dayjs(start,"YYYY-MM-DD"),dayjs(end,"YYYY-MM-DD")]} onChange={changeRange} />
         </div>}
         <div className='tasksBtn'>   
           <Button style={{marginBottom:'10px',marginLeft:'5px',backgroundColor:'#FAA61A',border:'none'}} onClick={showModal} type='primary'><FormOutlined />{window.innerWidth > 760??"تقديم إجازة"}</Button>
@@ -702,19 +703,19 @@ return (
     <Form form={form} >
     <Form.Item className='rangee' name={'date_range'} label="فترة الإجازة / المهمة :">
     <Space>
-    <RangePicker needConfirm={false} 
+    <RangePicker needConfirm={true} 
     inputReadOnly={window.innerWidth <= 760}
      showTime={{
         defaultValue: [dayjs(props.setting.filter((item)=> item.key == 'duration_start')[0]?.value, 'HH:mm'), dayjs(props.setting.filter((item)=> item.key == 'duration_end')[0]?.value, 'HH:mm')],
       }}
       width={50}
       format="YYYY-MM-DD HH:mm"  
-      onCalendarChange={function(all,dates){onRangeChange(all,dates);}}
+      onChange={onRangeChange}
     />
   </Space>
   <div style={{marginTop:'10px',fontWeight:600}}>مدة الإجازة: <Text type="danger">{totalVac}</Text></div> 
     </Form.Item>
-    <Table loading={logload}  pagination={false} style={{textAlign:'center!important'}}   columns={dcolumns}  dataSource={selectedLogs} onCalendarChange={handleChange} />         
+    <Table loading={logload}  pagination={false} style={{textAlign:'center!important'}}   columns={dcolumns}  dataSource={selectedLogs} onChange={handleChange} />         
     <Form.Item {...formItemLayout} labelWrap={false} style={{marginTop:'10px',marginBottom:'10px'}} name={'task_type'} label="نوع الإجازة">
     <Select    
     notFoundContent={<Spin style={{textAlign:'center'}}></Spin>}
@@ -747,19 +748,19 @@ return (
     <Form form={uform} >
     <Form.Item className='rangee' name={'date_range'} label="فترة الإجازة / المهمة :">
     <Space>
-    <RangePicker needConfirm={false} 
-    inputReadOnly={window.innerWidth <= 760}
+    <RangePicker needConfirm={true} 
+      inputReadOnly={window.innerWidth <= 760}
       format="YYYY-MM-DD HH:mm"
       value={[dayjs(datefromValue,"YYYY-MM-DD HH:mm"), dayjs(datetoValue, "YYYY-MM-DD HH:mm")]}
       showTime
       disabledDate={disabledDate}
-      onCalendarChange={function(all,dates){onRangeChange(all,dates);}}
+      onChange={function(all,dates){onRangeChange(all,dates);}}
     />
   </Space>
   <div style={{marginTop:'10px',fontWeight:600}}>مدة الإجازة: <Text type="danger">{totalVac}</Text></div> 
 
     </Form.Item>
-    <Table loading={logload}  pagination={false} style={{textAlign:'center!important'}}   columns={dcolumns}  dataSource={selectedLogs} onCalendarChange={handleChange} />         
+    <Table loading={logload}  pagination={false} style={{textAlign:'center!important'}}   columns={dcolumns}  dataSource={selectedLogs} onChange={handleChange} />         
     <Form.Item {...formItemLayout} style={{marginBottom:'10px'}} name={'task_type'} label="نوع الإجازة">
     <Select
     showSearch

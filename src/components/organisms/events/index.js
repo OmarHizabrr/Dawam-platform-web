@@ -184,7 +184,7 @@ return (
     <Card>
     <div className='discountHeader' >  
     <div className='discountRange' ><span>اختر فترة : </span>
-    <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  onCalendarChange={changeRange} />
+    <RangePicker needConfirm={true}  inputReadOnly={window.innerWidth <= 760}  onChange={changeRange} />
     </div>   
    <Upload
     accept=".xlsx, .csv" 

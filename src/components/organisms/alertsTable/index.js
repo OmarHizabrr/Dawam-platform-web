@@ -154,7 +154,7 @@ return(
   <div className='discountBtn' style={{display:'flex',flex:1,flexDirection:'row',justifyContent:'flex-end'}}>     
       <div className='discountRange' >
   <div style={{marginLeft:'10px'}}><span>اختر فترة : </span>
-  <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  onCalendarChange={changeRange} />
+  <RangePicker needConfirm={true}  inputReadOnly={window.innerWidth <= 760}  onChange={changeRange} />
   </div>
   <div className='addbtn'>
   { 

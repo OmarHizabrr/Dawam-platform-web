@@ -686,7 +686,7 @@ return(
     onClick={function(){userform.resetFields();setUserFormDisable(false);setIsVisibleModal(true);}}
      style={{zIndex:'1000',position:'fixed',bottom:'20px',width:'55px',height:'55px',left:'20px'}} shape="circle" icon={<PlusOutlined />} type="primary">
     </Button>   
-    <Modal centered id='emp-report' title={<div style={{backgroundColor:'#fff'}}><Text>تقرير الموظف</Text><div style={{float:'left',marginLeft:'100px'}}><RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} value={[dayjs(start),dayjs(end)]} onCalendarChange={changeRange} /><Button style={{backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button></div></div>} footer={[]} centered={true} className='emp-report-modal' width={1400}  visible={isRVisibleModal}  onOk={function(){setModalLoad(true);onFinish();}} onCancel={function(){resetReport();setSelectedUser(null);setIsRVisibleModal(false);}}>
+    <Modal centered id='emp-report' title={<div style={{backgroundColor:'#fff'}}><Text>تقرير الموظف</Text><div style={{float:'left',marginLeft:'100px'}}><RangePicker needConfirm={true}  inputReadOnly={window.innerWidth <= 760} value={[dayjs(start),dayjs(end)]} onChange={changeRange} /><Button style={{backgroundColor:"#0972B6",borderColor:"#0972B6"}} onClick={function(){printReport()}} type='primary'><PrinterOutlined /></Button></div></div>} footer={[]} centered={true} className='emp-report-modal' width={1400}  visible={isRVisibleModal}  onOk={function(){setModalLoad(true);onFinish();}} onCancel={function(){resetReport();setSelectedUser(null);setIsRVisibleModal(false);}}>
         <Spin spinning={reportLoad}>
         <Row>
           <Col xs={24} sm={24} md={5} lg={5} xl={5} span={5} style={{justifyContent:'center'}}>
@@ -1290,7 +1290,7 @@ return(
                   label={'فترة العمل'}
                   rules={[{ required: true, message: 'هذا الحقل مطلوب' }]}
                 >
-                  <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  disabled={userFormDisable} picker="year" />
+                  <RangePicker needConfirm={true}  inputReadOnly={window.innerWidth <= 760}  disabled={userFormDisable} picker="year" />
                 </Form.Item>
                 <Form.Item
                   {...restField}

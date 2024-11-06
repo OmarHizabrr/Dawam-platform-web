@@ -17,32 +17,34 @@ export default function Statistics (props) {
   const [qlabels,setQlabels]=useState([]);
   const [ddata,setDData]=useState([]);
   const [dlabels,setDlabels]=useState([]); 
+             
+const  quoptions= {
+    title:{
+     text:'إحصائيات المؤهلات',
+     align:'center',
+     style:{
+         fontFamily:'Tajawal',
+     }
+    },
+  chart: {
+    width: 380,
+    type: 'pie',
+  },
+  labels:qlabels,
+  responsive: [{
+    breakpoint: 480,
+    options: {
+      chart: {
+        width: 200
+      },
+      legend: {
+        position: 'bottom'
+      }
+    }
+  }]
+};
 
-  const   optionsp= {
-                title:{
-                 text:'توزيع الموظفين على الإدارات',
-                 align:'center',
-                 style:{
-                     fontFamily:'Tajawal',
-                 }
-                },
-              chart: {
-                width: 380,
-                type: 'pie',
-              },
-              labels:dlabels,
-              responsive: [{
-                breakpoint: 480,
-                options: {
-                  chart: {
-                    width: 200
-                  },
-                  legend: {
-                    position: 'bottom'
-                  }
-                }
-              }]
-            };                   
+
    const  options = {
       series: discData,
       chart: {
@@ -65,7 +67,7 @@ export default function Statistics (props) {
 
     var qoptions = {
       title: {
-        text: 'إحصائيات المؤهلات',
+        text: 'إحصائيات توزيع الموظفين على الإدارات',
         align: 'center',
         margin: 10,
         offsetX: 0,
@@ -80,50 +82,34 @@ export default function Statistics (props) {
     },
       series: [{
       name:"العدد",
-      data: qdata
+      data: ddata
     }],
-      chart: {
-      height: 200,
+    chart: {
       type: 'bar',
+      height: 300
     },
     plotOptions: {
       bar: {
-        columnWidth: '45%',
-        distributed: true,
+        distributed:true,
+        borderRadius: 4,
+        horizontal: true,
       }
     },
     dataLabels: {
-      enabled: true
+      enabled: false
     },
-    legend: {
-      show: false
+    legend:{
+      show:false
     },
     xaxis: {
-      categories:qlabels,
-      labels: {
-        style: {
-          fontFamily:'Tajawal',
-          fontSize: '12px'
-        }
-      }
-    },
-    tooltip: {
-      style:{
-        fontFamily:'Tajawal',
-        marginLeft:'5px',
-      },
-      y:{         
-        formatter: function (val, opts) {
-          return val;
-      },
-      },
-    },
+      categories: dlabels,
+    }
     };
 
 useEffect(() => {  
   axios.get(Env.HOST_SERVER_NAME+'general-statistics')
   .then(response => {
-    
+
     setData(response.data);
     var q=[];
     var l=[];
@@ -194,10 +180,10 @@ useEffect(() => {
                <ReactApexChart options={qoptions} series={qoptions.series} type="bar" height={300}  />
             </Card>
            </Col>
-           
+
            <Col xs={24} sm={24} md={12} xl={12} span={12}>
            <Card>
-              <ReactApexChart options={optionsp} series={ddata} type="pie"  height={300} />
+              <ReactApexChart options={quoptions} series={qdata} type="pie"  height={300} />
            </Card>
            </Col>
         </Row>

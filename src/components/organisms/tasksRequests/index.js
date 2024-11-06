@@ -513,7 +513,7 @@ export default function TasksRequests(props) {
         <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}  defaultValue={dayjs()} onChange={onChange} picker="month" />
     </div>  
     {window.innerWidth <= 760?<></>:<div style={{marginBottom:'10px',marginLeft:'5px'}}><span>اختر فترة : </span>
-    <RangePicker needConfirm={false}   inputReadOnly={window.innerWidth <= 760} value={[dayjs(start,"YYYY-MM-DD"),dayjs(end,"YYYY-MM-DD")]} onChange={changeRange} />
+    <RangePicker needConfirm={true}   inputReadOnly={window.innerWidth <= 760} value={[dayjs(start,"YYYY-MM-DD"),dayjs(end,"YYYY-MM-DD")]} onChange={changeRange} />
     </div>}
     <div className="requestsBtn">   
     {window.innerWidth <= 760?<></>:<Button style={{display:'block',float:"left",marginBottom:'10px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>}
@@ -545,7 +545,7 @@ export default function TasksRequests(props) {
           </Text></div>
           <div className="taggedInfo" style={{fontFamily: 'Tajawal'}}><Text>الفترة :   </Text></div>
           <FormItem name={'range_date'}>
-          <RangePicker needConfirm={false} 
+          <RangePicker needConfirm={true} 
     inputReadOnly={window.innerWidth <= 760}
             showTime={{ format: "HH:mm" }}
             value={[dayjs(selected ? selected.date_from : "", "YYYY-MM-DD HH:mm"), dayjs(selected ? selected.date_to : "", "YYYY-MM-DD HH:mm")]}
@@ -553,7 +553,7 @@ export default function TasksRequests(props) {
             onChange= {onRangeChange}
           />
           </FormItem>
-            <Table loading={logload}  pagination={false} style={{textAlign:'center!important'}}   columns={dcolumns}  dataSource={selectedLogs} onCalendarChange={handleChange} />         
+            <Table loading={logload}  pagination={false} style={{textAlign:'center!important'}}   columns={dcolumns}  dataSource={selectedLogs} onChange={handleChange} />         
         </div>
         <div style={{display:'flex',flexDirection:'row',justifyContent:'space-between'}}>        
         <FormItem style={{marginBottom:'0px',fontFamily:'Tajawal'}} name={'request_type'} label={'نوع الطلب '}>

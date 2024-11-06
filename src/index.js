@@ -5,14 +5,27 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { ConfigProvider } from 'antd';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
-import locale from 'antd/locale/ar_EG';
 import dayjs from 'dayjs';
+import arEG from 'antd/lib/locale/ar_EG';
 
 import 'dayjs/locale/ar';
 
+
+import locale from 'antd/locale/ar_EG';
+
+dayjs.locale('ar')
+
 ReactDOM.render(
   <React.StrictMode>
-  <ConfigProvider locale={locale}  theme={{
+  <ConfigProvider locale={arEG}  theme={{
+        components: {
+          DatePicker: {
+           cellHeight:window.innerWidth <= 760?20:24,
+           cellWidth:window.innerWidth <= 760?30:36,
+           timeColumnWidth:window.innerWidth <= 760?40:56,
+          },
+        },
+
         token: {
           fontFamily: "Tajawal",
           fontSize: 15, 

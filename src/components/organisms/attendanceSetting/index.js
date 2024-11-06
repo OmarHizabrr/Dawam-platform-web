@@ -253,7 +253,7 @@ return (
         ></Select>
         </Form.Item>
         <Form.Item name={'date_range'} label="الفترة">
-          <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} format="YYYY-MM-DD" />
+          <RangePicker needConfirm={true}  inputReadOnly={window.innerWidth <= 760} format="YYYY-MM-DD" />
         </Form.Item>
         <Form.Item name={'time_range'} label="وقت الحضور والانصراف">
             <TimePicker.RangePicker format="HH:mm" />

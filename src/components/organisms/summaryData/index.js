@@ -211,7 +211,7 @@ useEffect(() => {
     axios.get(Env.HOST_SERVER_NAME+'salary-info/'+id.user_id+'/'+start+'/'+end)
     .then(response => {
       setData(response.data); 
-          
+
       setSerData([parseInt(response.data.lists[0]['debt'] || 0),parseInt(response.data.lists[0]['long_debt'] || 0), parseInt(response.data.lists[0]['lateTimePrice'] || 0), parseInt(Math.round(((response.data.count[0].count-(response.data.lists[0]['attendanceDays']|| 0))*( response.data.lists[0].salary/30)))), parseInt(response.data.lists[0]['vdiscount'] || 0) ,
       response.data.lists[0].salary - (Math.round(response.data.lists[0].debt || 0)+Math.round(((response.data.count[0].count-response.data.lists[0].attendanceDays)*(response.data.lists[0].salary/30))+parseFloat(response.data.lists[0].lateTimePrice || 0))+Math.round(response.data.lists[0].symbiosis || 0)+Math.round(response.data.lists[0].long_debt || 0)) ]);
       setSalSpin(false);

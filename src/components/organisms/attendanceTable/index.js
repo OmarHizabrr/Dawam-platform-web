@@ -545,7 +545,7 @@ return (
     <Modal centered title="تقديم إجازة / مهمة" confirmLoading={saving} visible={isVModalVisible} onOk={function(){setSaving(true);handleVOk()}} onCancel={function(){handleVCancel()}}>
       <Form form={form} >
         <Form.Item className='rangee' name={'date_range'} label="فترة الإجازة / المهمة :">
-          <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760}       disabledDate={disabledDate} value={[dayjs(datefromValue,"YYYY-MM-DD HH:mm"), dayjs(datetoValue, "YYYY-MM-DD HH:mm")]} showTime={{defaultValue: [dayjs(props.setting.filter((item)=> item.key == 'duration_start')[0]?.value, 'HH:mm'), dayjs(props.setting.filter((item)=> item.key == 'duration_end')[0]?.value, 'HH:mm')],}} format="YYYY-MM-DD HH:mm"  onCalendarChange={function(all,dates){onRangeChange(all,dates);}} />
+          <RangePicker needConfirm={true}  inputReadOnly={window.innerWidth <= 760}       disabledDate={disabledDate} value={[dayjs(datefromValue,"YYYY-MM-DD HH:mm"), dayjs(datetoValue, "YYYY-MM-DD HH:mm")]} showTime={{defaultValue: [dayjs(props.setting.filter((item)=> item.key == 'duration_start')[0]?.value, 'HH:mm'), dayjs(props.setting.filter((item)=> item.key == 'duration_end')[0]?.value, 'HH:mm')],}} format="YYYY-MM-DD HH:mm"  onChange={function(all,dates){onRangeChange(all,dates);}} />
           <div style={{marginTop:'10px',fontWeight:600}}>مدة الإجازة: <Text type="danger">{totalVac}</Text></div> 
         </Form.Item>
         <Form.Item style={{marginTop:'10px'}} name={'task_type'} label="نوع الإجازة">
@@ -576,7 +576,7 @@ return (
     </Form>
     </Modal>
     <Modal centered className='att-model' width={1100} title={"أحداث اليوم | "+detailedDay}  visible={isModalVisible} onOk={handleOk} onCancel={handleCancel}>
-    <Table pagination={false} style={{textAlign:'center!important'}}  scroll={{x: '1000px' }} columns={dcolumns}  dataSource={selected} onCalendarChange={handleChange} />
+    <Table pagination={false} style={{textAlign:'center!important'}}  scroll={{x: '1000px' }} columns={dcolumns}  dataSource={selected} onChange={handleChange} />
     </Modal>
     <Card bordered>
   <div className='attHeader'>
@@ -601,7 +601,7 @@ return (
         <DatePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} defaultValue={dayjs()} onChange={onChange} picker="month" />
       </div>}
       <div className='attOperRange'><span>اختر فترة : </span>
-          <RangePicker needConfirm={false}  inputReadOnly={window.innerWidth <= 760} value={[dayjs(start,"YYYY-MM-DD"),dayjs(end,"YYYY-MM-DD")]} style={{width: '230px'}} onCalendarChange={changeRange} />
+          <RangePicker needConfirm={true}  inputReadOnly={window.innerWidth <= 760} value={[dayjs(start,"YYYY-MM-DD"),dayjs(end,"YYYY-MM-DD")]} style={{width: '230px'}} onChange={changeRange} />
       </div>    
       <div className='attOperBtn' style={{textAlign: 'left'}}>
         {window.innerWidth <= 760?<></>:<Button disabled={load} style={{margin:'0 10px',textAlign:'center',marginLeft:'5px'}} onClick={function(){exportToExcel('xlsx')}} type='primary'><ExportOutlined /></Button>}
