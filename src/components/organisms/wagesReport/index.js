@@ -449,36 +449,36 @@ return (
             <>
               {
               catData.map(item=>{
-                sal+=parseFloat(item.status==16?item.salary:item.salary*count17);
-                allow+=parseFloat(item.allownces);
-                salallow+=parseFloat(item.status==16?item.salary:item.salary*count17)+parseFloat(item.allownces);
-                debts+=(item.debt*1);
+                sal+=item.stopped?0:parseFloat(item.status==16?item.salary:item.salary*count17);
+                allow+=item.stopped?0:parseFloat(item.allownces);
+                salallow+=item.stopped?0:parseFloat(item.status==16?item.salary:item.salary*count17)+parseFloat(item.allownces);
+                debts+=item.stopped?0:(item.debt*1);
 
-                var ab=item.fingerprint_type=='22'? Math.round(((Math.max(((item.status==16?requiredCount*1:count17*1)-(item.attendanceDays*1+parseInt(fridaysData?.filter(user => user.user_id == item.user_id)[0]?.weeks ?? 0))),0)*(item.status==16?parseInt(item.salary)/30:item.salary)) + parseFloat(item.lateTimePrice) )/dround )*dround:0;
+                var ab=item.stopped?0:item.fingerprint_type=='22'? Math.round(((Math.max(((item.status==16?requiredCount*1:count17*1)-(item.attendanceDays*1+parseInt(fridaysData?.filter(user => user.user_id == item.user_id)[0]?.weeks ?? 0))),0)*(item.status==16?parseInt(item.salary)/30:item.salary)) + parseFloat(item.lateTimePrice) )/dround )*dround:0;
                 ab=ab<0?0:parseFloat(ab);
                 
                 abs+=parseFloat(ab);
                 
-                sym+=parseFloat(item.symbiosis);
-                ldebts+=(item.long_debt*1);
-                vio+=(item.vdiscount*1);
-                ded+=(item.deductions*1);
-                var toD=(item.deductions*1)+Math.round(item.debt)+ab+Math.round(item.symbiosis)+Math.round(item.long_debt)+Math.round(item.vdiscount);
+                sym+=item.stopped?0:parseFloat(item.symbiosis);
+                ldebts+=item.stopped?0:(item.long_debt*1);
+                vio+=item.stopped?0:(item.vdiscount*1);
+                ded+=item.stopped?0:(item.deductions*1);
+                var toD=item.stopped?0:(item.deductions*1)+Math.round(item.debt)+ab+Math.round(item.symbiosis)+Math.round(item.long_debt)+Math.round(item.vdiscount);
                 totD+=toD;
-                var tot=item.stopped?0:(item.status==16?(parseFloat(item.salary)+parseFloat(item.allownces)-toD):(parseFloat(item.salary)*count17)-toD);
+                var tot=item.stopped?0:item.stopped?0:(item.status==16?(parseFloat(item.salary)+parseFloat(item.allownces)-toD):(parseFloat(item.salary)*count17)-toD);
                 total+=tot;
                 var tor=item.stopped?0:Math.round(tot/round)*round;
                 totr+=tor;
 
-                 tsal+=parseFloat(item.status==16?item.salary:item.salary*count17);
-                 tallow+=parseFloat(item.allownces);
+                 tsal+=item.stopped?0:parseFloat(item.status==16?item.salary:item.salary*count17);
+                 tallow+=item.stopped?0:parseFloat(item.allownces);
                  tsalallow=tsal+tallow;
-                 tdebts+=(item.debt*1);
+                 tdebts+=item.stopped?0:(item.debt*1);
                  tabs+=parseFloat(ab);
-                 tsym+=parseFloat(item.symbiosis);
-                 tvio+=item.vdiscount*1;
-                 tded+=item.deductions*1;
-                 tldebts+=item.long_debt*1;
+                 tsym+=item.stopped?0:parseFloat(item.symbiosis);
+                 tvio+=item.stopped?0:item.vdiscount*1;
+                 tded+=item.stopped?0:item.deductions*1;
+                 tldebts+=item.stopped?0:item.long_debt*1;
                  ttotD+=toD;
                  ttotal+=tot;
                  ttotr+=tor;
@@ -487,16 +487,16 @@ return (
                   <td>{index}</td>
                   <td style={{fontSize:'8px',minWidth:'80px'}}>{item.name}</td>
                   <td style={{fontSize: "7px",width:'30px'}}>{item.job}</td>
-                  <td>{new Intl.NumberFormat('en-EN').format(item.status==16?item.salary:item.salary*count17)}</td>
-                  <td>{new Intl.NumberFormat('en-EN').format(item.allownces)}</td>
-                  <td>{new Intl.NumberFormat('en-EN').format(parseFloat(item.status==16?item.salary:item.salary*count17)+parseFloat(item.allownces))}</td>
+                  <td>{new Intl.NumberFormat('en-EN').format(item.stopped?0:item.status==16?item.salary:item.salary*count17)}</td>
+                  <td>{new Intl.NumberFormat('en-EN').format(item.stopped?0:item.allownces)}</td>
+                  <td>{new Intl.NumberFormat('en-EN').format(item.stopped?0:parseFloat(item.status==16?item.salary:item.salary*count17)+parseFloat(item.allownces))}</td>
                   
-                  <td>{new Intl.NumberFormat('en-EN').format(item.debt)}</td>
-                  <td>{new Intl.NumberFormat('en-EN').format(ab)}</td>
-                  <td>{new Intl.NumberFormat('en-EN').format(Math.round(parseFloat(item.symbiosis)))}</td>
-                  <td>{new Intl.NumberFormat('en-EN').format(item.long_debt)}</td>
-                  <td>{new Intl.NumberFormat('en-EN').format(item.vdiscount)}</td>
-                  {<td>{new Intl.NumberFormat('en-EN').format(item.deductions)}</td>
+                  <td>{new Intl.NumberFormat('en-EN').format(item.stopped?0:item.debt)}</td>
+                  <td>{new Intl.NumberFormat('en-EN').format(item.stopped?0:ab)}</td>
+                  <td>{new Intl.NumberFormat('en-EN').format(item.stopped?0:Math.round(parseFloat(item.symbiosis)))}</td>
+                  <td>{new Intl.NumberFormat('en-EN').format(item.stopped?0:item.long_debt)}</td>
+                  <td>{new Intl.NumberFormat('en-EN').format(item.stopped?0:item.vdiscount)}</td>
+                  {<td>{new Intl.NumberFormat('en-EN').format(item.stopped?0:item.deductions)}</td>
               }
                   <td>{new Intl.NumberFormat('en-EN').format(toD)}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(tot)}</td>
