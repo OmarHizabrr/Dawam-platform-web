@@ -384,7 +384,7 @@ return (
     <table style={{fontSize: "11px",width: " 100%",textAlign: " center"}}>
     <thead>
     <tr style={{border:'none'}}>
-    <th colSpan={17}>  
+    <th colSpan={16}>  
     <header style={{display: "flex",flexDirection: "row",borderColor:'#000',borderBottomStyle: "solid",borderBottomWidth:"1px"}}>
        <div style={{width: "20%"}}>
            <img loading="eager" style={{width: "250px"}} src={Env.HOST_SERVER_STORAGE+props.setting.filter((item)=> item.key == 'admin.logo')[0]?.value}/>
@@ -409,7 +409,7 @@ return (
 
                      <th style={{fontWeight: "100",fontSize:'8px'}} colSpan="3">الاستحقاق</th>
                    
-                     <th style={{fontWeight: "100"}} colSpan="7">الاستقطاعات</th>
+                     <th style={{fontWeight: "100"}} colSpan="6">الاستقطاعات</th>
                      <th style={{fontWeight: "100"}} rowSpan="2" colSpan={"2"}> صافي<br/>الاستحقاق </th>
                      <th style={{fontWeight: "100"}} rowSpan="2">التوقيع</th>
                 </tr>
@@ -422,8 +422,8 @@ return (
                 <th style={{fontWeight: "100"}}>تكافل</th>
                 <th style={{fontWeight: "100"}}>أقساط</th>
                 <th style={{fontWeight: "100"}}>جزاءات</th>
-                {<th style={{fontWeight: "100"}}>اشتراكات</th>
-                }
+                {/*<th style={{fontWeight: "100"}}>اشتراكات</th>
+                */}
                 <th style={{fontWeight: "100",width:'20px'}}>إجمالي</th>
                 </tr>
             </thead>
@@ -496,8 +496,8 @@ return (
                   <td>{new Intl.NumberFormat('en-EN').format(item.stopped?0:Math.round(parseFloat(item.symbiosis)))}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(item.stopped?0:item.long_debt)}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(item.stopped?0:item.vdiscount)}</td>
-                  {<td>{new Intl.NumberFormat('en-EN').format(item.stopped?0:item.deductions)}</td>
-              }
+                  {/*<td>{new Intl.NumberFormat('en-EN').format(item.stopped?0:item.deductions)}</td>
+              */}
                   <td>{new Intl.NumberFormat('en-EN').format(toD)}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(tot)}</td>
                   <td>{new Intl.NumberFormat('en-EN').format(tor)}</td>
@@ -516,8 +516,8 @@ return (
                 <td>{new Intl.NumberFormat('en-EN').format(sym)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(ldebts)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(vio)}</td>
-                {<td>{new Intl.NumberFormat('en-EN').format(ded)}</td>
-                }
+                {/*<td>{new Intl.NumberFormat('en-EN').format(ded)}</td>
+                */}
                 <td>{new Intl.NumberFormat('en-EN').format(totD)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(total)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(totr)}</td>                                
@@ -537,8 +537,8 @@ return (
                 <td>{new Intl.NumberFormat('en-EN').format(tsym)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(tldebts)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(tvio)}</td>
-                {<td>{new Intl.NumberFormat('en-EN').format(tded)}</td>
-}
+                {/*<td>{new Intl.NumberFormat('en-EN').format(tded)}</td>
+*/}
                 <td>{new Intl.NumberFormat('en-EN').format(ttotD)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(ttotal)}</td>
                 <td>{new Intl.NumberFormat('en-EN').format(ttotr)}</td>                                
@@ -547,7 +547,7 @@ return (
             </tbody>
     <tfoot>
       <tr>
-        <th colSpan={17}>
+        <th colSpan={16}>
           <div style={{display: "flex",flexDirection: "row",marginTop: "20px",textAlign: "center"}}>
 {props.setting.filter((item)=> item.key == 'admin.signs_footer')[0]?.value.split('\n').map((sign)=>{
            var sign_position=sign.split(':')[0];

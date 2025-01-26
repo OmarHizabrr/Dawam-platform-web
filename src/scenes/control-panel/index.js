@@ -35,7 +35,7 @@ import DeductionsReport from '../../components/organisms/deductionsReport';
 import DebtReport from '../../components/organisms/debtsReport';
 import LongDebtReport from '../../components/organisms/longDebtReport';
 import TransportReport from '../../components/organisms/transportReport';
-import SettingsPane from '../../components/organisms/SettingsPane';
+import SettingsPane from '../../components/organisms/settingsPane';
 import TasksRecords from '../../components/organisms/tasksRecords';
 import TasksAccounts from '../../components/organisms/tasksAccounts';
 import TypesTable from '../../components/organisms/typesTable';
