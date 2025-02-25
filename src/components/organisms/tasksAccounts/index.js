@@ -45,7 +45,7 @@ export default function TasksAccounts (props){
 
   const showAccount=(user_id)=>{
     setIsModalVisible(true);
-    axios.get(Env.HOST_SERVER_NAME+'get-tasks-statment/'+user_id)
+    axios.get(Env.HOST_SERVER_NAME+'get-tasks-statment/'+user_id+'/'+currentYear)
     .then(response => {
       form.setFieldsValue({'tasks':response.data});
 
