@@ -1,16 +1,14 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import React, { useState, useEffect } from 'react';
-import excel from 'xlsx';
 import axios from 'axios';
-import './style.css';
 import ZKLib from 'node-zklib';
-
-import logoText from '../../../assets/images/logo-text.png';
-import {Env} from '../../../styles';
-import { useCookies,CookiesProvider  } from 'react-cookie';
+import React, { useEffect, useState } from 'react';
 import './style.css';
-import { DatePicker, Space,Form,Table, Button,Modal,Card,Radio,Input,Select,Progress,Tag,Typography } from 'antd';
-import {ExportOutlined,FormOutlined,PrinterOutlined} from '@ant-design/icons';
+
+import { ExportOutlined, PrinterOutlined } from '@ant-design/icons';
+import { Button, Card, DatePicker, Input, Modal, Select, Table, Typography } from 'antd';
+import { useCookies } from 'react-cookie';
+import { Env } from '../../../styles';
+import './style.css';
 const {Text}=Typography;
 const {Option}=Select;
 const { RangePicker } = DatePicker;
@@ -117,23 +115,42 @@ export default function ConnectedDevices(props) {
       const handleCancel=()=>{
         setIsModalVisible(false);
       }
-  const testConnection= async ()=>{
+  // const testConnection= async ()=>{
    
 
-    let zkInstance = new ZKLib('192.168.0.201', 4370, 10000, 4000);
-    try {
-        // Create socket to machine 
-        await zkInstance.createSocket()
-        // It's really useful to check the status of device 
-        console.log(await zkInstance.getInfo())
-    } catch (e) {
-        console.log(e)
-        if (e.code === 'EADDRINUSE') {
-        }
-    }
+  //   let zkInstance = new ZKLib('192.168.0.201', 4370, 10000, 4000);
+  //   try {
+  //       // Create socket to machine 
+  //       await zkInstance.createSocket()
+  //       // It's really useful to check the status of device 
+  //       console.log(await zkInstance.getInfo())
+  //   } catch (e) {
+  //       console.log(e)
+  //       if (e.code === 'EADDRINUSE') {
+  //       }
+  //   }
 
     
-    }
+  //   }
+    const testConnection = async () => {
+      const IP = '192.168.0.201';
+      const PORT = 4370;
+      const CONNECTION_TIMEOUT = 15000; // 15 ثانية مهلة للاتصال الأولي
+      const DATA_TIMEOUT = 30000; // 30 ثانية مهلة لانتظار البيانات
+  
+      let zkInstance = new ZKLib(IP, PORT, CONNECTION_TIMEOUT, DATA_TIMEOUT);
+      
+      try {
+          await zkInstance.createSocket();
+          console.log("تم الاتصال بالجهاز بنجاح!");
+          const info = await zkInstance.getInfo();
+          console.log("معلومات الجهاز:", info);
+      } catch (e) {
+          console.log("فشل الاتصال:", e.message);
+      } finally {
+          await zkInstance.disconnect(); // تأكد من إغلاق الاتصال دائمًا
+      }
+  };
 
 return (
     <Card>
