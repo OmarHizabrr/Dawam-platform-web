@@ -4,26 +4,22 @@ import { getFirestore } from "firebase/firestore";
 import { getAnalytics, isSupported } from "firebase/analytics";
 
 const firebaseConfig = {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
+    apiKey: "AIzaSyDx_Ydv3gVawGA7qupmnjSuo6ELmc2Mn8M",
+    authDomain: "dawam-platform-web.firebaseapp.com",
+    projectId: "dawam-platform-web",
+    storageBucket: "dawam-platform-web.firebasestorage.app",
+    messagingSenderId: "170380381800",
+    appId: "1:170380381800:web:f915cea92bd9dd53a375dd",
+    measurementId: "G-YPFQ5SMSMD"
 };
 
 // Initialize Firebase for Client side
-// We check for apiKey to avoid crashes during build if env vars are missing
-const app = (typeof window !== "undefined" || !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY) && getApps().length === 0
-    ? initializeApp(firebaseConfig)
-    : getApps().length > 0 ? getApp() : null;
-
-const auth = app ? getAuth(app) : null;
-const db = app ? getFirestore(app) : null;
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
 // Analytics initialization (client-only)
-const analytics = typeof window !== "undefined" && app ? isSupported().then(yes => yes ? getAnalytics(app!) : null) : null;
+const analytics = typeof window !== "undefined" ? isSupported().then(yes => yes ? getAnalytics(app) : null) : null;
 
 export { app, auth, db, analytics, googleProvider };

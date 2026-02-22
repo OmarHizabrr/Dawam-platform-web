@@ -13,15 +13,11 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth) {
-      setError('خطأ في تهيئة Firebase. تأكد من إعدادات Vercel');
-      return;
-    }
     setError('');
     setLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth!, email, password);
       window.location.href = '/';
     } catch (err: any) {
       console.error(err);
@@ -32,14 +28,10 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = async () => {
-    if (!auth) {
-      setError('خطأ في تهيئة Firebase. تأكد من إعدادات Vercel');
-      return;
-    }
     setError('');
     setLoading(true);
     try {
-      await signInWithPopup(auth, googleProvider);
+      await signInWithPopup(auth!, googleProvider);
       window.location.href = '/';
     } catch (err: any) {
       console.error(err);
