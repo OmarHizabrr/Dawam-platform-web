@@ -207,6 +207,16 @@ export default function AttendancePage() {
         return result;
     }, [selectedEmpId, allocations, attendanceRecords]);
 
+    const getStatusText = (status: string) => {
+        switch (status) {
+            case 'present': return 'حاضر';
+            case 'absent': return 'غائب';
+            case 'late': return 'متأخر';
+            case 'leave': return 'إجازة';
+            default: return status;
+        }
+    };
+
     const handleSaveAttendance = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedEmpId || recordShifts.length === 0) return;
@@ -249,15 +259,7 @@ export default function AttendancePage() {
         }
     };
 
-    const getStatusText = (status: string) => {
-        switch (status) {
-            case 'present': return 'حاضر';
-            case 'absent': return 'غائب';
-            case 'late': return 'متأخر';
-            case 'leave': return 'إجازة';
-            default: return status;
-        }
-    };
+
 
     const calculateMinutes = (timeStr: string) => {
         if (!timeStr) return 0;
