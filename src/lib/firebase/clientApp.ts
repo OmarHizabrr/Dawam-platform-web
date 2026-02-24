@@ -19,7 +19,4 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
-// Analytics initialization (client-only)
-const analytics = typeof window !== "undefined" ? isSupported().then(yes => yes ? getAnalytics(app) : null) : null;
-
-export { app, auth, db, analytics, googleProvider };
+export { app, auth, db, googleProvider };

@@ -1,15 +1,26 @@
 'use client';
 
-import { useState } from 'react';
-import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
+import { useState, useEffect } from 'react';
+import { AuthService } from '@/lib/firebase/authService';
 import { auth, googleProvider } from '@/lib/firebase/clientApp';
+import { signInWithPopup } from 'firebase/auth';
 import styles from './login.module.css';
+import Link from 'next/link';
 
 export default function LoginPage() {
+  const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div className={styles.container} style={{ background: '#0f172a' }} />;
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,8 +28,8 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth!, email, password);
-      window.location.href = '/';
+      await AuthService.Api.login(email, password);
+      window.location.href = '/profile';
     } catch (err: any) {
       console.error(err);
       setError('خطأ في البريد الإلكتروني أو كلمة المرور');
@@ -109,7 +120,7 @@ export default function LoginPage() {
         </form>
 
         <div className={styles.footer}>
-          <span>ليس لديك حساب؟ <a href="#">إنشاء حساب جديد</a></span>
+          <span>ليس لديك حساب؟ <Link href="/register">إنشاء حساب جديد</Link></span>
         </div>
       </div>
     </div>
