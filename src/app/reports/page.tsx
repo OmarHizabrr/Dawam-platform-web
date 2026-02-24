@@ -134,7 +134,17 @@ export default function ReportsPage() {
         window.print();
     };
 
-    if (!mounted || !user) return <div className="bg-[#0f172a] min-h-screen" />;
+    if (!mounted) {
+        return (
+            <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+                <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+            </div>
+        );
+    }
+
+    if (!user) {
+        return <DashboardLayout><div>جاري تسجيل الدخول...</div></DashboardLayout>;
+    }
 
     return (
         <DashboardLayout>
@@ -163,9 +173,9 @@ export default function ReportsPage() {
                         <h1 className="text-xl font-black mb-1 bg-gradient-to-l from-white to-white/60 bg-clip-text text-transparent">
                             التقارير الشهرية
                         </h1>
-                        <p className="text-[9px] text-slate-500 font-medium flex items-center gap-1.5">
+                        <p className="text-[12px] text-slate-500 font-medium flex items-center gap-1.5">
                             تحليل شامل للحضور والأداء المالي والملاحظات الإدارية
-                            <span className="w-1 h-1 rounded-full bg-primary animate-pulse" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                         </p>
                     </div>
 
@@ -212,11 +222,11 @@ export default function ReportsPage() {
                         <table className="w-full text-right">
                             <thead>
                                 <tr className="bg-white/5 border-b border-white/5 print:bg-slate-50">
-                                    <th className="px-5 py-3 text-slate-600 font-bold text-[9px] uppercase tracking-widest print:text-black">الموظف</th>
-                                    <th className="px-5 py-3 text-slate-600 font-bold text-[9px] uppercase tracking-widest print:text-black">أيام الحضور</th>
-                                    <th className="px-5 py-3 text-slate-600 font-bold text-[9px] uppercase tracking-widest print:text-black">ملخص الفترات (ح/غ/إ/م)</th>
-                                    <th className="px-5 py-3 text-slate-600 font-bold text-[9px] uppercase tracking-widest print:text-black">المستحقات</th>
-                                    <th className="px-5 py-3 text-slate-600 font-bold text-[9px] uppercase tracking-widest text-center print:text-black">التقييم</th>
+                                    <th className="px-5 py-3 text-slate-600 font-bold text-[11px] uppercase tracking-widest print:text-black">الموظف</th>
+                                    <th className="px-5 py-3 text-slate-600 font-bold text-[11px] uppercase tracking-widest print:text-black">أيام الحضور</th>
+                                    <th className="px-5 py-3 text-slate-600 font-bold text-[11px] uppercase tracking-widest print:text-black">ملخص الفترات (ح/غ/إ/م)</th>
+                                    <th className="px-5 py-3 text-slate-600 font-bold text-[11px] uppercase tracking-widest print:text-black">المستحقات</th>
+                                    <th className="px-5 py-3 text-slate-600 font-bold text-[11px] uppercase tracking-widest text-center print:text-black">التقييم</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5 print:divide-slate-200">
@@ -247,49 +257,49 @@ export default function ReportsPage() {
                                                             {emp.name?.charAt(0)}
                                                         </div>
                                                         <div>
-                                                            <div className="font-bold text-white group-hover:text-primary transition-colors text-xs print:text-black">{emp.name}</div>
-                                                            <div className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">{emp.jobId}</div>
+                                                            <div className="font-bold text-white group-hover:text-primary transition-colors text-[13px] print:text-black">{emp.name}</div>
+                                                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{emp.jobId}</div>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-5 py-3">
-                                                    <div className="inline-flex items-center gap-1.5 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/10">
-                                                        <span className="text-[10px] font-black text-emerald-400 print:text-black">{emp.stats.workingDays} يوم</span>
+                                                    <div className="inline-flex items-center gap-1.5 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/10">
+                                                        <span className="text-[11px] font-black text-emerald-400 print:text-black">{emp.stats.workingDays} يوم</span>
                                                     </div>
                                                 </td>
                                                 <td className="px-5 py-3">
                                                     <div className="flex items-center gap-3">
                                                         <div className="flex flex-col items-center">
-                                                            <span className="text-[10px] font-black text-white print:text-black">{emp.stats.presentShifts}</span>
-                                                            <span className="text-[6.5px] font-black text-emerald-500 uppercase">حضور</span>
+                                                            <span className="text-[11px] font-black text-white print:text-black">{emp.stats.presentShifts}</span>
+                                                            <span className="text-[9px] font-black text-emerald-500 uppercase">حضور</span>
                                                         </div>
                                                         <div className="w-px h-4 bg-white/5 print:bg-slate-200" />
                                                         <div className="flex flex-col items-center">
-                                                            <span className="text-[10px] font-black text-white print:text-black">{emp.stats.absentShifts}</span>
-                                                            <span className="text-[6.5px] font-black text-rose-500 uppercase">غياب</span>
+                                                            <span className="text-[11px] font-black text-white print:text-black">{emp.stats.absentShifts}</span>
+                                                            <span className="text-[9px] font-black text-rose-500 uppercase">غياب</span>
                                                         </div>
                                                         <div className="w-px h-4 bg-white/5 print:bg-slate-200" />
                                                         <div className="flex flex-col items-center">
-                                                            <span className="text-[10px] font-black text-white print:text-black">{emp.stats.leaveShifts}</span>
-                                                            <span className="text-[6.5px] font-black text-primary uppercase">إجازة</span>
+                                                            <span className="text-[11px] font-black text-white print:text-black">{emp.stats.leaveShifts}</span>
+                                                            <span className="text-[9px] font-black text-primary uppercase">إجازة</span>
                                                         </div>
                                                         <div className="w-px h-4 bg-white/5 print:bg-slate-200" />
                                                         <div className="flex flex-col items-center">
-                                                            <span className="text-[10px] font-black text-white print:text-black">{emp.stats.lateShifts}</span>
-                                                            <span className="text-[6.5px] font-black text-amber-500 uppercase">تأخير</span>
+                                                            <span className="text-[11px] font-black text-white print:text-black">{emp.stats.lateShifts}</span>
+                                                            <span className="text-[9px] font-black text-amber-500 uppercase">تأخير</span>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-5 py-3">
                                                     <div className="flex items-center gap-1">
                                                         <span className="text-sm font-black text-white tracking-tighter print:text-black">{emp.stats.totalPaid.toLocaleString()}</span>
-                                                        <span className="text-[8px] font-black text-slate-500 uppercase">ريال</span>
+                                                        <span className="text-[11px] font-black text-slate-500 uppercase">ريال</span>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <div className="flex justify-center">
                                                         <div className={cn(
-                                                            "px-3 py-1.5 rounded-lg text-[9px] font-black text-center min-w-[90px] border shadow-sm",
+                                                            "px-3 py-1.5 rounded-lg text-[11px] font-black text-center min-w-[90px] border shadow-sm",
                                                             emp.stats.absentShifts > 3
                                                                 ? "bg-rose-500/10 text-rose-500 border-rose-500/20"
                                                                 : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
@@ -322,15 +332,15 @@ export default function ReportsPage() {
                         </div>
                         <div>
                             <h3 className="text-base font-black text-white">إحصائيات ذكية</h3>
-                            <p className="text-slate-500 text-[10px] font-medium">يتم احتساب التقييم بناءً على خوارزمية الحضور والغياب المتقدمة</p>
+                            <p className="text-slate-500 text-[11px] font-medium">يتم احتساب التقييم بناءً على خوارزمية الحضور والغياب المتقدمة</p>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <button className="px-5 py-2 bg-white/5 hover:bg-white/10 text-slate-400 rounded-lg font-bold transition-all border border-white/5 active:scale-95 text-[10px]">
+                        <button className="px-5 py-2 bg-white/5 hover:bg-white/10 text-slate-400 rounded-lg font-bold transition-all border border-white/5 active:scale-95 text-[11px]">
                             تصدير Excel
                         </button>
-                        <button className="px-5 py-2 bg-white/5 hover:bg-white/10 text-slate-400 rounded-lg font-bold transition-all border border-white/5 active:scale-95 text-[10px]">
+                        <button className="px-5 py-2 bg-white/5 hover:bg-white/10 text-slate-400 rounded-lg font-bold transition-all border border-white/5 active:scale-95 text-[11px]">
                             تصدير PDF
                         </button>
                     </div>

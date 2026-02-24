@@ -39,11 +39,15 @@ export default function StatsPage() {
         setMounted(true);
         const storedUser = localStorage.getItem('userData');
         if (storedUser) {
-            const parsedUser = JSON.parse(storedUser);
-            setUser(parsedUser);
-            fetchStats(parsedUser.uid);
+            try {
+                const parsedUser = JSON.parse(storedUser);
+                setUser(parsedUser);
+                fetchStats(parsedUser.uid);
+            } catch (e) {
+                console.error("StatsPage: Error parsing user data:", e);
+            }
         }
-    }, [mounted]);
+    }, []);
 
     const fetchStats = async (uid: string) => {
         setLoading(true);
@@ -64,26 +68,28 @@ export default function StatsPage() {
                     return getDocs(q).then(attSnap => {
                         if (!attSnap.empty) {
                             const data = attSnap.docs[0].data();
-                            data.shifts?.forEach((s: any) => {
-                                if (s.status === 'present') todayStats.present++;
-                                else if (s.status === 'absent') todayStats.absent++;
-                                else if (s.status === 'late') todayStats.late++;
-                                else if (s.status === 'leave') todayStats.leave++;
-                            });
+                            if (data.shifts && Array.isArray(data.shifts)) {
+                                data.shifts.forEach((s: any) => {
+                                    if (s.status === 'present') todayStats.present++;
+                                    else if (s.status === 'absent') todayStats.absent++;
+                                    else if (s.status === 'late') todayStats.late++;
+                                    else if (s.status === 'leave') todayStats.leave++;
+                                });
+                            }
                         }
-                    });
+                    }).catch(err => console.error(`Error fetching attendance for emp ${emp.id}:`, err));
                 });
 
                 Promise.all(fetchAttendancePromises).then(() => {
                     setAttendanceDist({ ...todayStats });
                 });
-            });
+            }, (err) => console.error("Error in employees snapshot:", err));
 
             // 2. Admins Count
             const adminCol = collection(db, "admins", uid, "admins");
             onSnapshot(adminCol, (snap) => {
                 setStats(prev => ({ ...prev, totalAdmins: snap.size }));
-            });
+            }, (err) => console.error("Error in admins snapshot:", err));
 
             // 3. Salaries & Monthly Amount & Trend
             const salCol = collection(db, "salaries", uid, "salaries");
@@ -94,7 +100,7 @@ export default function StatsPage() {
                 const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
 
                 const currentMonthSalaries = list.filter((s: any) =>
-                    s.paymentDate >= startOfMonth && s.paymentDate <= endOfMonth
+                    s.paymentDate && s.paymentDate >= startOfMonth && s.paymentDate <= endOfMonth
                 );
                 const totalAmount = currentMonthSalaries.reduce((sum: number, s: any) => sum + (parseFloat(s.amount) || 0), 0);
 
@@ -107,31 +113,33 @@ export default function StatsPage() {
                 }
 
                 list.forEach((s: any) => {
-                    const mKey = s.paymentDate.substring(0, 7);
-                    if (trend[mKey] !== undefined) {
-                        trend[mKey] += parseFloat(s.amount) || 0;
+                    if (s.paymentDate) {
+                        const mKey = s.paymentDate.substring(0, 7);
+                        if (trend[mKey] !== undefined) {
+                            trend[mKey] += parseFloat(s.amount) || 0;
+                        }
                     }
                 });
 
-                setSalaryTrend(Object.entries(trend).map(([month, amount]) => ({ month, amount })));
+                setSalaryTrend(Object.entries(trend).map(([month, amount]) => ({ month, amount: amount as number })));
 
                 setStats(prev => ({
                     ...prev,
                     totalSalaries: snap.size,
                     totalSalaryAmount: totalAmount
                 }));
-            });
+            }, (err) => console.error("Error in salaries snapshot:", err));
 
             // 4. Leave Types & Allocations
             const typesCol = collection(db, "leaveTypes", uid, "types");
             onSnapshot(typesCol, (snap) => {
                 setStats(prev => ({ ...prev, totalLeaveTypes: snap.size }));
-            });
+            }, (err) => console.error("Error in leaveTypes snapshot:", err));
 
             const allocCol = collection(db, "leaveAllocations", uid, "allocations");
             onSnapshot(allocCol, (snap) => {
                 setStats(prev => ({ ...prev, totalAllocations: snap.size }));
-            });
+            }, (err) => console.error("Error in allocations snapshot:", err));
 
         } catch (error) {
             console.error("Error fetching stats:", error);
@@ -140,7 +148,17 @@ export default function StatsPage() {
         }
     };
 
-    if (!mounted || !user) return <div className="bg-[#0f172a] min-h-screen" />;
+    if (!mounted) {
+        return (
+            <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+                <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+            </div>
+        );
+    }
+
+    if (!user) {
+        return <DashboardLayout><div>جاري تسجيل الدخول...</div></DashboardLayout>;
+    }
 
     const StatCard = ({ title, value, icon: Icon, color, subValue }: any) => (
         <motion.div
@@ -155,20 +173,20 @@ export default function StatsPage() {
                 <div className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center group-hover:shadow-lg transition-all duration-500" style={{ boxShadow: `0 0 10px ${color}10` }}>
                     <Icon className="w-4 h-4 transition-transform duration-500 group-hover:scale-110" style={{ color }} />
                 </div>
-                <div className="px-2 py-0.5 rounded-full bg-white/5 border border-white/5 text-[7px] font-black text-slate-500 uppercase tracking-widest group-hover:text-white transition-colors">
+                <div className="px-2.5 py-1 rounded-full bg-white/5 border border-white/5 text-[10px] font-black text-slate-500 uppercase tracking-widest group-hover:text-white transition-colors">
                     إحصائيات حية
                 </div>
             </div>
 
             <div className="relative z-10">
-                <div className="text-slate-500 text-[8px] font-black uppercase tracking-widest mb-0.5 px-0.5">{title}</div>
+                <div className="text-slate-500 text-[11px] font-black uppercase tracking-widest mb-1 px-0.5">{title}</div>
                 <div className="text-xl font-black text-white tracking-tighter mb-1.5">
                     {typeof value === 'number' ? value.toLocaleString() : value}
                 </div>
                 {subValue && (
                     <div className="flex items-center gap-1.5 px-1.5 py-0.5 bg-white/5 rounded-md w-fit group-hover:bg-white/10 transition-colors">
-                        <div className="w-1 h-1 rounded-full animate-pulse" style={{ backgroundColor: color }} />
-                        <span className="text-[9px] font-bold text-slate-400">{subValue}</span>
+                        <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: color }} />
+                        <span className="text-[11px] font-bold text-slate-400">{subValue}</span>
                     </div>
                 )}
             </div>
@@ -185,10 +203,10 @@ export default function StatsPage() {
                 >
                     <div className="space-y-0.5">
                         <div className="flex items-center gap-2 mb-0.5">
-                            <div className="w-6 h-6 rounded bg-primary/20 flex items-center justify-center">
-                                <LayoutDashboard className="w-3.5 h-3.5 text-primary" />
+                            <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center">
+                                <LayoutDashboard className="w-4 h-4 text-primary" />
                             </div>
-                            <span className="text-[7.5px] font-black text-primary uppercase tracking-widest">المؤشرات الرئيسية</span>
+                            <span className="text-[11px] font-black text-primary uppercase tracking-widest">المؤشرات الرئيسية</span>
                         </div>
                         <h1 className="text-2xl font-black bg-gradient-to-l from-white via-white to-white/40 bg-clip-text text-transparent">
                             نظرة عامة على النظام
@@ -249,9 +267,9 @@ export default function StatsPage() {
                         <div className="flex items-center justify-between mb-5">
                             <div className="space-y-0.5">
                                 <h3 className="text-base font-black flex items-center gap-2 text-white">
-                                    <PieChart className="w-4 h-4 text-primary" /> توزيع الحضور
+                                    <PieChart className="w-4.5 h-4.5 text-primary" /> توزيع الحضور
                                 </h3>
-                                <p className="text-slate-500 text-[9px] font-bold pr-6">مراقبة لحظية للحالة</p>
+                                <p className="text-slate-500 text-[11px] font-bold pr-7">مراقبة لحظية للحالة</p>
                             </div>
                             <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-500 hover:text-white transition-colors cursor-pointer">
                                 <TrendingUp className="w-3.5 h-3.5" />
@@ -292,10 +310,10 @@ export default function StatsPage() {
                                     })()}
                                 </svg>
                                 <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
-                                    <span className="text-3xl font-black text-white leading-none mb-1">
+                                    <span className="text-4xl font-black text-white leading-none mb-1">
                                         {attendanceDist.present + attendanceDist.absent + attendanceDist.late + attendanceDist.leave}
                                     </span>
-                                    <span className="text-[8px] text-slate-500 font-black uppercase tracking-widest text-center">إجمالي الكادر</span>
+                                    <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest text-center">إجمالي الكادر</span>
                                 </div>
                             </div>
 
@@ -307,12 +325,12 @@ export default function StatsPage() {
                                     { label: 'إجازة', val: attendanceDist.leave, color: '#8b5cf6', desc: 'موافق عليها' },
                                 ].map((item, idx) => (
                                     <div key={idx} className="p-3.5 rounded-xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.06] transition-all group/item">
-                                        <div className="flex items-center gap-1.5 mb-1.5">
-                                            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: item.color }} />
-                                            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{item.label}</span>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+                                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{item.label}</span>
                                         </div>
-                                        <div className="text-xl font-black text-white mb-0.5">{item.val}</div>
-                                        <div className="text-[8px] font-bold text-slate-600 group-hover/item:text-slate-400 transition-colors">{item.desc}</div>
+                                        <div className="text-2xl font-black text-white mb-1">{item.val}</div>
+                                        <div className="text-[10px] font-bold text-slate-600 group-hover/item:text-slate-400 transition-colors">{item.desc}</div>
                                     </div>
                                 ))}
                             </div>
@@ -329,9 +347,9 @@ export default function StatsPage() {
                         <div className="flex items-center justify-between mb-5">
                             <div className="space-y-0.5">
                                 <h3 className="text-base font-black text-white flex items-center gap-2">
-                                    <TrendingUp className="w-4 h-4 text-emerald-400" /> تحليل الرواتب
+                                    <TrendingUp className="w-4.5 h-4.5 text-emerald-400" /> تحليل الرواتب
                                 </h3>
-                                <p className="text-slate-500 text-[9px] font-bold pr-6">المصروفات لآخر 6 أشهر</p>
+                                <p className="text-slate-500 text-[11px] font-bold pr-7">المصروفات لآخر 6 أشهر</p>
                             </div>
                         </div>
 
@@ -347,8 +365,8 @@ export default function StatsPage() {
                                             transition={{ duration: 1.5, delay: i * 0.1, ease: [0.19, 1, 0.22, 1] }}
                                             className="w-full bg-gradient-to-t from-emerald-600/40 via-emerald-500/20 to-emerald-400/10 rounded-md min-h-[4px] relative group-hover/bar:from-emerald-500 group-hover/bar:to-emerald-400 border-t border-white/5 transition-all duration-500"
                                         >
-                                            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-white text-slate-950 px-1.5 py-0.5 rounded text-[8px] font-black opacity-0 group-hover/bar:opacity-100 transition-all duration-300 shadow-xl whitespace-nowrap z-30 scale-50 group-hover/bar:scale-100">
-                                                {s.amount.toLocaleString()} <span className="text-[6px] opacity-60">ريال</span>
+                                            <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white text-slate-950 px-2.5 py-1 rounded text-[10px] font-black opacity-0 group-hover/bar:opacity-100 transition-all duration-300 shadow-xl whitespace-nowrap z-30 scale-50 group-hover/bar:scale-100">
+                                                {s.amount.toLocaleString()} <span className="text-[8px] opacity-60">ريال</span>
                                             </div>
                                             <div className="absolute inset-0 bg-emerald-500 blur-xl opacity-0 group-hover/bar:opacity-20 transition-opacity" />
                                         </motion.div>
@@ -358,7 +376,7 @@ export default function StatsPage() {
                         </div>
                         <div className="flex justify-between border-t border-white/5 pt-4 px-2">
                             {salaryTrend.map((s, i) => (
-                                <span key={i} className="text-[9px] font-black text-slate-600 uppercase tracking-tighter hover:text-white transition-colors cursor-default">
+                                <span key={i} className="text-[11px] font-black text-slate-600 uppercase tracking-tighter hover:text-white transition-colors cursor-default">
                                     {new Date(s.month).toLocaleDateString('ar-SA', { month: 'short' })}
                                 </span>
                             ))}
@@ -398,9 +416,9 @@ export default function StatsPage() {
                                 <div className="p-3 rounded-lg bg-white/5 group-hover:bg-white/10 transition-all duration-500 shadow-inner mb-3 relative z-10">
                                     <item.icon className="w-5 h-5 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6" style={{ color: item.color }} />
                                 </div>
-                                <div className="space-y-0.5 relative z-10">
-                                    <span className="block font-black text-xs text-white group-hover:text-primary transition-colors">{item.name}</span>
-                                    <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-widest">{item.desc}</span>
+                                <div className="space-y-1 relative z-10">
+                                    <span className="block font-black text-sm text-white group-hover:text-primary transition-colors">{item.name}</span>
+                                    <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest">{item.desc}</span>
                                 </div>
                             </motion.a>
                         ))}

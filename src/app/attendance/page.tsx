@@ -302,7 +302,17 @@ export default function AttendancePage() {
         });
     };
 
-    if (!mounted || !user) return <div style={{ background: '#0f172a', minHeight: '100vh' }} />;
+    if (!mounted) {
+        return (
+            <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+                <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+            </div>
+        );
+    }
+
+    if (!user) {
+        return <DashboardLayout><div>جاري تسجيل الدخول...</div></DashboardLayout>;
+    }
 
 
     return (
@@ -314,12 +324,12 @@ export default function AttendancePage() {
                             <div className="w-6 h-6 rounded bg-primary/20 flex items-center justify-center">
                                 <ClipboardIcon className="w-3.5 h-3.5 text-primary" />
                             </div>
-                            <span className="text-[7.5px] font-black text-primary uppercase tracking-widest">إدارة الحضور</span>
+                            <span className="text-[11px] font-black text-primary uppercase tracking-widest">إدارة الحضور</span>
                         </div>
                         <h1 className="text-xl font-black tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
                             سجل الدوام اليومي
                         </h1>
-                        <p className="text-slate-500 text-[9px] font-medium leading-relaxed">متابعة دقيقة وتسجيل ذكي لحضور وانصراف الفريق</p>
+                        <p className="text-slate-500 text-[11px] font-medium leading-relaxed">متابعة دقيقة وتسجيل ذكي لحضور وانصراف الفريق</p>
                     </div>
 
                     <div className="flex gap-4">
@@ -339,8 +349,8 @@ export default function AttendancePage() {
 
                     <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-3.5 items-end">
                         <div className="space-y-1">
-                            <label className="text-[7.5px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 px-0.5">
-                                <SearchIcon className="w-2.5 h-2.5 text-primary" />
+                            <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 px-0.5">
+                                <SearchIcon className="w-3.5 h-3.5 text-primary" />
                                 بحث سريع
                             </label>
                             <div className="relative overflow-hidden rounded-lg border border-white/5 bg-slate-950/40 focus-within:border-primary/50 transition-all">
@@ -355,8 +365,8 @@ export default function AttendancePage() {
                         </div>
 
                         <div className="md:col-span-2 space-y-1">
-                            <label className="text-[7.5px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 px-0.5">
-                                <FilterIcon className="w-2.5 h-2.5 text-emerald-400" />
+                            <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 px-0.5">
+                                <FilterIcon className="w-3.5 h-3.5 text-emerald-400" />
                                 النطاق الزمني
                             </label>
                             <div className="[&_button]:h-9 [&_button]:rounded-lg [&_button]:text-[10px]">
@@ -371,8 +381,8 @@ export default function AttendancePage() {
 
                 <div className="relative z-10 mt-6 pt-6 border-t border-white/5 flex flex-wrap gap-4 items-center">
                     <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">تصفية النتائج:</span>
+                        <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                        <span className="text-[12px] font-black text-slate-400 uppercase tracking-widest">تصفية النتائج:</span>
                     </div>
 
                     <div className="flex-1 flex flex-wrap gap-2">
@@ -410,10 +420,10 @@ export default function AttendancePage() {
                     <table className="w-full border-collapse">
                         <thead>
                             <tr className="border-b border-white/10 bg-white/[0.02]">
-                                <th className="px-5 py-2.5 text-right text-[7.5px] font-black text-slate-600 uppercase tracking-widest">الموظف</th>
-                                <th className="px-5 py-2.5 text-right text-[7.5px] font-black text-slate-600 uppercase tracking-widest">التاريخ</th>
-                                <th className="px-5 py-2.5 text-right text-[7.5px] font-black text-slate-600 uppercase tracking-widest">الفترات والنمط</th>
-                                <th className="px-5 py-2.5 text-center text-[7.5px] font-black text-slate-600 uppercase tracking-widest">التحكم</th>
+                                <th className="px-5 py-2.5 text-right text-[11px] font-black text-slate-600 uppercase tracking-widest">الموظف</th>
+                                <th className="px-5 py-2.5 text-right text-[11px] font-black text-slate-600 uppercase tracking-widest">التاريخ</th>
+                                <th className="px-5 py-2.5 text-right text-[11px] font-black text-slate-600 uppercase tracking-widest">الفترات والنمط</th>
+                                <th className="px-5 py-2.5 text-center text-[11px] font-black text-slate-600 uppercase tracking-widest">التحكم</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
@@ -489,14 +499,14 @@ export default function AttendancePage() {
                                                         <span className="block font-black text-[12px] text-white group-hover:text-primary transition-colors duration-300">
                                                             {rec.employeeName || 'غير معروف'}
                                                         </span>
-                                                        <span className="block text-[7px] text-slate-600 font-black uppercase tracking-widest">موظف مسجل</span>
+                                                        <span className="block text-[10px] text-slate-600 font-black uppercase tracking-widest">موظف مسجل</span>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="px-5 py-2.5">
                                                 <div className="flex flex-col">
                                                     <span className="text-white font-black text-[12px] mb-0.5 leading-none">{rec.date}</span>
-                                                    <span className="text-[7px] text-slate-600 font-black uppercase tracking-widest leading-none">{(format as any)(new Date(rec.date), 'EEEE', { locale: ar })}</span>
+                                                    <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest leading-none">{(format as any)(new Date(rec.date), 'EEEE', { locale: ar })}</span>
                                                 </div>
                                             </td>
                                             <td className="px-5 py-2.5">
@@ -504,12 +514,12 @@ export default function AttendancePage() {
                                                     {rec.shifts?.map((s: any, idx: number) => (
                                                         <div key={idx} className="flex items-center gap-1.5 px-2 py-1 bg-white/5 border border-white/5 rounded-lg transition-colors hover:bg-white/10 shadow-sm group/tag">
                                                             <div className="flex flex-col">
-                                                                <span className="text-white font-black text-[9px] leading-none mb-0.5">{s.checkIn} - {s.checkOut}</span>
-                                                                <span className="text-[6px] text-slate-600 font-bold uppercase tracking-widest text-left">P{idx + 1}</span>
+                                                                <span className="text-white font-black text-[11px] leading-none mb-0.5">{s.checkIn} - {s.checkOut}</span>
+                                                                <span className="text-[8px] text-slate-600 font-bold uppercase tracking-widest text-left">P{idx + 1}</span>
                                                             </div>
                                                             <div className="w-px h-2.5 bg-white/10" />
                                                             <div className={cn(
-                                                                "flex items-center gap-1 px-1 py-0.5 rounded font-black text-[6.5px] uppercase tracking-wider",
+                                                                "flex items-center gap-1 px-1.5 py-0.5 rounded font-black text-[10px] uppercase tracking-wider",
                                                                 s.status === 'present' ? "text-emerald-400 bg-emerald-500/10" : "text-rose-400 bg-rose-500/10"
                                                             )}>
                                                                 <div className={cn("w-0.5 h-0.5 rounded-full", s.status === 'present' ? "bg-emerald-400" : "bg-rose-400")} />
@@ -697,12 +707,12 @@ export default function AttendancePage() {
                                                     <Clock className="w-4 h-4" />
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <span className="text-[9px] font-black uppercase tracking-widest opacity-60 leading-none mb-1">تأخير / نقص</span>
+                                                    <span className="text-[11px] font-black uppercase tracking-widest opacity-60 leading-none mb-1">تأخير / نقص</span>
                                                     <span className="text-xs font-black text-amber-500/90 leading-none">المطلوب تغطيته: <span className="text-sm">{shift.missingMinutes}</span> د</span>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-4 px-3 py-2 bg-white/5 rounded-xl border border-white/5">
-                                                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">التغطية؟</span>
+                                                <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">التغطية؟</span>
                                                 <button
                                                     type="button"
                                                     onClick={() => {
@@ -733,7 +743,7 @@ export default function AttendancePage() {
                                             animate={{ opacity: 1, height: 'auto' }}
                                             className="space-y-4 pt-4 mt-4 border-t border-white/5"
                                         >
-                                            <label className="text-[9px] font-black text-accent uppercase tracking-widest px-1">تغطية الحالة برصيد إجازة</label>
+                                            <label className="text-[11px] font-black text-accent uppercase tracking-widest px-1">تغطية الحالة برصيد إجازة</label>
                                             <div className="relative overflow-hidden rounded-xl border border-accent/20 bg-accent/5 focus-within:border-accent transition-all">
                                                 <select
                                                     value={shift.leaveTypeId || ''}

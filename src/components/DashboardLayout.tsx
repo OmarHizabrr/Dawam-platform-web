@@ -32,16 +32,33 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
+    const [mounted, setMounted] = useState(false);
     const [user, setUser] = useState<any>(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const pathname = usePathname();
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('userData');
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
-        } else {
+        setMounted(true);
+        try {
+            const storedUser = localStorage.getItem('userData');
+            console.log("DashboardLayout: storedUser from localStorage:", storedUser ? "Found" : "Not Found");
+
+            if (storedUser) {
+                const parsed = JSON.parse(storedUser);
+                if (parsed && typeof parsed === 'object') {
+                    setUser(parsed);
+                } else {
+                    console.warn("DashboardLayout: userData is invalid object, redirecting to login");
+                    window.location.href = '/login';
+                }
+            } else {
+                console.warn("DashboardLayout: No userData found, redirecting to login");
+                window.location.href = '/login';
+            }
+        } catch (error) {
+            console.error("DashboardLayout: Error during initialization:", error);
+            localStorage.removeItem('userData');
             window.location.href = '/login';
         }
     }, []);
@@ -51,8 +68,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         window.location.href = '/login';
     };
 
-    if (!user) {
-        return <div className="min-h-screen bg-[#020617]" />;
+    // Show empty state while mounting or if no user is found
+    if (!mounted || !user) {
+        return (
+            <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+                <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+            </div>
+        );
     }
 
     const navItems = [
@@ -72,8 +94,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     ];
 
     const sidebarVariants = {
-        open: { width: 220, transition: { type: 'spring' as any, damping: 20, stiffness: 100 } },
-        closed: { width: 64, transition: { type: 'spring' as any, damping: 20, stiffness: 100 } }
+        open: { width: 260, transition: { type: 'spring' as any, damping: 20, stiffness: 100 } },
+        closed: { width: 80, transition: { type: 'spring' as any, damping: 20, stiffness: 100 } }
     };
 
     return (
@@ -95,8 +117,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                             animate={{ opacity: 1, x: 0 }}
                             className="flex flex-col"
                         >
-                            <h2 className="text-lg font-black bg-gradient-to-l from-white to-white/60 bg-clip-text text-transparent">دوام</h2>
-                            <span className="text-[7.5px] font-black text-slate-500 uppercase tracking-[0.2em] leading-none">PLATFORM</span>
+                            <h2 className="text-xl font-black bg-gradient-to-l from-white to-white/60 bg-clip-text text-transparent">دوام</h2>
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] leading-none">PLATFORM</span>
                         </motion.div>
                     )}
                 </div>
@@ -125,7 +147,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                                         <motion.span
                                             initial={{ opacity: 0, x: 5 }}
                                             animate={{ opacity: 1, x: 0 }}
-                                            className="text-[12px] font-bold tracking-tight"
+                                            className="text-[13px] font-bold tracking-tight"
                                         >
                                             {item.name}
                                         </motion.span>
@@ -148,8 +170,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         onClick={handleLogout}
                         className="flex items-center gap-3 px-2.5 py-2.5 rounded-lg text-rose-500 hover:bg-rose-500/10 transition-all w-full text-right group font-bold text-[12px]"
                     >
-                        <div className="w-7.5 h-7.5 rounded-md flex items-center justify-center bg-rose-500/5 group-hover:bg-rose-500/10 transition-colors">
-                            <LogOut className="w-4 h-4 flex-shrink-0 group-hover:rotate-12 transition-transform" />
+                        <div className="w-8 h-8 rounded-md flex items-center justify-center bg-rose-500/5 group-hover:bg-rose-500/10 transition-colors">
+                            <LogOut className="w-4.5 h-4.5 flex-shrink-0 group-hover:rotate-12 transition-transform" />
                         </div>
                         {isSidebarOpen && <span>تسجيل الخروج</span>}
                     </button>
@@ -186,7 +208,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             {/* Main Content */}
             <main className={cn(
                 "flex-1 flex flex-col transition-all duration-500 ease-in-out",
-                isSidebarOpen ? "lg:pr-[240px]" : "lg:pr-[70px]",
+                isSidebarOpen ? "lg:pr-[260px]" : "lg:pr-[80px]",
                 "pt-20 lg:pt-0 min-h-screen"
             )}>
                 {/* TopBar Desktop */}
@@ -196,7 +218,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         <input
                             type="text"
                             placeholder="ابحث عن أي شيء..."
-                            className="bg-transparent border-none outline-none px-2.5 text-[11px] text-white w-full placeholder:text-slate-600 font-medium"
+                            className="bg-transparent border-none outline-none px-2.5 text-[13px] text-white w-full placeholder:text-slate-600 font-medium"
                         />
                     </div>
 
@@ -208,8 +230,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
                         <div className="flex items-center gap-3 pl-1 border-r border-white/5 pr-4">
                             <div className="text-left flex flex-col items-start translate-y-0.5">
-                                <div className="text-[10px] font-black text-white leading-none mb-0.5">{user.displayName}</div>
-                                <div className="text-[7.5px] text-primary uppercase tracking-[0.1em] font-black">ADMINISTRATOR</div>
+                                <div className="text-[13px] font-black text-white leading-none mb-0.5">{user.displayName}</div>
+                                <div className="text-[10px] text-primary uppercase tracking-[0.1em] font-black">ADMINISTRATOR</div>
                             </div>
                             <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-primary to-blue-400 p-0.5 group cursor-pointer shadow-lg shadow-primary/10 transition-transform active:scale-90">
                                 <div className="w-full h-full bg-slate-900 rounded-[7px] flex items-center justify-center font-black text-white text-[11px]">

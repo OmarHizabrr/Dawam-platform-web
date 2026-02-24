@@ -218,8 +218,16 @@ export default function SalariesPage() {
         );
     };
 
-    if (!mounted || !user) {
-        return <div className="bg-[#0f172a] min-h-screen" />;
+    if (!mounted) {
+        return (
+            <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+                <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+            </div>
+        );
+    }
+
+    if (!user) {
+        return <DashboardLayout><div>جاري تسجيل الدخول...</div></DashboardLayout>;
     }
 
     return (
@@ -265,11 +273,11 @@ export default function SalariesPage() {
                         <table className="w-full text-right">
                             <thead>
                                 <tr className="bg-white/5 border-b border-white/5">
-                                    <th className="px-5 py-3 text-slate-500 font-black text-[9px] uppercase tracking-widest text-right">الموظف</th>
-                                    <th className="px-5 py-3 text-slate-500 font-black text-[9px] uppercase tracking-widest text-right">المبلغ</th>
-                                    <th className="px-5 py-3 text-slate-500 font-black text-[9px] uppercase tracking-widest text-right">عن الفترة</th>
-                                    <th className="px-5 py-3 text-slate-500 font-black text-[9px] uppercase tracking-widest text-right">تاريخ الصرف</th>
-                                    <th className="px-5 py-3 text-slate-500 font-black text-[9px] uppercase tracking-widest text-center">الإجراءات</th>
+                                    <th className="px-5 py-3 text-slate-500 font-black text-[11px] uppercase tracking-widest text-right">الموظف</th>
+                                    <th className="px-5 py-3 text-slate-500 font-black text-[11px] uppercase tracking-widest text-right">المبلغ</th>
+                                    <th className="px-5 py-3 text-slate-500 font-black text-[11px] uppercase tracking-widest text-right">عن الفترة</th>
+                                    <th className="px-5 py-3 text-slate-500 font-black text-[11px] uppercase tracking-widest text-right">تاريخ الصرف</th>
+                                    <th className="px-5 py-3 text-slate-500 font-black text-[11px] uppercase tracking-widest text-center">الإجراءات</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
@@ -313,23 +321,23 @@ export default function SalariesPage() {
                                                         </div>
                                                         <div>
                                                             <div className="font-bold text-white group-hover:text-primary transition-colors text-[13px]">{salary.empName}</div>
-                                                            <div className="text-[8px] text-slate-500 font-bold uppercase tracking-wider truncate max-w-[150px] leading-tight">{salary.note || 'بدون ملاحظات'}</div>
+                                                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider truncate max-w-[150px] leading-tight">{salary.note || 'بدون ملاحظات'}</div>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-5 py-2.5">
                                                     <div className="flex items-center gap-1.5">
                                                         <span className="text-sm font-black text-emerald-400 tracking-tighter">{salary.amount}</span>
-                                                        <span className="text-[8px] font-black text-slate-500 uppercase bg-white/5 px-1.5 py-0.5 rounded border border-white/5">{salary.currency}</span>
+                                                        <span className="text-[11px] font-black text-slate-500 uppercase bg-white/5 px-1.5 py-0.5 rounded border border-white/5">{salary.currency}</span>
                                                     </div>
                                                 </td>
                                                 <td className="px-5 py-2.5">
                                                     <div className="flex flex-col">
-                                                        <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 leading-tight">
-                                                            <span className="text-[7.5px] text-slate-600 uppercase">Start:</span> {salary.startDate}
+                                                        <div className="flex items-center gap-1 text-[11px] font-bold text-slate-400 leading-tight">
+                                                            <span className="text-[10px] text-slate-600 uppercase">Start:</span> {salary.startDate}
                                                         </div>
-                                                        <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 leading-tight">
-                                                            <span className="text-[7.5px] text-slate-600 uppercase">End:</span> {salary.endDate}
+                                                        <div className="flex items-center gap-1 text-[11px] font-bold text-slate-400 leading-tight">
+                                                            <span className="text-[10px] text-slate-600 uppercase">End:</span> {salary.endDate}
                                                         </div>
                                                     </div>
                                                 </td>
@@ -374,8 +382,8 @@ export default function SalariesPage() {
                         {/* Multi-select Employees */}
                         {!isEditMode && (
                             <div className="space-y-2.5">
-                                <label className="text-[10px] font-black text-slate-500 px-1 flex items-center gap-2 uppercase tracking-widest">
-                                    <Users className="w-3 h-3" /> اختيار الموظفين المستحقين
+                                <label className="text-[12px] font-black text-slate-500 px-1 flex items-center gap-2 uppercase tracking-widest">
+                                    <Users className="w-3.5 h-3.5" /> اختيار الموظفين المستحقين
                                 </label>
 
                                 <div className="glass p-3 rounded-xl min-h-[60px] border-white/5 flex flex-wrap gap-1.5 transition-all">
@@ -397,7 +405,7 @@ export default function SalariesPage() {
                                                         initial={{ scale: 0.8, opacity: 0 }}
                                                         animate={{ scale: 1, opacity: 1 }}
                                                         exit={{ scale: 0.8, opacity: 0 }}
-                                                        className="bg-primary/20 text-primary border border-primary/20 px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-[10px] font-black shadow-lg shadow-primary/10"
+                                                        className="bg-primary/20 text-primary border border-primary/20 px-2.5 py-1 rounded-lg flex items-center gap-1.5 text-[11px] font-black shadow-lg shadow-primary/10"
                                                     >
                                                         <span>{emp?.name}</span>
                                                         <button
@@ -422,7 +430,7 @@ export default function SalariesPage() {
                                                 type="button"
                                                 onClick={() => toggleEmployeeSelection(emp.id)}
                                                 className={cn(
-                                                    "px-2.5 py-2 rounded-lg text-[9px] font-black transition-all border text-center uppercase tracking-wider",
+                                                    "px-2.5 py-2 rounded-lg text-[11px] font-black transition-all border text-center uppercase tracking-wider",
                                                     isSelected
                                                         ? "bg-primary text-white border-primary shadow-lg shadow-primary/20 scale-[0.98]"
                                                         : "bg-white/5 text-slate-500 border-white/5 hover:bg-white/10"
@@ -499,7 +507,7 @@ export default function SalariesPage() {
                                     <ChevronDown className="-rotate-90 w-3 h-3" />
                                 </div>
                                 <div className="space-y-1">
-                                    <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest block px-0.5">من تاريخ</span>
+                                    <span className="text-[11px] font-black text-slate-600 uppercase tracking-widest block px-0.5">من تاريخ</span>
                                     <input
                                         type="date"
                                         value={startDate}
@@ -509,7 +517,7 @@ export default function SalariesPage() {
                                     />
                                 </div>
                                 <div className="space-y-1">
-                                    <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest block px-0.5">إلى تاريخ</span>
+                                    <span className="text-[11px] font-black text-slate-600 uppercase tracking-widest block px-0.5">إلى تاريخ</span>
                                     <input
                                         type="date"
                                         value={endDate}

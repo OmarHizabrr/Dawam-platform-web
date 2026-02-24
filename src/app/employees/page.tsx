@@ -151,8 +151,16 @@ export default function EmployeesPage() {
         setShowPassword(false);
     };
 
-    if (!mounted || !user) {
-        return <div className="bg-[#0f172a] min-h-screen" />;
+    if (!mounted) {
+        return (
+            <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+                <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+            </div>
+        );
+    }
+
+    if (!user) {
+        return <DashboardLayout><div>جاري تسجيل الدخول...</div></DashboardLayout>;
     }
 
     return (
@@ -262,8 +270,8 @@ export default function EmployeesPage() {
 
                                         {emp.planId && (
                                             <div className="pt-3 border-t border-white/5 flex items-center justify-between">
-                                                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary/10 text-primary text-[9px] font-black uppercase tracking-wider">
-                                                    <Briefcase className="w-3 h-3" />
+                                                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary/10 text-primary text-[11px] font-black uppercase tracking-wider">
+                                                    <Briefcase className="w-3.5 h-3.5" />
                                                     {plans.find(p => p.id === emp.planId)?.name || 'باقة غير معروفة'}
                                                 </div>
                                             </div>
@@ -283,8 +291,8 @@ export default function EmployeesPage() {
                 >
                     <form onSubmit={handleSaveEmployee} className="space-y-4">
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold text-slate-500 px-1 flex items-center gap-2 uppercase tracking-widest">
-                                <User className="w-3 h-3" /> اسم الموظف
+                            <label className="text-[12px] font-bold text-slate-500 px-1 flex items-center gap-2 uppercase tracking-widest">
+                                <User className="w-3.5 h-3.5" /> اسم الموظف
                             </label>
                             <input
                                 type="text"
@@ -297,8 +305,8 @@ export default function EmployeesPage() {
                         </div>
 
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold text-slate-500 px-1 flex items-center gap-2 uppercase tracking-widest">
-                                <IdCard className="w-3 h-3" /> الرقم الوظيفي
+                            <label className="text-[12px] font-bold text-slate-500 px-1 flex items-center gap-2 uppercase tracking-widest">
+                                <IdCard className="w-3.5 h-3.5" /> الرقم الوظيفي
                             </label>
                             <input
                                 type="text"
@@ -311,8 +319,8 @@ export default function EmployeesPage() {
                         </div>
 
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold text-slate-500 px-1 flex items-center gap-2 uppercase tracking-widest">
-                                <Lock className="w-3 h-3" /> كلمة المرور
+                            <label className="text-[12px] font-bold text-slate-500 px-1 flex items-center gap-2 uppercase tracking-widest">
+                                <Lock className="w-3.5 h-3.5" /> كلمة المرور
                             </label>
                             <div className="relative group">
                                 <input
@@ -334,8 +342,8 @@ export default function EmployeesPage() {
                         </div>
 
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold text-slate-500 px-1 flex items-center gap-2 uppercase tracking-widest">
-                                <Briefcase className="w-3 h-3" /> باقة الدوام
+                            <label className="text-[12px] font-bold text-slate-500 px-1 flex items-center gap-2 uppercase tracking-widest">
+                                <Briefcase className="w-3.5 h-3.5" /> باقة الدوام
                             </label>
                             <select
                                 value={empPlanId}
