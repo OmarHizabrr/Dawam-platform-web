@@ -1,873 +1,625 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import DashboardLayout from '@/components/DashboardLayout';
-import { FirestoreApi } from '@/lib/firebase/firestoreApi';
-import { collection, onSnapshot, query, getDocs, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase/clientApp';
-import { format } from 'date-fns';
+import { collection, onSnapshot, query, orderBy, where, getDocs, deleteDoc } from 'firebase/firestore';
+import { FirestoreApi } from '@/lib/firebase/firestoreApi';
+import { format, startOfDay, endOfDay, isSameDay } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import {
+    Users,
     Calendar as CalendarIcon,
     Clock,
-    Search as SearchIcon,
-    Filter as FilterIcon,
-    Trash2 as TrashIcon,
-    User as UserIcon,
-    ClipboardCheck as ClipboardIcon,
-    Check,
+    CheckCircle2,
+    XCircle,
+    AlertCircle,
+    MoreVertical,
+    Search,
+    Plus,
+    Filter,
+    ArrowUpDown,
+    Download,
+    Trash2,
+    CalendarCheck,
+    History,
     ChevronDown,
-    ChevronRight,
-    ChevronLeft
+    Calendar,
+    Check
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils';
-import RangeDateTimePicker from '@/components/ui/RangeDateTimePicker';
+import PageHeader from '@/components/ui/PageHeader';
+import AppCard from '@/components/ui/AppCard';
 import Modal from '@/components/ui/Modal';
-
-interface DateTimeRange {
-    start: Date | null;
-    end: Date | null;
-}
+import RangeDateTimePicker from '@/components/ui/RangeDateTimePicker';
+import { cn } from '@/lib/utils';
+import { exportToCSV } from '@/lib/exportUtils';
 
 export default function AttendancePage() {
-    const [mounted, setMounted] = useState(false);
-    const [user, setUser] = useState<any>(null);
     const [employees, setEmployees] = useState<any[]>([]);
+    const [attendance, setAttendance] = useState<any[]>([]);
     const [plans, setPlans] = useState<any[]>([]);
-    const [attendanceRecords, setAttendanceRecords] = useState<any[]>([]);
-    const [leaveTypes, setLeaveTypes] = useState<any[]>([]);
-    const [allocations, setAllocations] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState<any>(null);
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [selectedEmpId, setSelectedEmpId] = useState('');
-
-    const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
-    const [dayPlan, setDayPlan] = useState<any>(null);
-    const [recordShifts, setRecordShifts] = useState<any[]>([]);
-
-    const [searchQuery, setSearchQuery] = useState('');
-    const [dateRange, setDateRange] = useState<DateTimeRange>(() => {
-        const d = new Date();
-        return {
-            start: new Date(d.getFullYear(), d.getMonth(), 1, 0, 0, 0),
-            end: new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59)
-        };
+    // Filters
+    const [selectedEmployee, setSelectedEmployee] = useState<string>('all');
+    const [dateRange, setDateRange] = useState<{ start: Date | null, end: Date | null }>({
+        start: startOfDay(new Date()),
+        end: endOfDay(new Date())
     });
 
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
+    // Registration States
+    const [regEmployeeId, setRegEmployeeId] = useState('');
+    const [regDate, setRegDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+    const [regShifts, setRegShifts] = useState<any[]>([{ name: 'الفترة الصباحية', checkIn: '08:00', checkOut: '16:00', status: 'present' }]);
+    const [regLoading, setRegLoading] = useState(false);
 
     useEffect(() => {
-        setMounted(true);
         const storedUser = localStorage.getItem('userData');
         if (storedUser) {
-            const parsedUser = JSON.parse(storedUser);
-            setUser(parsedUser);
-            fetchInitialData(parsedUser.uid);
+            const parsed = JSON.parse(storedUser);
+            setUser(parsed);
+            fetchData(parsed.uid);
         }
     }, []);
 
-    const fetchInitialData = async (uid: string) => {
-        // جلب الموظفين
-        const empColRef = collection(db, "employees", uid, "employees");
-        onSnapshot(query(empColRef), (snapshot) => {
-            setEmployees(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    const fetchData = (uid: string) => {
+        const empCol = collection(db, "employees", uid, "employees");
+        onSnapshot(empCol, (snap) => {
+            const list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setEmployees(list);
+            setLoading(false);
         });
 
-        // جلب الباقات
-        const plansColRef = collection(db, "attendancePlans", uid, "plans");
-        onSnapshot(query(plansColRef), (snapshot) => {
-            setPlans(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        });
-
-        // جلب أنواع الإجازات
-        const typesColRef = collection(db, "leaveTypes", uid, "types");
-        onSnapshot(query(typesColRef), (snapshot) => {
-            setLeaveTypes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        const plansCol = collection(db, "attendancePlans", uid, "plans");
+        onSnapshot(plansCol, (snap) => {
+            const list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setPlans(list);
         });
     };
 
-    // مراقبة سجلات الدوام للموظف المختار (في هذه الشاشة سنعرض الدوام للأيام الأخيرة)
     useEffect(() => {
-        if (!selectedEmpId) {
-            setAttendanceRecords([]);
-            return;
-        }
+        if (!user || employees.length === 0) return;
+        fetchAttendance();
+    }, [user, selectedEmployee, dateRange, employees]);
 
-        const attColRef = collection(db, "attendance", selectedEmpId, "attendance");
-        const unsub = onSnapshot(query(attColRef), (snapshot) => {
-            const records = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setAttendanceRecords(records.sort((a: any, b: any) => b.date.localeCompare(a.date)));
-        });
-
-        // جلب التخصيصات النشطة للموظف
-        const allocColRef = collection(db, "leaveAllocations", user.uid, "allocations");
-        const unsubAlloc = onSnapshot(query(allocColRef, where("employeeId", "==", selectedEmpId)), (snapshot) => {
-            setAllocations(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        });
-
-        return () => {
-            unsub();
-            unsubAlloc();
-        };
-    }, [selectedEmpId, user]);
-
-    // عند اختيار موظف وتاريخ، نقوم بجلب الباقة المرتبطة به
-    useEffect(() => {
-        if (!selectedEmpId) {
-            setDayPlan(null);
-            setRecordShifts([]);
-            return;
-        }
-
-        const emp = employees.find(e => e.id === selectedEmpId);
-        if (!emp || !emp.planId) {
-            setDayPlan(null);
-            setRecordShifts([{
-                start: '08:00',
-                end: '16:00',
-                status: 'present',
-                checkIn: '',
-                checkOut: '',
-                leaveTypeId: '',
-                isCoveredByLeave: false,
-                missingMinutes: 0,
-                delayCoverage: []
-            }]);
-            return;
-        }
-
-        const plan = plans.find(p => p.id === emp.planId);
-        if (plan) {
-            setDayPlan(plan);
-            // تجهيز الفترات من الباقة
-            setRecordShifts(plan.shifts.map((s: any) => ({
-                ...s,
-                status: 'present',
-                checkIn: s.start,
-                checkOut: s.end,
-                leaveTypeId: '',
-                isCoveredByLeave: false,
-                missingMinutes: 0,
-                delayCoverage: []
-            })));
-        }
-    }, [selectedEmpId, attendanceDate, employees, plans]);
-
-    const balances = useMemo(() => {
-        if (!selectedEmpId || allocations.length === 0) return {};
-
-        const consumption: { [allocId: string]: number } = {};
-
-        attendanceRecords.forEach(record => {
-            if (record.shifts && Array.isArray(record.shifts)) {
-                record.shifts.forEach((shift: any) => {
-                    const delayCoverage = shift.delayCoverage || [];
-
-                    if (shift.isCoveredByLeave && delayCoverage.length > 0) {
-                        delayCoverage.forEach((cov: any) => {
-                            if (!cov.typeId) return;
-                            const alloc = allocations.find(a => a.typeId === cov.typeId && record.date >= a.startDate && record.date <= a.endDate);
-                            if (alloc) {
-                                let amount = parseFloat(cov.mins) || 0;
-                                if (alloc.unit === 'days') amount = amount / 480;
-                                consumption[alloc.id] = (consumption[alloc.id] || 0) + amount;
-                            }
-                        });
-                    } else if (shift.leaveTypeId) {
-                        const alloc = allocations.find(a => a.typeId === shift.leaveTypeId && record.date >= a.startDate && record.date <= a.endDate);
-                        if (alloc) {
-                            let amount = 0;
-                            if (shift.isCoveredByLeave && shift.missingMinutes > 0) {
-                                amount = parseFloat(shift.missingMinutes) || 0;
-                                if (alloc.unit === 'days') amount = amount / 480;
-                            } else if (shift.status !== 'present') {
-                                if (alloc.unit === 'minutes') {
-                                    const [h1, m1] = (shift.start || '00:00').split(':').map(Number);
-                                    const [h2, m2] = (shift.end || '00:00').split(':').map(Number);
-                                    amount = (h2 * 60 + m2) - (h1 * 60 + m1);
-                                    if (amount < 0) amount += 24 * 60;
-                                } else {
-                                    amount = 1 / (record.shifts?.length || 1);
-                                }
-                            }
-                            consumption[alloc.id] = (consumption[alloc.id] || 0) + amount;
-                        }
-                    }
-                });
-            }
-        });
-
-        const result: { [allocId: string]: number } = {};
-        allocations.forEach(a => {
-            const consumed = consumption[a.id] || 0;
-            result[a.id] = Math.max(0, (parseFloat(a.amount) || 0) - consumed);
-        });
-        return result;
-    }, [selectedEmpId, allocations, attendanceRecords]);
-
-    const getStatusText = (status: string) => {
-        switch (status) {
-            case 'present': return 'حاضر';
-            case 'absent': return 'غائب';
-            case 'late': return 'متأخر';
-            case 'leave': return 'إجازة';
-            default: return status;
-        }
-    };
-
-    const handleSaveAttendance = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!selectedEmpId || recordShifts.length === 0) return;
-
+    const fetchAttendance = async () => {
+        if (!user) return;
         setLoading(true);
         try {
-            const attendanceId = attendanceDate;
-            const attRef = FirestoreApi.Api.getAttendanceRef(selectedEmpId, attendanceId);
+            let allAttendance: any[] = [];
+            const targetEmployees = selectedEmployee === 'all'
+                ? employees
+                : employees.filter(e => e.id === selectedEmployee);
 
-            const emp = employees.find(e => e.id === selectedEmpId);
-            await FirestoreApi.Api.setData({
-                docRef: attRef,
-                data: {
-                    date: attendanceDate,
-                    employeeId: selectedEmpId,
-                    employeeName: emp?.name || 'غير معروف',
-                    shifts: recordShifts,
-                    planSnapshot: dayPlan || null,
-                }
-            });
+            // Optimization: Boundary filtering via doc ID (date string)
+            const startStr = dateRange.start ? format(dateRange.start, 'yyyy-MM-dd') : '0000-00-00';
+            const endStr = dateRange.end ? format(dateRange.end, 'yyyy-MM-dd') : '9999-99-99';
 
-            setIsModalOpen(false);
+            for (const emp of targetEmployees) {
+                const attRef = collection(db, "attendance", emp.id, "attendance");
+                const q = query(
+                    attRef,
+                    where("__name__", ">=", startStr),
+                    where("__name__", "<=", endStr),
+                    orderBy("__name__", "desc")
+                );
+
+                const snap = await getDocs(q);
+                const empAtt = snap.docs.map(doc => ({
+                    id: doc.id,
+                    employeeId: emp.id,
+                    employeeName: emp.name,
+                    ...doc.data()
+                }));
+
+                allAttendance = [...allAttendance, ...empAtt];
+            }
+
+            setAttendance(allAttendance.sort((a, b) => b.id.localeCompare(a.id)));
         } catch (error) {
-            console.error("Error saving attendance:", error);
-            alert("حدث خطأ أثناء حفظ سجل الدوام");
+            console.error("Error fetching attendance:", error);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleDeleteAttendance = async (attendanceId: string) => {
-        if (!selectedEmpId || !confirm("هل أنت متأكد من حذف سجل الدوام هذا؟")) return;
+    useEffect(() => {
+        if (!isModalOpen || !regEmployeeId || !regDate) return;
 
-        try {
-            const attRef = FirestoreApi.Api.getAttendanceRef(selectedEmpId, attendanceId);
-            await FirestoreApi.Api.deleteData(attRef);
-        } catch (error) {
-            console.error("Error deleting attendance:", error);
-            alert("حدث خطأ أثناء حذف سجل الدوام");
+        // Check if a record already exists in the fetched attendance state
+        const existingRecord = attendance.find(record =>
+            record.employeeId === regEmployeeId && record.id === regDate
+        );
+
+        if (existingRecord && existingRecord.shifts) {
+            setRegShifts(existingRecord.shifts);
+            return;
         }
+
+        const emp = employees.find(e => e.id === regEmployeeId);
+        if (!emp || !emp.planId) {
+            setRegShifts([{ name: 'فترة افتراضية', checkIn: '08:00', checkOut: '16:00', status: 'present' }]);
+            return;
+        }
+
+        const plan = plans.find(p => p.id === emp.planId);
+        if (!plan || !plan.shifts || !Array.isArray(plan.shifts)) {
+            setRegShifts([{ name: 'فترة افتراضية', checkIn: '08:00', checkOut: '16:00', status: 'present' }]);
+            return;
+        }
+
+        const parts = regDate.split('-').map(Number);
+        const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+        const dayIndex = dateObj.getDay();
+
+        const dayMap: { [key: number]: string } = {
+            0: 'sun', 1: 'mon', 2: 'tue', 3: 'wed', 4: 'thu', 5: 'fri', 6: 'sat'
+        };
+        const dayId = dayMap[dayIndex];
+
+        if (plan.days && plan.days.includes(dayId)) {
+            const planShifts = plan.shifts.map((s: any, idx: number) => ({
+                name: (s.name || `فترة رقم ${idx + 1}`),
+                checkIn: s.start || '08:00',
+                checkOut: s.end || '16:00',
+                status: 'present'
+            }));
+            setRegShifts(planShifts);
+        } else {
+            setRegShifts([{ name: 'يوم غير مجدول', checkIn: '00:00', checkOut: '00:00', status: 'absent' }]);
+        }
+    }, [regEmployeeId, regDate, isModalOpen, employees, plans, attendance]);
+
+    const addRegShift = () => {
+        setRegShifts(prev => [...prev, { name: `فترة إضافية ${prev.length + 1}`, checkIn: '08:00', checkOut: '16:00', status: 'present' }]);
     };
 
-
-
-    const calculateMinutes = (timeStr: string) => {
-        if (!timeStr) return 0;
-        const [h, m] = timeStr.split(':').map(Number);
-        return h * 60 + m;
+    const removeRegShift = (index: number) => {
+        if (regShifts.length === 1) return;
+        setRegShifts(prev => prev.filter((_, i) => i !== index));
     };
 
-    const updateShiftRecord = (idx: number, field: string, value: any) => {
-        setRecordShifts(prev => {
-            const next = [...prev];
-            const updatedShift = { ...next[idx], [field]: value };
-
-            // Auto-calculate missing minutes if check-in or check-out changes
-            if (field === 'checkIn' || field === 'checkOut' || field === 'status') {
-                const plannedStart = calculateMinutes(updatedShift.start);
-                const plannedEnd = calculateMinutes(updatedShift.end);
-
-                if (updatedShift.status === 'absent' || updatedShift.status === 'leave') {
-                    updatedShift.missingMinutes = plannedEnd - plannedStart;
-                } else {
-                    const actualIn = calculateMinutes(updatedShift.checkIn);
-                    const actualOut = calculateMinutes(updatedShift.checkOut);
-
-                    let lateMins = 0;
-                    let earlyMins = 0;
-
-                    if (updatedShift.checkIn && actualIn > plannedStart) {
-                        lateMins = actualIn - plannedStart;
-                    }
-                    if (updatedShift.checkOut && actualOut < plannedEnd) {
-                        earlyMins = plannedEnd - actualOut;
-                    }
-
-                    updatedShift.missingMinutes = lateMins + earlyMins;
-                }
-            }
-
-            next[idx] = updatedShift;
-            return next;
+    const updateRegShift = (index: number, field: string, value: any) => {
+        setRegShifts(prev => {
+            const newList = [...prev];
+            newList[index] = { ...newList[index], [field]: value };
+            return newList;
         });
     };
 
-    if (!mounted) {
+    const handleSaveAttendance = async () => {
+        if (!user || !regEmployeeId || !regDate) return;
+        setRegLoading(true);
+        try {
+            const attRef = FirestoreApi.Api.getAttendanceRef(regEmployeeId, regDate);
+            await FirestoreApi.Api.setData({
+                docRef: attRef,
+                data: {
+                    shifts: regShifts,
+                }
+            });
+            setIsModalOpen(false);
+            fetchAttendance();
+            // Reset modal state
+            setRegEmployeeId('');
+            setRegShifts([{ name: 'الفترة الصباحية', checkIn: '08:00', checkOut: '16:00', status: 'present' }]);
+        } catch (error) {
+            console.error("Error saving attendance:", error);
+        } finally {
+            setRegLoading(false);
+        }
+    };
+
+    const handleDeleteAttendance = async (empId: string, dateId: string) => {
+        if (!confirm("هل أنت متأكد من حذف هذا السجل؟")) return;
+        try {
+            const attRef = FirestoreApi.Api.getAttendanceRef(empId, dateId);
+            await FirestoreApi.Api.deleteData(attRef);
+            fetchAttendance();
+        } catch (error) {
+            console.error("Error deleting attendance:", error);
+        }
+    };
+
+    const handleExport = () => {
+        if (!attendance || attendance.length === 0) return;
+
+        const flatData: any[] = [];
+        attendance.forEach(record => {
+            const emp = employees.find(e => e.id === record.employeeId);
+            if (record.shifts && Array.isArray(record.shifts)) {
+                record.shifts.forEach((shift: any) => {
+                    flatData.push({
+                        'التاريخ': record.date,
+                        'اسم الموظف': emp?.name || 'غير معروف',
+                        'المعرف الوظيفي': emp?.jobId || 'N/A',
+                        'اسم الوردية': shift.name,
+                        'دخول': shift.checkIn,
+                        'خروج': shift.checkOut,
+                        'الحالة': shift.status === 'present' ? 'حاضر' :
+                            shift.status === 'absent' ? 'غائب' :
+                                shift.status === 'late' ? 'متأخر' :
+                                    shift.status === 'leave' ? 'إجازة' : shift.status
+                    });
+                });
+            }
+        });
+
+        const startStr = dateRange.start ? format(dateRange.start, 'yyyy-MM-dd') : 'start';
+        const endStr = dateRange.end ? format(dateRange.end, 'yyyy-MM-dd') : 'end';
+
+        exportToCSV(flatData, `Attendance_${startStr}_to_${endStr}`);
+    };
+
+
+    const getStatusBadge = (status: string) => {
+        const configs: any = {
+            present: { label: 'حاضر', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', icon: CheckCircle2 },
+            absent: { label: 'غائب', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20', icon: XCircle },
+            late: { label: 'متأخر', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20', icon: AlertCircle },
+            leave: { label: 'إجازة', color: 'bg-primary/10 text-primary border-primary/20', icon: CalendarIcon }
+        };
+        const config = configs[status] || configs.present;
+        const Icon = config.icon;
+
         return (
-            <div className="min-h-screen bg-[#020617] flex items-center justify-center">
-                <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+            <div className={cn("px-3 py-1.5 rounded-xl border text-[10px] font-black flex items-center gap-2 w-fit uppercase tracking-widest", config.color)}>
+                <Icon className="w-3.5 h-3.5" />
+                {config.label}
             </div>
         );
-    }
-
-    if (!user) {
-        return <DashboardLayout><div>جاري تسجيل الدخول...</div></DashboardLayout>;
-    }
-
+    };
 
     return (
         <DashboardLayout>
-            <div className="max-w-7xl mx-auto px-4 py-8 animate-in fade-in duration-700">
-                <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-                    <div>
-                        <div className="flex items-center gap-2 mb-0.5">
-                            <div className="w-6 h-6 rounded bg-primary/20 flex items-center justify-center">
-                                <ClipboardIcon className="w-3.5 h-3.5 text-primary" />
-                            </div>
-                            <span className="text-[11px] font-black text-primary uppercase tracking-widest">إدارة الحضور</span>
-                        </div>
-                        <h1 className="text-xl font-black tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-                            سجل الدوام اليومي
-                        </h1>
-                        <p className="text-slate-500 text-[11px] font-medium leading-relaxed">متابعة دقيقة وتسجيل ذكي لحضور وانصراف الفريق</p>
-                    </div>
-
-                    <div className="flex gap-4">
+            <PageHeader
+                title="سجل الدوام الذكي"
+                subtitle="مراقبة وإدارة التزام الكادر الوظيفي بدقة متناهية."
+                icon={CalendarCheck}
+                breadcrumb="الموارد البشرية"
+                actions={
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={handleExport}
+                            className="h-11 px-7 rounded-xl bg-white/5 border border-white/10 text-white font-black text-[12px] hover:bg-white/10 transition-all flex items-center gap-2.5 backdrop-blur-xl active:scale-95 shadow-2xl"
+                        >
+                            <Download className="w-4 h-4 text-primary" /> تصدير السجلات
+                        </button>
                         <button
                             onClick={() => setIsModalOpen(true)}
-                            className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-xs transition-all shadow-lg shadow-primary/20 flex items-center gap-2 group active:scale-95"
+                            className="h-11 px-7 rounded-xl bg-primary hover:bg-primary/90 text-white font-black text-[12px] transition-all shadow-2xl shadow-primary/30 flex items-center gap-2.5 active:scale-95"
                         >
-                            <CalendarIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                            <span>تسجيل تحضير</span>
+                            <Plus className="w-4.5 h-4.5" /> تسجيل حضور مباشر
                         </button>
                     </div>
-                </header>
+                }
+            />
 
-                {/* Filters Section */}
-                <div className="glass p-3.5 rounded-xl border border-white/5 mb-5 shadow-xl relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-40 transition-opacity" />
-
-                    <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-3.5 items-end">
-                        <div className="space-y-1">
-                            <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 px-0.5">
-                                <SearchIcon className="w-3.5 h-3.5 text-primary" />
-                                بحث سريع
-                            </label>
-                            <div className="relative overflow-hidden rounded-lg border border-white/5 bg-slate-950/40 focus-within:border-primary/50 transition-all">
-                                <input
-                                    type="text"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder="اسم الموظف..."
-                                    className="w-full px-3 py-1.5 text-white outline-none placeholder:text-slate-700 bg-transparent text-[10px] font-medium h-9"
-                                />
+            {/* Smart Filter Bar Section */}
+            <AppCard padding="none" className="mb-6 border-white/5 shadow-2xl overflow-visible z-40 bg-slate-900/40">
+                <div className="p-6 md:p-7 flex flex-col lg:flex-row items-end gap-6">
+                    <div className="relative flex-1 group w-full">
+                        <label className="text-meta mb-2 block px-1 flex items-center gap-2">
+                            الموظف المستهدف
+                        </label>
+                        <div className="relative">
+                            <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                                <Users className="w-4 h-4 text-slate-600 group-focus-within:text-primary transition-colors" />
                             </div>
-                        </div>
-
-                        <div className="md:col-span-2 space-y-1">
-                            <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5 px-0.5">
-                                <FilterIcon className="w-3.5 h-3.5 text-emerald-400" />
-                                النطاق الزمني
-                            </label>
-                            <div className="[&_button]:h-9 [&_button]:rounded-lg [&_button]:text-[10px]">
-                                <RangeDateTimePicker
-                                    value={dateRange}
-                                    onChange={setDateRange}
-                                />
-                            </div>
+                            <select
+                                value={selectedEmployee}
+                                onChange={(e) => setSelectedEmployee(e.target.value)}
+                                className="w-full h-11 bg-slate-950/60 border border-white/5 rounded-xl pr-12 pl-4 text-[13px] font-black text-white outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/5 transition-all appearance-none cursor-pointer hover:bg-slate-950/80 shadow-inner"
+                            >
+                                <option value="all">كل الموظفين النشطين</option>
+                                {employees.map(emp => (
+                                    <option key={emp.id} value={emp.id}>{emp.name}</option>
+                                ))}
+                            </select>
                         </div>
                     </div>
-                </div>
 
-                <div className="relative z-10 mt-6 pt-6 border-t border-white/5 flex flex-wrap gap-4 items-center">
-                    <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                        <span className="text-[12px] font-black text-slate-400 uppercase tracking-widest">تصفية النتائج:</span>
+                    <div className="w-full lg:w-auto flex-1 group">
+                        <label className="text-meta mb-2 block px-1 flex items-center gap-2">
+                            النطاق الزمني للمعاينة
+                        </label>
+                        <RangeDateTimePicker
+                            value={dateRange}
+                            onChange={(val) => setDateRange(val)}
+                        />
                     </div>
 
-                    <div className="flex-1 flex flex-wrap gap-2">
-                        <select
-                            value={selectedEmpId}
-                            onChange={(e) => setSelectedEmpId(e.target.value)}
-                            className="bg-white/5 border border-white/5 hover:border-white/10 rounded-lg px-4 py-2 text-[11px] text-white outline-none transition-all cursor-pointer font-bold h-9"
-                        >
-                            <option value="" className="bg-slate-900">كل الموظفين</option>
-                            {employees.map(emp => (
-                                <option key={emp.id} value={emp.id} className="bg-slate-900">{emp.name}</option>
-                            ))}
-                        </select>
-
+                    <div className="flex items-center gap-3 w-full lg:w-auto">
+                        <button className="flex-1 lg:w-11 lg:h-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white transition-all hover:bg-white/10 active:scale-90 group">
+                            <Filter className="w-4.5 h-4.5 group-hover:scale-110 transition-transform" />
+                        </button>
                         <button
-                            onClick={() => {
-                                setSearchQuery('');
-                                setSelectedEmpId('');
-                            }}
-                            className="px-4 py-2 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] text-slate-400 hover:text-white text-[10px] font-black transition-all border border-white/5 active:scale-95 h-9"
+                            onClick={fetchAttendance}
+                            className="flex-[3] lg:w-11 lg:h-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all active:scale-90 group"
                         >
-                            إعادة ضبط الفلاتر
+                            <History className="w-4.5 h-4.5 group-hover:rotate-180 transition-all duration-700" />
                         </button>
                     </div>
                 </div>
-            </div>
+            </AppCard>
 
-            {/* Content Section */}
-            <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="glass-dark rounded-2xl overflow-hidden border border-white/5 shadow-2xl"
-            >
-                <div className="overflow-x-auto">
+            {/* High-Fidelity Table Container */}
+            <AppCard padding="none" className="overflow-hidden border-white/5 shadow-2xl surface-deep">
+                <div className="overflow-x-auto custom-scrollbar">
                     <table className="w-full border-collapse">
                         <thead>
-                            <tr className="border-b border-white/10 bg-white/[0.02]">
-                                <th className="px-5 py-2.5 text-right text-[11px] font-black text-slate-600 uppercase tracking-widest">الموظف</th>
-                                <th className="px-5 py-2.5 text-right text-[11px] font-black text-slate-600 uppercase tracking-widest">التاريخ</th>
-                                <th className="px-5 py-2.5 text-right text-[11px] font-black text-slate-600 uppercase tracking-widest">الفترات والنمط</th>
-                                <th className="px-5 py-2.5 text-center text-[11px] font-black text-slate-600 uppercase tracking-widest">التحكم</th>
+                            <tr className="bg-white/[0.03] border-b border-white/5">
+                                <th className="px-6 py-4 text-right">
+                                    <div className="flex items-center gap-3 text-meta">
+                                        اليوم والتاريخ <ArrowUpDown className="w-3 h-3" />
+                                    </div>
+                                </th>
+                                <th className="px-6 py-4 text-right">
+                                    <div className="flex items-center gap-3 text-meta">
+                                        الموظف <Users className="w-3 h-3" />
+                                    </div>
+                                </th>
+                                <th className="px-6 py-4 text-right">
+                                    <div className="flex items-center gap-3 text-meta">
+                                        حالة الفترات <Clock className="w-3 h-3" />
+                                    </div>
+                                </th>
+                                <th className="px-6 py-4 text-left">
+                                    <span className="text-meta text-left block">التحكم</span>
+                                </th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/5">
-                            {!selectedEmpId ? (
+                        <tbody className="divide-y divide-white/[0.03]">
+                            {loading ? (
                                 <tr>
-                                    <td colSpan={4} className="px-6 py-16 text-center">
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            className="flex flex-col items-center gap-4"
-                                        >
-                                            <div className="relative group/user scale-90">
-                                                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10 flex items-center justify-center border border-white/10 group-hover/user:scale-105 transition-transform duration-500 shadow-xl">
-                                                    <UserIcon className="w-6 h-6 text-primary animate-pulse-slow" />
-                                                </div>
+                                    <td colSpan={4} className="px-10 py-24 text-center">
+                                        <div className="flex flex-col items-center gap-6">
+                                            <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                                            <span className="text-meta !text-primary animate-pulse">جاري معاينة سجلات الدوام...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : attendance.length === 0 ? (
+                                <tr>
+                                    <td colSpan={4} className="px-10 py-40 text-center relative overflow-hidden">
+                                        <div className="absolute inset-0 bg-primary/2 rounded-full blur-[140px] pointer-events-none" />
+                                        <div className="flex flex-col items-center gap-10 relative z-10">
+                                            <div className="w-32 h-32 rounded-[3rem] bg-slate-950 flex items-center justify-center border border-white/5 shadow-2xl relative group/empty">
                                                 <motion.div
-                                                    animate={{ scale: [1, 1.1, 1] }}
-                                                    transition={{ repeat: Infinity, duration: 2 }}
-                                                    className="absolute -bottom-1 -right-1 w-6 h-6 rounded bg-slate-950 border border-white/10 flex items-center justify-center shadow-lg"
-                                                >
-                                                    <SearchIcon className="w-2.5 h-2.5 text-slate-500" />
-                                                </motion.div>
+                                                    animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.3, 0.1] }}
+                                                    transition={{ duration: 4, repeat: Infinity }}
+                                                    className="absolute inset-0 bg-primary/20 rounded-full blur-2xl"
+                                                />
+                                                <CalendarIcon className="w-14 h-14 text-slate-700 group-hover/empty:text-primary transition-colors" />
                                             </div>
-                                            <div className="space-y-0.5">
-                                                <p className="text-sm font-black text-white px-2">ابدأ باختيار الموظف</p>
-                                                <p className="text-slate-500 text-[9px] font-bold max-w-[200px] mx-auto leading-relaxed">يرجى تحديد الموظف من القائمة أعلاه لعرض سجلات الدوام.</p>
+                                            <div className="space-y-3">
+                                                <h3 className="text-3xl font-black text-white tracking-tighter uppercase italic">لا يوجد سجل نشاط</h3>
+                                                <p className="text-meta !text-[11px] max-w-sm mx-auto leading-relaxed">لم نتمكن من رصد أي بيانات حضور لهذه الفترة. يرجى مراجعة المرشحات أو تسجيل حركات جديدة.</p>
                                             </div>
-                                        </motion.div>
+                                            <button
+                                                onClick={() => setIsModalOpen(true)}
+                                                className="h-11 px-8 rounded-xl bg-white/5 border border-white/5 text-[11px] font-black text-slate-500 hover:text-white hover:bg-white/10 transition-all uppercase tracking-widest active:scale-95"
+                                            >
+                                                تسجيل حضور الآن
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ) : (
-                                (() => {
-                                    const filtered = attendanceRecords.filter(rec => {
-                                        const startStr = dateRange.start ? format(dateRange.start, 'yyyy-MM-dd') : '';
-                                        const endStr = dateRange.end ? format(dateRange.end, 'yyyy-MM-dd') : startStr;
-
-                                        const isWithinDate = !startStr || (rec.date >= startStr && rec.date <= endStr);
-                                        const matchesSearch = searchQuery === '' ||
-                                            (rec.employeeName && rec.employeeName.includes(searchQuery));
-                                        return isWithinDate && matchesSearch;
-                                    });
-
-                                    if (filtered.length === 0) {
-                                        return (
-                                            <tr>
-                                                <td colSpan={4} className="px-6 py-40 text-center">
-                                                    <motion.div
-                                                        initial={{ opacity: 0, y: 10 }}
-                                                        animate={{ opacity: 1, y: 0 }}
-                                                        className="flex flex-col items-center gap-6"
-                                                    >
-                                                        <div className="w-24 h-24 rounded-[32px] bg-white/[0.02] flex items-center justify-center border border-white/5 shadow-inner">
-                                                            <SearchIcon className="w-10 h-10 text-slate-600 opacity-30" />
+                                attendance.map((item, idx) => (
+                                    <tr key={idx} className="group hover:bg-white/[0.02] transition-colors">
+                                        <td className="px-6 py-5">
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-[16px] font-black text-white tracking-tighter">
+                                                    {format(new Date(item.id), "EEEE", { locale: ar })}
+                                                </span>
+                                                <span className="text-meta !text-slate-700 !text-[9px]">
+                                                    {format(new Date(item.id), "yyyy-MM-dd", { locale: ar })}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/10 text-primary font-black text-sm shadow-inner group-hover:scale-110 transition-transform">
+                                                    {item.employeeName?.charAt(0) || "؟"}
+                                                </div>
+                                                <span className="text-[15px] font-black text-white tracking-tight group-hover:text-primary transition-colors">
+                                                    {item.employeeName}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5">
+                                            <div className="flex flex-wrap gap-3">
+                                                {item.shifts && Array.isArray(item.shifts) && item.shifts.map((shift: any, sIdx: number) => (
+                                                    <div key={sIdx} className="flex flex-col gap-2 p-4 rounded-xl bg-slate-900/40 border border-white/5 hover:border-primary/20 transition-all min-w-[160px] shadow-sm relative group/shift overflow-hidden">
+                                                        <div className="absolute top-0 right-0 w-1 h-full opacity-60" style={{
+                                                            backgroundColor:
+                                                                shift.status === 'present' ? '#10b981' :
+                                                                    shift.status === 'absent' ? '#f43f5e' :
+                                                                        shift.status === 'late' ? '#f59e0b' : '#3b82f6'
+                                                        }} />
+                                                        <div className="flex items-center justify-between gap-4">
+                                                            <span className="text-meta !text-slate-500 !text-[9px]">{shift.name}</span>
+                                                            {getStatusBadge(shift.status)}
                                                         </div>
-                                                        <div className="space-y-2">
-                                                            <p className="text-2xl font-black text-slate-400 px-1 uppercase tracking-tight">لا توجد سجلات مطابقة</p>
-                                                            <span className="text-slate-600 font-bold">جرب تغيير الفترة الزمنية المحددة للبحث</span>
+                                                        <div className="flex items-center gap-2.5 text-[12px] font-black text-white/90 tabular-nums">
+                                                            <Clock className="w-3.5 h-3.5 text-slate-700" />
+                                                            <span>{shift.checkIn || '--:--'}</span>
+                                                            <span className="text-slate-800 tracking-widest px-1">→</span>
+                                                            <span>{shift.checkOut || '--:--'}</span>
                                                         </div>
-                                                    </motion.div>
-                                                </td>
-                                            </tr>
-                                        );
-                                    }
-
-                                    return filtered.map(rec => (
-                                        <tr key={rec.id} className="hover:bg-white/[0.03] transition-all duration-300 group">
-                                            <td className="px-5 py-2.5">
-                                                <div className="flex items-center gap-2.5">
-                                                    <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary/20 to-blue-500/10 flex items-center justify-center text-primary font-black text-xs shadow-md border border-white/5 group-hover:scale-105 transition-transform">
-                                                        {rec.employeeName?.charAt(0) || '?'}
                                                     </div>
-                                                    <div className="space-y-0.5">
-                                                        <span className="block font-black text-[12px] text-white group-hover:text-primary transition-colors duration-300">
-                                                            {rec.employeeName || 'غير معروف'}
-                                                        </span>
-                                                        <span className="block text-[10px] text-slate-600 font-black uppercase tracking-widest">موظف مسجل</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-5 py-2.5">
-                                                <div className="flex flex-col">
-                                                    <span className="text-white font-black text-[12px] mb-0.5 leading-none">{rec.date}</span>
-                                                    <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest leading-none">{(format as any)(new Date(rec.date), 'EEEE', { locale: ar })}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-5 py-2.5">
-                                                <div className="flex flex-wrap gap-1">
-                                                    {rec.shifts?.map((s: any, idx: number) => (
-                                                        <div key={idx} className="flex items-center gap-1.5 px-2 py-1 bg-white/5 border border-white/5 rounded-lg transition-colors hover:bg-white/10 shadow-sm group/tag">
-                                                            <div className="flex flex-col">
-                                                                <span className="text-white font-black text-[11px] leading-none mb-0.5">{s.checkIn} - {s.checkOut}</span>
-                                                                <span className="text-[8px] text-slate-600 font-bold uppercase tracking-widest text-left">P{idx + 1}</span>
-                                                            </div>
-                                                            <div className="w-px h-2.5 bg-white/10" />
-                                                            <div className={cn(
-                                                                "flex items-center gap-1 px-1.5 py-0.5 rounded font-black text-[10px] uppercase tracking-wider",
-                                                                s.status === 'present' ? "text-emerald-400 bg-emerald-500/10" : "text-rose-400 bg-rose-500/10"
-                                                            )}>
-                                                                <div className={cn("w-0.5 h-0.5 rounded-full", s.status === 'present' ? "bg-emerald-400" : "bg-rose-400")} />
-                                                                {getStatusText(s.status)}
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </td>
-                                            <td className="px-5 py-2.5 text-center">
-                                                <button
-                                                    onClick={() => handleDeleteAttendance(rec.id)}
-                                                    className="w-7 h-7 rounded-lg hover:bg-rose-500/10 text-slate-600 hover:text-rose-500 transition-all border border-white/5 hover:border-rose-500/20 active:scale-95 flex items-center justify-center mx-auto"
-                                                >
-                                                    <TrashIcon className="w-3 h-3" />
+                                                ))}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-5 text-left">
+                                            <div className="flex items-center justify-end gap-2.5 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
+                                                <button className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all border border-white/5 active:scale-90">
+                                                    <MoreVertical className="w-4.5 h-4.5" />
                                                 </button>
-                                            </td>
-                                        </tr>
-                                    ));
-                                })()
+                                                <button
+                                                    onClick={() => handleDeleteAttendance(item.employeeId, item.id)}
+                                                    className="w-10 h-10 rounded-xl bg-rose-500/10 hover:bg-rose-500 flex items-center justify-center text-rose-500 hover:text-white transition-all border border-rose-500/20 active:scale-90"
+                                                >
+                                                    <Trash2 className="w-4.5 h-4.5" />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
                             )}
                         </tbody>
                     </table>
                 </div>
-            </motion.div>
+            </AppCard>
 
-            {/* Main Action Modal */}
-            <Modal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                title="تسجيل تحضير / تقديم طلب"
-            >
-                <form onSubmit={handleSaveAttendance} className="space-y-5 p-1">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                        <div className="space-y-1">
-                            <label className="text-[7.5px] font-black text-slate-600 uppercase tracking-widest flex items-center gap-1.5 px-0.5">
-                                <UserIcon className="w-2.5 h-2.5 text-primary" />
-                                الموظف
-                            </label>
-                            <div className="relative overflow-hidden rounded-lg border border-white/5 bg-slate-950/40 focus-within:border-primary/50 transition-all">
-                                <select
-                                    value={selectedEmpId}
-                                    onChange={(e) => setSelectedEmpId(e.target.value)}
-                                    required
-                                    className="w-full bg-transparent border-none px-3 py-1.5 text-white focus:ring-0 outline-none appearance-none cursor-pointer text-[10px] font-bold h-9"
-                                >
-                                    <option value="" className="bg-slate-900">اختر موظفاً...</option>
-                                    {employees.map(emp => <option key={emp.id} value={emp.id} className="bg-slate-900">{emp.name}</option>)}
-                                </select>
-                                <div className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
-                                    <ChevronDown className="w-2.5 h-2.5" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="space-y-1">
-                            <label className="text-[7.5px] font-black text-slate-600 uppercase tracking-widest flex items-center gap-1.5 px-0.5">
-                                <CalendarIcon className="w-2.5 h-2.5 text-emerald-400" />
-                                التاريخ
-                            </label>
-                            <div className="relative group [&_button]:h-9 [&_button]:rounded-lg [&_button]:text-[10px]">
-                                <RangeDateTimePicker
-                                    value={dateRange}
-                                    onChange={(val: DateTimeRange) => {
-                                        setDateRange(val);
-                                        if (val.start) setAttendanceDate((format as any)(val.start, "yyyy-MM-dd"));
-                                    }}
-                                    placeholder="اختر التاريخ..."
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {dayPlan && (
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.98 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="p-2.5 bg-primary/5 rounded-xl border border-primary/10 flex items-center justify-between shadow-lg"
-                        >
-                            <div className="flex items-center gap-2">
-                                <div className="p-1.5 bg-primary/10 rounded-lg">
-                                    <ClipboardIcon className="w-3.5 h-3.5 text-primary" />
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-[7px] text-primary font-black uppercase tracking-widest leading-none mb-0.5">الباقة المطبقة</span>
-                                    <span className="text-[12px] font-black text-white">{dayPlan.name}</span>
-                                </div>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setRecordShifts(prev => prev.map(s => ({ ...s, status: 'leave' })))}
-                                className="px-2.5 py-1 bg-accent/10 hover:bg-accent/20 text-accent rounded-lg text-[8px] font-black uppercase tracking-widest transition-all active:scale-95 border border-accent/20 flex items-center gap-1.5"
-                            >
-                                <span className="text-xs">🏝️</span>
-                                إجازة اليوم
-                            </button>
-                        </motion.div>
-                    )}
-
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between px-0.5">
-                            <h3 className="text-sm font-black text-white flex items-center gap-2">
-                                <div className="w-1 h-4 bg-primary rounded-full" />
-                                تفاصيل الفترات
-                            </h3>
-                            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{recordShifts.length} فترات مجدولة</span>
-                        </div>
-
-                        <div className="space-y-3">
-                            {recordShifts.map((shift, idx) => (
-                                <motion.div
-                                    key={idx}
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: idx * 0.1 }}
-                                    className="relative p-4 bg-white/[0.02] rounded-xl border border-white/5 space-y-4 hover:bg-white/[0.04] transition-colors group/shift"
-                                >
-                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-white font-black text-xs border border-white/5 shadow-lg group-hover/shift:bg-primary group-hover/shift:border-primary/50 transition-colors">
-                                                {idx + 1}
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-[7px] text-slate-500 font-black uppercase tracking-widest leading-none mb-0.5">الموعد המجدول</span>
-                                                <span className="text-[12px] font-black text-white">{shift.start} - {shift.end}</span>
-                                            </div>
-                                        </div>
-
-                                        <div className="relative overflow-hidden rounded-lg border border-white/5 bg-slate-950/40 focus-within:border-primary/50 transition-all min-w-[100px]">
-                                            <select
-                                                value={shift.status}
-                                                onChange={(e) => updateShiftRecord(idx, 'status', e.target.value)}
-                                                className="w-full bg-transparent border-none px-2.5 py-1 text-white focus:ring-0 outline-none appearance-none cursor-pointer text-[9px] font-bold pr-7 h-8"
-                                            >
-                                                <option value="present" className="bg-slate-900">✅ حاضر</option>
-                                                <option value="absent" className="bg-slate-900">❌ غائب</option>
-                                                <option value="late" className="bg-slate-900">⏰ متأخر</option>
-                                                <option value="leave" className="bg-slate-900">🏖️ إجازة</option>
-                                            </select>
-                                            <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
-                                                <ChevronDown className="w-2 h-2" />
-                                            </div>
-                                        </div>
+            {/* Attendance Registration Modal */}
+            {isModalOpen && (
+                <Modal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    title="تسجيل استحقاق حضور جديد"
+                    maxWidth="max-w-2xl"
+                >
+                    <div className="space-y-8 p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-4">
+                                <label className="text-meta px-2 flex items-center gap-2">
+                                    <Users className="w-3.5 h-3.5 text-primary" /> الاسم التعريفي للموظف
+                                </label>
+                                <div className="relative group">
+                                    <select
+                                        value={regEmployeeId}
+                                        onChange={(e) => setRegEmployeeId(e.target.value)}
+                                        className="w-full h-11 bg-slate-950 border border-white/10 rounded-xl pr-4 pl-10 text-[13px] font-black text-white focus:border-primary transition-all outline-none shadow-inner appearance-none hover:bg-slate-900/60 cursor-pointer"
+                                    >
+                                        <option value="">اختر من قائمة الكادر...</option>
+                                        {employees.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+                                    </select>
+                                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-500">
+                                        <ChevronDown className="w-4 h-4" />
                                     </div>
+                                </div>
+                            </div>
+                            <div className="space-y-4">
+                                <label className="text-meta px-2 flex items-center gap-2">
+                                    <Calendar className="w-3.5 h-3.5 text-primary" /> تاريخ السجل المستهدف
+                                </label>
+                                <div className="relative group">
+                                    <input
+                                        type="date"
+                                        value={regDate}
+                                        onChange={(e) => setRegDate(e.target.value)}
+                                        className="w-full h-11 bg-slate-950 border border-white/10 rounded-xl px-4 text-[13px] font-black text-white focus:border-primary transition-all outline-none shadow-inner cursor-pointer appearance-none"
+                                    />
+                                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-500">
+                                        <Calendar className="w-4 h-4" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        <div className="space-y-1.5">
-                                            <label className="text-[8px] font-black text-slate-500 uppercase tracking-widest px-0.5">الحضور الفعلي</label>
-                                            <div className="relative group/input text-left">
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between px-2">
+                                <label className="text-meta flex items-center gap-2">
+                                    <Clock className="w-3.5 h-3.5 text-primary" /> فترات الدوام التشغيلية
+                                </label>
+                                <button
+                                    onClick={addRegShift}
+                                    className="text-[11px] font-black text-primary hover:text-white transition-colors flex items-center gap-1.5 uppercase tracking-widest"
+                                >
+                                    <Plus className="w-3.5 h-3.5" /> إضافة فترة
+                                </button>
+                            </div>
+
+                            <div className="grid gap-4">
+                                {regShifts.map((shift, idx) => (
+                                    <div key={idx} className="p-5 rounded-2xl bg-slate-900/60 border border-white/5 space-y-4 group">
+                                        <div className="flex items-center justify-between">
+                                            <input
+                                                value={shift.name}
+                                                onChange={(e) => updateRegShift(idx, 'name', e.target.value)}
+                                                className="bg-transparent border-none p-0 text-[14px] font-black text-white focus:ring-0 w-1/2"
+                                                placeholder="اسم الفترة..."
+                                            />
+                                            <div className="flex items-center gap-2">
+                                                <select
+                                                    value={shift.status}
+                                                    onChange={(e) => updateRegShift(idx, 'status', e.target.value)}
+                                                    className="bg-white/5 border border-white/10 rounded-lg px-3 py-1 text-[11px] font-black text-white outline-none"
+                                                >
+                                                    <option value="present">حاضر</option>
+                                                    <option value="absent">غائب</option>
+                                                    <option value="late">متأخر</option>
+                                                    <option value="leave">إجازة</option>
+                                                </select>
+                                                {regShifts.length > 1 && (
+                                                    <button
+                                                        onClick={() => removeRegShift(idx)}
+                                                        className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <div className="text-[10px] text-slate-600 font-black uppercase tracking-widest pr-1">الدخول</div>
                                                 <input
                                                     type="time"
                                                     value={shift.checkIn}
-                                                    onChange={(e) => updateShiftRecord(idx, 'checkIn', e.target.value)}
-                                                    className="w-full bg-slate-950/40 border border-white/5 rounded-lg px-3 py-2 text-white outline-none focus:border-primary/50 transition-all text-xs font-black"
+                                                    onChange={(e) => updateRegShift(idx, 'checkIn', e.target.value)}
+                                                    className="w-full h-11 bg-slate-950 border border-white/5 rounded-xl px-4 text-[13px] font-black text-white focus:border-primary transition-all outline-none"
                                                 />
-                                                <div className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-600 group-hover/input:text-primary transition-colors">
-                                                    <Clock className="w-3 h-3" />
-                                                </div>
                                             </div>
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-[8px] font-black text-slate-500 uppercase tracking-widest px-0.5">الانصراف الفعلي</label>
-                                            <div className="relative group/input text-left">
+                                            <div className="space-y-2">
+                                                <div className="text-[10px] text-slate-600 font-black uppercase tracking-widest pr-1">الخروج</div>
                                                 <input
                                                     type="time"
                                                     value={shift.checkOut}
-                                                    onChange={(e) => updateShiftRecord(idx, 'checkOut', e.target.value)}
-                                                    className="w-full bg-slate-950/40 border border-white/5 rounded-lg px-3 py-2 text-white outline-none focus:border-primary/50 transition-all text-xs font-black"
+                                                    onChange={(e) => updateRegShift(idx, 'checkOut', e.target.value)}
+                                                    className="w-full h-11 bg-slate-950 border border-white/5 rounded-xl px-4 text-[13px] font-black text-white focus:border-primary transition-all outline-none"
                                                 />
-                                                <div className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-600 group-hover/input:text-primary transition-colors">
-                                                    <Clock className="w-3 h-3" />
-                                                </div>
                                             </div>
                                         </div>
                                     </div>
+                                ))}
+                            </div>
+                        </div>
 
-                                    {shift.missingMinutes > 0 && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 5 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            className="p-4 bg-amber-500/5 rounded-2xl border border-amber-500/10 flex flex-col md:flex-row justify-between items-center gap-4 shadow-lg shadow-black/5"
-                                        >
-                                            <div className="flex items-center gap-3 text-amber-500">
-                                                <div className="p-2 bg-amber-500/10 rounded-lg">
-                                                    <Clock className="w-4 h-4" />
-                                                </div>
-                                                <div className="flex flex-col">
-                                                    <span className="text-[11px] font-black uppercase tracking-widest opacity-60 leading-none mb-1">تأخير / نقص</span>
-                                                    <span className="text-xs font-black text-amber-500/90 leading-none">المطلوب تغطيته: <span className="text-sm">{shift.missingMinutes}</span> د</span>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-4 px-3 py-2 bg-white/5 rounded-xl border border-white/5">
-                                                <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">التغطية؟</span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const newVal = !shift.isCoveredByLeave;
-                                                        updateShiftRecord(idx, 'isCoveredByLeave', newVal);
-                                                        if (!newVal) updateShiftRecord(idx, 'delayCoverage', []);
-                                                        else updateShiftRecord(idx, 'leaveTypeId', '');
-                                                    }}
-                                                    className={cn(
-                                                        "w-12 h-6 rounded-full transition-all relative flex items-center px-1",
-                                                        shift.isCoveredByLeave ? "bg-primary shadow-[0_0_12px_rgba(59,130,246,0.3)]" : "bg-slate-700"
-                                                    )}
-                                                >
-                                                    <motion.div
-                                                        layout
-                                                        className="w-4 h-4 bg-white rounded-full shadow-lg"
-                                                        animate={{ x: shift.isCoveredByLeave ? 0 : -24 }}
-                                                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                                                    />
-                                                </button>
-                                            </div>
-                                        </motion.div>
-                                    )}
-
-                                    {shift.status !== 'present' && !shift.isCoveredByLeave && (
-                                        <motion.div
-                                            initial={{ opacity: 0, height: 0 }}
-                                            animate={{ opacity: 1, height: 'auto' }}
-                                            className="space-y-4 pt-4 mt-4 border-t border-white/5"
-                                        >
-                                            <label className="text-[11px] font-black text-accent uppercase tracking-widest px-1">تغطية الحالة برصيد إجازة</label>
-                                            <div className="relative overflow-hidden rounded-xl border border-accent/20 bg-accent/5 focus-within:border-accent transition-all">
-                                                <select
-                                                    value={shift.leaveTypeId || ''}
-                                                    onChange={(e) => {
-                                                        const type = leaveTypes.find(t => t.id === e.target.value);
-                                                        updateShiftRecord(idx, 'leaveTypeId', e.target.value);
-                                                        updateShiftRecord(idx, 'leaveTypeName', type?.name || '');
-                                                    }}
-                                                    className="w-full bg-transparent border-none px-4 py-3 text-white focus:ring-0 outline-none appearance-none cursor-pointer text-xs font-bold pr-10"
-                                                >
-                                                    <option value="" className="bg-slate-900">-- لا توجد تغطية --</option>
-                                                    {allocations
-                                                        .filter(a => attendanceDate >= a.startDate && attendanceDate <= a.endDate)
-                                                        .map(a => {
-                                                            const remaining = balances[a.id] || 0;
-                                                            const isDay = a.unit === 'days';
-                                                            return (
-                                                                <option key={a.id} value={a.typeId} className="bg-slate-900">
-                                                                    {a.typeName} (متبقي: {isDay ? remaining.toFixed(2) : Math.round(remaining)} {isDay ? 'يوم' : 'د'})
-                                                                </option>
-                                                            );
-                                                        })
-                                                    }
-                                                </select>
-                                                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-accent">
-                                                    <ChevronDown className="w-3 h-3" />
-                                                </div>
-                                            </div>
-                                        </motion.div>
-                                    )}
-
-                                    {shift.isCoveredByLeave && shift.missingMinutes > 0 && (
-                                        <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-sm font-bold text-accent">توزيع التغطية بالتفصيل:</span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const currentCoverage = shift.delayCoverage || [];
-                                                        updateShiftRecord(idx, 'delayCoverage', [...currentCoverage, { typeId: '', typeName: '', mins: 0 }]);
-                                                    }}
-                                                    className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-lg text-xs font-bold"
-                                                >
-                                                    + إضافة نوع
-                                                </button>
-                                            </div>
-
-                                            <div className="space-y-3">
-                                                {(shift.delayCoverage || []).map((cov: any, cIdx: number) => (
-                                                    <div key={cIdx} className="flex gap-2 items-center bg-slate-900/50 p-2 rounded-xl border border-white/5">
-                                                        <select
-                                                            value={cov.typeId}
-                                                            onChange={(e) => {
-                                                                const nextCovArr = [...shift.delayCoverage];
-                                                                const type = allocations.find(t => t.typeId === e.target.value);
-                                                                nextCovArr[cIdx] = { ...nextCovArr[cIdx], typeId: e.target.value, typeName: type?.typeName || '' };
-                                                                updateShiftRecord(idx, 'delayCoverage', nextCovArr);
-                                                            }}
-                                                            className="flex-1 bg-transparent border-none text-sm text-white focus:ring-0"
-                                                        >
-                                                            <option value="">اختر النوع...</option>
-                                                            {allocations
-                                                                .filter(a => attendanceDate >= a.startDate && attendanceDate <= a.endDate)
-                                                                .map(a => {
-                                                                    const remaining = balances[a.id] || 0;
-                                                                    const isDay = a.unit === 'days';
-                                                                    return (
-                                                                        <option key={a.id} value={a.typeId}>
-                                                                            {a.typeName} ({isDay ? remaining.toFixed(2) : Math.round(remaining)} {isDay ? 'يوم' : 'دقيقة'})
-                                                                        </option>
-                                                                    );
-                                                                })
-                                                            }
-                                                        </select>
-                                                        <input
-                                                            type="number"
-                                                            value={cov.mins}
-                                                            onChange={(e) => {
-                                                                const nextCovArr = [...shift.delayCoverage];
-                                                                nextCovArr[cIdx] = { ...nextCovArr[cIdx], mins: parseInt(e.target.value) || 0 };
-                                                                updateShiftRecord(idx, 'delayCoverage', nextCovArr);
-                                                            }}
-                                                            placeholder="دقائق"
-                                                            className="w-20 bg-slate-800 border-none rounded-lg p-1.5 text-xs text-center"
-                                                        />
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                const nextCovArr = shift.delayCoverage.filter((_: any, i: number) => i !== cIdx);
-                                                                updateShiftRecord(idx, 'delayCoverage', nextCovArr);
-                                                            }}
-                                                            className="p-1.5 hover:bg-red-500/10 text-slate-500 hover:text-red-400 rounded-lg transition-colors"
-                                                        >
-                                                            <TrashIcon className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </motion.div>
-                            ))}
+                        <div className="flex items-center gap-4 pt-4">
+                            <button
+                                onClick={() => {
+                                    setIsModalOpen(false);
+                                    setRegEmployeeId('');
+                                    setRegShifts([{ name: 'الفترة الصباحية', checkIn: '08:00', checkOut: '16:00', status: 'present' }]);
+                                }}
+                                className="px-8 h-11 rounded-xl bg-white/5 font-black text-[12px] text-slate-500 hover:text-white transition-all border border-white/5 active:scale-95"
+                            >
+                                إغلاق النافذة
+                            </button>
+                            <button
+                                onClick={handleSaveAttendance}
+                                disabled={regLoading || !regEmployeeId}
+                                className="flex-1 h-11 rounded-xl bg-primary text-white font-black text-[12px] shadow-2xl shadow-primary/30 hover:bg-primary/90 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
+                            >
+                                {regLoading ? (
+                                    <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                ) : (
+                                    <>
+                                        <Check className="w-4 h-4" /> تأكيد السجل وحفظ البيانات
+                                    </>
+                                )}
+                            </button>
                         </div>
                     </div>
-
-                    <div className="flex gap-3 pt-2">
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="flex-1 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-lg font-black text-sm transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 active:scale-95"
-                        >
-                            {loading ? 'جاري الحفظ...' : <span>تثبيت وتسجيل <Check className="w-4 h-4" /></span>}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setIsModalOpen(false)}
-                            className="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-slate-400 rounded-lg font-bold text-xs transition-all border border-white/5 active:scale-95"
-                        >
-                            إلغاء
-                        </button>
-                    </div>
-                </form>
-            </Modal>
+                </Modal>
+            )}
         </DashboardLayout>
     );
 }
-

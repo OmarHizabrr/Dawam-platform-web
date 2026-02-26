@@ -48,7 +48,7 @@ export default function PeriodFilter({
 
     return (
         <div className="flex flex-col lg:flex-row gap-6 mb-10">
-            <div className="flex-1 glass p-2 rounded-2xl flex items-center group focus-within:ring-2 ring-primary/20 transition-all">
+            <div className="flex-1 bg-slate-950/40 border border-white/10 p-2 rounded-2xl flex items-center group focus-within:ring-4 focus-within:ring-primary/5 focus-within:border-primary/50 transition-all shadow-inner">
                 <div className="p-3">
                     <Search className="w-5 h-5 text-slate-500 group-focus-within:text-primary transition-colors" />
                 </div>
@@ -61,41 +61,45 @@ export default function PeriodFilter({
                 />
             </div>
 
-            <div className="glass p-2 rounded-2xl flex flex-col sm:flex-row items-center gap-4">
+            <div className="bg-slate-950/40 border border-white/10 p-2 rounded-2xl flex flex-col sm:flex-row items-center gap-4 shadow-inner">
                 <div className="flex items-center gap-4 px-4 overflow-hidden">
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">من</span>
-                        <input
-                            type="date"
-                            value={startDate}
-                            onChange={(e) => onStartChange(e.target.value)}
-                            className="bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-sm text-white focus:border-primary outline-none transition-all"
-                        />
+                    <div className="flex items-center gap-3">
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap">من</span>
+                        <div className="relative group">
+                            <input
+                                type="date"
+                                value={startDate}
+                                onChange={(e) => onStartChange(e.target.value)}
+                                className="bg-slate-950/40 border border-white/10 rounded-xl px-4 py-2 text-[12px] font-black text-white focus:border-primary/50 focus:ring-4 focus:ring-primary/5 outline-none transition-all cursor-pointer shadow-inner appearance-none"
+                            />
+                        </div>
                     </div>
-                    <ChevronLeft className="w-4 h-4 text-slate-600 hidden sm:block" />
-                    <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">إلى</span>
-                        <input
-                            type="date"
-                            value={endDate}
-                            onChange={(e) => onEndChange(e.target.value)}
-                            className="bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-sm text-white focus:border-primary outline-none transition-all"
-                        />
+                    <ChevronLeft className="w-4 h-4 text-slate-700 hidden sm:block flex-shrink-0" />
+                    <div className="flex items-center gap-3">
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap">إلى</span>
+                        <div className="relative group">
+                            <input
+                                type="date"
+                                value={endDate}
+                                onChange={(e) => onEndChange(e.target.value)}
+                                className="bg-slate-950/40 border border-white/5 rounded-xl px-4 py-2 text-[12px] font-black text-white focus:border-primary/50 focus:ring-4 focus:ring-primary/5 outline-none transition-all cursor-pointer shadow-inner appearance-none"
+                            />
+                        </div>
                     </div>
                 </div>
 
-                <div className="flex gap-2 p-1 bg-white/5 rounded-xl">
+                <div className="flex gap-2 p-1.5 bg-slate-950/60 rounded-xl border border-white/10 shadow-inner">
                     <button
                         type="button"
                         onClick={setPeriodToMonth}
-                        className="px-4 py-1.5 text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all flex items-center gap-2"
+                        className="px-5 py-2 text-[10px] font-black text-slate-500 hover:text-white hover:bg-white/5 rounded-lg transition-all flex items-center gap-2 uppercase tracking-widest"
                     >
                         <CalendarIcon className="w-3.5 h-3.5" /> هذا الشهر
                     </button>
                     <button
                         type="button"
                         onClick={setPeriodToYear}
-                        className="px-4 py-1.5 text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all flex items-center gap-2"
+                        className="px-5 py-2 text-[10px] font-black text-slate-500 hover:text-white hover:bg-white/5 rounded-lg transition-all flex items-center gap-2 uppercase tracking-widest"
                     >
                         <CalendarIcon className="w-3.5 h-3.5" /> هذه السنة
                     </button>
