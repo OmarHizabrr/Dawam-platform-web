@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { db } from '@/lib/firebase/clientApp';
 import { collection, onSnapshot, query } from 'firebase/firestore';
-import SearchFilter from '@/components/SearchFilter';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     PieChart,
@@ -15,13 +14,24 @@ import {
     TrendingDown,
     CheckCircle2,
     Info,
+    Tag,
     ChevronDown,
     LayoutDashboard,
     ArrowUpRight,
     ArrowDownLeft,
-    Box
+    Box,
+    Sparkles,
+    Activity,
+    UserCheck,
+    Briefcase,
+    Zap,
+    Layers,
+    ShieldCheck
 } from 'lucide-react';
+import { parseISO, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { cn } from '@/lib/utils';
+import PageHeader from '@/components/ui/PageHeader';
+import AppCard from '@/components/ui/AppCard';
 
 interface LeaveUsage {
     date: string;
@@ -47,14 +57,17 @@ export default function LeaveBalancePage() {
         setMounted(true);
         const storedUser = localStorage.getItem('userData');
         if (storedUser) {
-            const parsedUser = JSON.parse(storedUser);
-            setUser(parsedUser);
-            fetchInitialData(parsedUser.uid);
+            try {
+                const parsedUser = JSON.parse(storedUser);
+                setUser(parsedUser);
+                fetchInitialData(parsedUser.uid);
+            } catch (e) {
+                console.error("Error parsing user data:", e);
+            }
         }
     }, []);
 
     const fetchInitialData = async (uid: string) => {
-        setLoading(true);
         const empCol = collection(db, "employees", uid, "employees");
         onSnapshot(query(empCol), (snap) => {
             setEmployees(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
@@ -84,6 +97,7 @@ export default function LeaveBalancePage() {
         });
 
         return () => unsub();
+        return () => unsub();
     }, [selectedEmpId]);
 
     const leaveSummary = useMemo(() => {
@@ -93,13 +107,19 @@ export default function LeaveBalancePage() {
         const empUsage: LeaveUsage[] = [];
 
         attendanceRecords.forEach(record => {
-            if (record.shifts && Array.isArray(record.shifts)) {
+            if (record.date && record.shifts && Array.isArray(record.shifts)) {
+                const recordDate = parseISO(record.date);
                 record.shifts.forEach((shift: any, idx: number) => {
                     const delayCoverage = shift.delayCoverage || [];
                     if (shift.isCoveredByLeave && delayCoverage.length > 0) {
                         delayCoverage.forEach((cov: any) => {
                             if (!cov.typeId) return;
-                            const alloc = empAllocations.find(a => a.typeId === cov.typeId && record.date >= a.startDate && record.date <= a.endDate);
+                            const alloc = empAllocations.find(a => {
+                                if (a.typeId !== cov.typeId || !a.startDate || !a.endDate) return false;
+                                const start = parseISO(a.startDate);
+                                const end = parseISO(a.endDate);
+                                return isWithinInterval(recordDate, { start: startOfDay(start), end: endOfDay(end) });
+                            });
                             const unit = alloc?.unit || 'days';
                             let amount = parseFloat(cov.mins) || 0;
                             if (unit === 'days') amount = amount / 480;
@@ -110,7 +130,12 @@ export default function LeaveBalancePage() {
                             }
                         });
                     } else if (shift.leaveTypeId) {
-                        const alloc = empAllocations.find(a => a.typeId === shift.leaveTypeId && record.date >= a.startDate && record.date <= a.endDate);
+                        const alloc = empAllocations.find(a => {
+                            if (a.typeId !== shift.leaveTypeId || !a.startDate || !a.endDate) return false;
+                            const start = parseISO(a.startDate);
+                            const end = parseISO(a.endDate);
+                            return isWithinInterval(recordDate, { start: startOfDay(start), end: endOfDay(end) });
+                        });
                         let amount = 0;
                         let unit = alloc?.unit || 'days';
                         if (shift.isCoveredByLeave && shift.missingMinutes > 0) {
@@ -139,235 +164,276 @@ export default function LeaveBalancePage() {
         });
 
         return empAllocations.map(alloc => {
+            if (!alloc.startDate || !alloc.endDate) return { ...alloc, used: 0, remaining: alloc.amount, usageHistory: [] };
+            const allocStart = parseISO(alloc.startDate);
+            const allocEnd = parseISO(alloc.endDate);
             const used = empUsage
-                .filter(u => u.leaveTypeId === alloc.typeId && u.date >= alloc.startDate && u.date <= alloc.endDate)
+                .filter(u => {
+                    if (u.leaveTypeId !== alloc.typeId || !u.date) return false;
+                    const uDate = parseISO(u.date);
+                    return isWithinInterval(uDate, { start: startOfDay(allocStart), end: endOfDay(allocEnd) });
+                })
                 .reduce((sum, u) => sum + u.amount, 0);
 
             return {
                 ...alloc,
                 used: used,
                 remaining: alloc.amount - used,
-                usageHistory: empUsage.filter(u => u.leaveTypeId === alloc.typeId && u.date >= alloc.startDate && u.date <= alloc.endDate)
+                usageHistory: empUsage.filter(u => {
+                    if (u.leaveTypeId !== alloc.typeId || !u.date) return false;
+                    const uDate = parseISO(u.date);
+                    return isWithinInterval(uDate, { start: startOfDay(allocStart), end: endOfDay(allocEnd) });
+                })
             };
         });
     }, [selectedEmpId, allocations, attendanceRecords]);
 
-    if (!mounted || !user) return <div className="bg-[#0f172a] min-h-screen" />;
+    if (!mounted) return null;
 
     return (
         <DashboardLayout>
-            <div className="max-w-7xl mx-auto px-4 py-8">
-                <motion.header
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12"
-                >
-                    <div>
-                        <h1 className="text-2xl font-black mb-1 bg-gradient-to-l from-white to-white/60 bg-clip-text text-transparent">
-                            أرصدة واستهلاك الإجازات
-                        </h1>
-                        <p className="text-xs text-slate-400 font-medium flex items-center gap-1.5">
-                            نظام متطور لمتابعة الأرصدة المتبقية والاستهلاكات التفصيلية لكل موظف بكفاءة
-                            <span className="w-1 h-1 rounded-full bg-blue-500 animate-pulse" />
-                        </p>
-                    </div>
-
-                    <div className="relative group min-w-[280px]">
-                        <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none">
-                            <User className="w-4 h-4 text-slate-500 group-focus-within:text-blue-500 transition-colors" />
+            <PageHeader
+                title="مؤشرات استهلاك الأرصدة"
+                subtitle="تحليل ذكي للحصص الزمنية المتبقية ومعدلات الاستهلاك الفعلي للموارد البشرية."
+                icon={Activity}
+                breadcrumb="المؤشرات التحليلية"
+                actions={
+                    <div className="relative group min-w-[340px]">
+                        <div className="absolute inset-y-0 right-5 flex items-center pointer-events-none">
+                            <UserCheck className="w-5 h-5 text-slate-500 group-focus-within:text-primary transition-all" />
                         </div>
                         <select
                             value={selectedEmpId}
                             onChange={(e) => setSelectedEmpId(e.target.value)}
-                            className="w-full bg-slate-900/50 border border-white/5 rounded-xl pr-9 pl-9 py-2 text-xs text-white font-bold hover:border-blue-500/30 focus:border-blue-500 focus:ring-4 ring-blue-500/10 outline-none appearance-none transition-all cursor-pointer shadow-inner"
+                            className="w-full h-11 bg-slate-950/50 border border-white/10 rounded-xl pr-14 pl-12 text-[13px] font-black text-white hover:border-primary/50 focus:border-primary/50 focus:ring-4 focus:ring-primary/5 outline-none appearance-none transition-all cursor-pointer shadow-2xl"
                         >
-                            <option value="">-- اختر موظف من القائمة --</option>
+                            <option value="">-- يرجى اختيار الموظف المستهدف --</option>
                             {employees.map(emp => (
-                                <option key={emp.id} value={emp.id} className="bg-slate-900">{emp.name} ({emp.jobId})</option>
+                                <option key={emp.id} value={emp.id}>{emp.name} ({emp.jobId || 'بدون معرف'})</option>
                             ))}
                         </select>
-                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+                        <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
+                            <ChevronDown className="w-4.5 h-4.5 text-slate-500" />
                         </div>
                     </div>
-                </motion.header>
+                }
+            />
 
-                <AnimatePresence mode="wait">
-                    {!selectedEmpId ? (
-                        <motion.div
-                            key="empty"
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            className="py-16 flex flex-col items-center justify-center text-center space-y-4"
-                        >
-                            <div className="relative">
-                                <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 animate-pulse">
-                                    <Box className="w-8 h-8" />
-                                </div>
-                                <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-lg bg-slate-900 border border-white/5 flex items-center justify-center text-blue-500 shadow-xl">
-                                    <Info className="w-3.5 h-3.5" />
-                                </div>
-                            </div>
-                            <div className="space-y-1">
-                                <h2 className="text-xl font-black text-white">انتظار اختيار الموظف</h2>
-                                <p className="text-slate-500 font-bold text-xs max-w-[240px] mx-auto">يرجى اختيار موظف من القائمة العلوية لعرض التقرير.</p>
-                            </div>
-                        </motion.div>
-                    ) : (
-                        <motion.div
-                            key="content"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="space-y-12"
-                        >
-                            {/* Summary Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                                {leaveSummary.length === 0 ? (
-                                    <div className="col-span-full py-20 glass rounded-[32px] border-dashed border-2 border-white/5 flex flex-col items-center justify-center text-slate-600 gap-4">
-                                        <History className="w-12 h-12" />
-                                        <p className="font-black text-lg text-slate-500">لا يوجد رصيد إجازات مخصص لهذا الموظف حالياً في النظام</p>
-                                    </div>
-                                ) : (
-                                    leaveSummary.map((item, idx) => (
+            <AnimatePresence mode="wait">
+                {!selectedEmpId ? (
+                    <motion.div
+                        key="empty"
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="py-44 flex flex-col items-center justify-center text-center space-y-10 opacity-30"
+                    >
+                        <div className="w-40 h-40 rounded-[3.5rem] bg-slate-900 flex items-center justify-center border border-white/5 relative shadow-inner">
+                            <Layers className="w-20 h-20 text-slate-500" />
+                            <motion.div
+                                animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                                transition={{ duration: 4, repeat: Infinity }}
+                                className="absolute inset-0 bg-primary/10 rounded-full blur-3xl"
+                            />
+                        </div>
+                        <div className="space-y-3">
+                            <h2 className="text-3xl font-black text-white tracking-tight">بانتظار البيانات الإدخالية</h2>
+                            <p className="text-meta !text-[12px] max-w-[400px] mx-auto leading-relaxed">قم باختيار الموظف من القائمة المنسدلة أعلاه لتوليد التقرير الزمني للأرصدة.</p>
+                        </div>
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="content"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="space-y-12"
+                    >
+                        {/* High-Fidelity Quota Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                            {leaveSummary.length === 0 ? (
+                                <div className="col-span-full py-48 flex flex-col items-center justify-center text-slate-500 gap-10 relative overflow-hidden bg-slate-950/40 rounded-[3rem] border border-white/5 shadow-2xl">
+                                    <div className="absolute inset-0 bg-primary/2 rounded-full blur-[140px] pointer-events-none" />
+                                    <div className="w-32 h-32 rounded-[3.5rem] bg-slate-950 flex items-center justify-center border border-white/5 shadow-2xl relative group/empty">
                                         <motion.div
-                                            key={idx}
-                                            initial={{ opacity: 0, scale: 0.95 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            transition={{ delay: idx * 0.1 }}
-                                            className="group glass p-5 rounded-xl border border-white/5 hover:border-blue-500/20 shadow-xl hover:shadow-2xl transition-all relative overflow-hidden"
-                                        >
-                                            <div className="absolute -right-6 -top-6 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl group-hover:bg-blue-500/10 transition-colors" />
+                                            animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.3, 0.1] }}
+                                            transition={{ duration: 4, repeat: Infinity }}
+                                            className="absolute inset-0 bg-primary/20 rounded-full blur-2xl"
+                                        />
+                                        <Zap className="w-14 h-14 text-slate-700 group-hover/empty:text-primary transition-colors" />
+                                    </div>
+                                    <div className="text-center space-y-3 relative z-10">
+                                        <h3 className="text-3xl font-black text-white tracking-tighter uppercase italic">سجل الأرصدة معطل</h3>
+                                        <p className="text-meta !text-[11px] max-w-sm mx-auto leading-relaxed">لا يوجد سجل أرصدة مخصص لهذا الموظف حالياً. يرجى التوجه لوحدة تخصيص الأرصدة لتنشيط الحساب.</p>
+                                    </div>
+                                </div>
+                            ) : (
+                                leaveSummary.map((item, idx) => (
+                                    <motion.div
+                                        key={idx}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: idx * 0.1 }}
+                                    >
+                                        <AppCard padding="none" className="group overflow-hidden border-white/5 shadow-2xl surface-deep relative h-full">
+                                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-3xl -translate-y-16 translate-x-8 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
-                                            <div className="relative z-10 space-y-8">
+                                            <div className="p-8 space-y-8 relative z-10">
                                                 <div className="flex justify-between items-start">
                                                     <div>
-                                                        <h3 className="text-lg font-black text-white group-hover:text-blue-500 transition-colors uppercase tracking-tight">{item.typeName}</h3>
-                                                        <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest mt-0.5">
-                                                            {item.startDate} ← {item.endDate}
+                                                        <h3 className="text-2xl font-black text-white group-hover:text-primary transition-colors tracking-tighter">{item.typeName}</h3>
+                                                        <div className="flex items-center gap-3 mt-2">
+                                                            <Calendar className="w-3.5 h-3.5 text-slate-600" />
+                                                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest tabular-nums">
+                                                                {item.startDate} ← {item.endDate}
+                                                            </span>
                                                         </div>
                                                     </div>
-                                                    <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
-                                                        <PieChart className="w-5 h-5" />
+                                                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/10 flex items-center justify-center text-primary shadow-inner group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
+                                                        <PieChart className="w-7 h-7" />
                                                     </div>
                                                 </div>
 
-                                                <div className="grid grid-cols-3 gap-2">
-                                                    <div className="space-y-0.5">
-                                                        <span className="text-[8px] font-black text-slate-600 uppercase tracking-tighter block text-center">المخصص</span>
-                                                        <div className="text-center font-black text-white text-base tracking-tighter">{item.amount}<span className="text-[8px] text-slate-700 mr-0.5">{item.unit === 'minutes' ? 'د' : 'ي'}</span></div>
+                                                <div className="grid grid-cols-3 gap-6 p-6 rounded-[2rem] bg-slate-950/60 border border-white/5 shadow-inner">
+                                                    <div className="text-center space-y-2">
+                                                        <span className="text-meta !text-[9px] !text-slate-600">المخصص</span>
+                                                        <div className="font-black text-white text-[20px] tracking-tighter tabular-nums">
+                                                            {item.amount}
+                                                            <span className="text-[11px] text-slate-700 mr-1">{item.unit === 'minutes' ? 'د' : 'ي'}</span>
+                                                        </div>
                                                     </div>
-                                                    <div className="space-y-0.5 border-x border-white/5">
-                                                        <span className="text-[8px] font-black text-slate-600 uppercase tracking-tighter block text-center">المستهلك</span>
-                                                        <div className="text-center font-black text-amber-500 text-base tracking-tighter">{item.used.toFixed(1)}<span className="text-[8px] text-amber-500/50 mr-0.5">{item.unit === 'minutes' ? 'د' : 'ي'}</span></div>
+                                                    <div className="text-center space-y-2 border-x border-white/5 px-2">
+                                                        <span className="text-meta !text-[9px] !text-slate-600">المستهلك</span>
+                                                        <div className="font-black text-rose-500 text-[20px] tracking-tighter tabular-nums">
+                                                            {item.used.toFixed(1)}
+                                                            <span className="text-[11px] opacity-40 mr-1">{item.unit === 'minutes' ? 'د' : 'ي'}</span>
+                                                        </div>
                                                     </div>
-                                                    <div className="space-y-0.5">
-                                                        <span className="text-[8px] font-black text-slate-600 uppercase tracking-tighter block text-center">المتبقي</span>
-                                                        <div className="text-center font-black text-emerald-500 text-base tracking-tighter">{item.remaining.toFixed(1)}<span className="text-[8px] text-emerald-500/50 mr-0.5">{item.unit === 'minutes' ? 'د' : 'ي'}</span></div>
+                                                    <div className="text-center space-y-2">
+                                                        <span className="text-meta !text-[9px] !text-slate-600">المتبقي</span>
+                                                        <div className="font-black text-emerald-400 text-[20px] tracking-tighter tabular-nums">
+                                                            {item.remaining.toFixed(1)}
+                                                            <span className="text-[11px] opacity-40 mr-1">{item.unit === 'minutes' ? 'د' : 'ي'}</span>
+                                                        </div>
                                                     </div>
                                                 </div>
 
-                                                <div className="space-y-2">
-                                                    <div className="flex justify-between text-[9px] font-black uppercase tracking-widest">
-                                                        <span className="text-slate-500">نسبة الاستهلاك</span>
-                                                        <span className="text-blue-500">{((item.used / item.amount) * 100).toFixed(0)}%</span>
+                                                <div className="space-y-4">
+                                                    <div className="flex justify-between items-end">
+                                                        <div className="space-y-1">
+                                                            <span className="text-meta !text-[10px]">معدل الاستنزاف</span>
+                                                            <span className="text-[20px] font-black text-white tabular-nums tracking-tighter">{((item.used / item.amount) * 100).toFixed(0)}%</span>
+                                                        </div>
+                                                        <Activity className="w-5 h-5 text-primary/30 group-hover:text-primary transition-colors animate-pulse" />
                                                     </div>
-                                                    <div className="h-2 bg-white/5 rounded-full overflow-hidden border border-white/5 p-0.5">
+                                                    <div className="h-3 bg-slate-950 rounded-full overflow-hidden p-0.5 border border-white/5">
                                                         <motion.div
                                                             initial={{ width: 0 }}
                                                             animate={{ width: `${Math.min(100, (item.used / item.amount) * 100)}%` }}
-                                                            transition={{ duration: 1, ease: "easeOut" }}
-                                                            className="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.3)]"
+                                                            transition={{ duration: 2, ease: "circOut" }}
+                                                            className="h-full bg-gradient-to-r from-primary to-emerald-400 rounded-full shadow-[0_0_12px_rgba(124,58,237,0.3)]"
                                                         />
                                                     </div>
                                                 </div>
                                             </div>
-                                        </motion.div>
-                                    ))
-                                )}
-                            </div>
 
-                            {/* Detailed History Table */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 15 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="glass rounded-2xl border border-white/5 shadow-2xl overflow-hidden"
-                            >
-                                <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500">
-                                            <TrendingDown className="w-4 h-4" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-base font-black text-white uppercase tracking-tight">سجل الاستهلاك</h3>
-                                            <p className="text-slate-600 text-[8px] font-black uppercase tracking-widest">تتبع دقيق لكل استهلاك من الرصيد</p>
-                                        </div>
+                                            <div className="px-8 py-5 bg-white/[0.02] border-t border-white/5 flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]" />
+                                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">تحديث فوري</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-primary opacity-60 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                                    <span className="text-[10px] font-black uppercase tracking-widest">عرض التقرير</span>
+                                                    <ArrowUpRight className="w-3.5 h-3.5" />
+                                                </div>
+                                            </div>
+                                        </AppCard>
+                                    </motion.div>
+                                ))
+                            )}
+                        </div>
+
+                        {/* Transactional Ledger */}
+                        <AppCard padding="none" className="overflow-hidden border-white/5 shadow-2xl surface-deep">
+                            <div className="px-10 py-8 border-b border-white/10 flex items-center justify-between bg-white/[0.01]">
+                                <div className="flex items-center gap-6">
+                                    <div className="w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 border border-amber-500/10 shadow-inner">
+                                        <History className="w-7 h-7" />
                                     </div>
-                                    <div className="bg-white/5 px-3 py-0.5 rounded-full border border-white/10 text-[8px] font-black text-slate-500 uppercase tracking-widest">
-                                        {leaveSummary.flatMap(s => s.usageHistory).length} سجل
+                                    <div className="space-y-1">
+                                        <h3 className="text-[20px] font-black text-white tracking-tighter uppercase">شريط الاستهلاك الزمني</h3>
+                                        <p className="text-meta !text-[11px]">مراجعة كافة عمليات الخصم والتغطية الآلية المعتمجة.</p>
                                     </div>
                                 </div>
+                                <div className="px-5 py-2.5 rounded-2xl bg-slate-900 border border-white/5 flex items-center gap-3">
+                                    <ShieldCheck className="w-4.5 h-4.5 text-emerald-500" />
+                                    <span className="text-[13px] font-black text-white tabular-nums">{leaveSummary.flatMap(s => s.usageHistory).length} سجل موثق</span>
+                                </div>
+                            </div>
 
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-right">
-                                        <thead>
-                                            <tr className="bg-white/5 border-b border-white/5">
-                                                <th className="px-6 py-3 text-slate-500 font-bold text-[9px] uppercase tracking-widest text-right">التاريخ</th>
-                                                <th className="px-6 py-3 text-slate-500 font-bold text-[9px] uppercase tracking-widest text-right">الفئة</th>
-                                                <th className="px-6 py-3 text-slate-500 font-bold text-[9px] uppercase tracking-widest text-right">الفترة</th>
-                                                <th className="px-6 py-3 text-slate-500 font-bold text-[9px] uppercase tracking-widest text-right">الكمية</th>
-                                                <th className="px-6 py-3 text-slate-500 font-bold text-[9px] uppercase tracking-widest text-center">الحالة</th>
+                            <div className="overflow-x-auto custom-scrollbar">
+                                <table className="w-full border-collapse">
+                                    <thead>
+                                        <tr className="bg-white/[0.03] border-b border-white/5 text-right">
+                                            <th className="px-10 py-6 text-meta">التاريخ الزمني</th>
+                                            <th className="px-10 py-6 text-meta">المصدر المالي/الزمني</th>
+                                            <th className="px-10 py-6 text-meta">نافذة العمل</th>
+                                            <th className="px-10 py-6 text-meta">الخصم المحتسب</th>
+                                            <th className="px-10 py-6 text-center text-meta">توثيق الحالة</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/[0.03]">
+                                        {leaveSummary.every(s => s.usageHistory.length === 0) ? (
+                                            <tr>
+                                                <td colSpan={5} className="px-10 py-32 text-center">
+                                                    <div className="flex flex-col items-center gap-8 opacity-20">
+                                                        <Box className="w-20 h-20 text-slate-500" />
+                                                        <div className="text-2xl font-black text-white tracking-tight leading-none">لم يتم تسجيل حركات استهلاك بالرصيد</div>
+                                                    </div>
+                                                </td>
                                             </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-white/5">
-                                            {leaveSummary.every(s => s.usageHistory.length === 0) ? (
-                                                <tr>
-                                                    <td colSpan={5} className="py-24 text-center">
-                                                        <div className="flex flex-col items-center justify-center text-slate-600 gap-4">
-                                                            <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
-                                                                <CheckCircle2 className="w-8 h-8" />
+                                        ) : (
+                                            leaveSummary.flatMap(s => s.usageHistory).sort((a, b) => b.date.localeCompare(a.date)).map((usage, idx) => (
+                                                <tr key={idx} className="group hover:bg-white/[0.01] transition-colors">
+                                                    <td className="px-10 py-7">
+                                                        <span className="text-[16px] font-black text-white tabular-nums tracking-tighter group-hover:text-primary transition-colors">
+                                                            {usage.date}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-10 py-7">
+                                                        <div className="px-4 py-2 rounded-xl bg-primary/10 border border-primary/10 w-fit flex items-center gap-3">
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(124,58,237,1)]" />
+                                                            <span className="text-[11px] font-black text-primary uppercase tracking-widest">{usage.leaveTypeName}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-10 py-7">
+                                                        <span className="text-[13px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-3 leading-none">
+                                                            <Sparkles className="w-4 h-4 text-slate-700" />
+                                                            النوبة رقم {usage.shiftIndex + 1}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-10 py-7">
+                                                        <div className="flex items-baseline gap-2">
+                                                            <span className="text-[20px] font-black text-rose-500 tracking-tighter tabular-nums">-{usage.amount.toFixed(1)}</span>
+                                                            <span className="text-[11px] font-black text-slate-600 uppercase tracking-widest">{usage.unit === 'minutes' ? 'دقيقة' : 'يوم'}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-10 py-7">
+                                                        <div className="flex justify-center">
+                                                            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/10 flex items-center justify-center text-emerald-500 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-inner">
+                                                                <CheckCircle2 className="w-5 h-5 shadow-2xl" />
                                                             </div>
-                                                            <p className="font-bold">لا توجد عمليات استهلاك مسجلة حتى الآن</p>
                                                         </div>
                                                     </td>
                                                 </tr>
-                                            ) : (
-                                                leaveSummary.flatMap(s => s.usageHistory).sort((a, b) => b.date.localeCompare(a.date)).map((usage, idx) => (
-                                                    <tr key={idx} className="group hover:bg-white/[0.02] transition-colors border-b border-white/5">
-                                                        <td className="px-6 py-2.5 font-bold text-white group-hover:text-blue-500 transition-colors text-xs">
-                                                            {usage.date}
-                                                        </td>
-                                                        <td className="px-6 py-2.5">
-                                                            <div className="inline-flex items-center gap-1.5 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/10 text-[8px] font-bold text-blue-400 uppercase">
-                                                                <ArrowDownLeft className="w-2.5 h-2.5" />
-                                                                {usage.leaveTypeName}
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-6 py-2.5 font-bold text-slate-500 uppercase text-[9px]">
-                                                            فترة {usage.shiftIndex + 1}
-                                                        </td>
-                                                        <td className="px-6 py-2.5 font-black text-sm text-amber-500 tracking-tighter">
-                                                            {usage.amount.toFixed(1)}
-                                                            <span className="text-[8px] text-slate-700 mr-1 uppercase">{usage.unit === 'minutes' ? 'د' : 'ي'}</span>
-                                                        </td>
-                                                        <td className="px-6 py-2.5">
-                                                            <div className="flex justify-center">
-                                                                <div className="w-6 h-6 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/10">
-                                                                    <CheckCircle2 className="w-3 h-3" />
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </motion.div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </div>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </AppCard>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </DashboardLayout>
     );
 }

@@ -19,9 +19,22 @@ import {
     Layers,
     Info,
     Timer,
-    ArrowLeftRight
+    ArrowLeftRight,
+    GripVertical,
+    CalendarCheck,
+    Briefcase,
+    Zap,
+    MousePointer2,
+    ChevronLeft,
+    Sparkles,
+    Sun,
+    Moon,
+    Coffee,
+    ShieldCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import PageHeader from '@/components/ui/PageHeader';
+import AppCard from '@/components/ui/AppCard';
 
 interface Shift {
     start: string;
@@ -37,7 +50,7 @@ export default function AttendancePlansPage() {
     const [isEditMode, setIsEditMode] = useState(false);
     const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
 
-    // حقول الباقة
+    // Form fields
     const [planName, setPlanName] = useState('');
     const [selectedDays, setSelectedDays] = useState<string[]>([]);
     const [shifts, setShifts] = useState<Shift[]>([{ start: '08:00', end: '16:00' }]);
@@ -56,29 +69,24 @@ export default function AttendancePlansPage() {
         setMounted(true);
         const storedUser = localStorage.getItem('userData');
         if (storedUser) {
-            const parsedUser = JSON.parse(storedUser);
-            setUser(parsedUser);
-
-            const plansColRef = collection(db, "attendancePlans", parsedUser.uid, "plans");
-            const unsubscribe = onSnapshot(query(plansColRef), (snapshot) => {
-                const plansList = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                setPlans(plansList);
-            });
-
-            return () => unsubscribe();
+            try {
+                const parsedUser = JSON.parse(storedUser);
+                setUser(parsedUser);
+                const plansColRef = collection(db, "attendancePlans", parsedUser.uid, "plans");
+                onSnapshot(query(plansColRef), (snapshot) => {
+                    const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    setPlans(list);
+                });
+            } catch (e) {
+                console.error("Error parsing user data:", e);
+            }
         }
     }, []);
 
     const handleSavePlan = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!user) return;
-        if (selectedDays.length === 0) {
-            alert("يرجى اختيار يوم واحد على الأقل");
-            return;
-        }
+        if (selectedDays.length === 0) return;
 
         setLoading(true);
         try {
@@ -86,6 +94,7 @@ export default function AttendancePlansPage() {
                 name: planName,
                 days: selectedDays,
                 shifts: shifts,
+                updatedAt: new Date().toISOString()
             };
 
             if (isEditMode && editingPlanId) {
@@ -94,26 +103,24 @@ export default function AttendancePlansPage() {
             } else {
                 const planId = FirestoreApi.Api.getNewId("attendancePlans");
                 const planRef = FirestoreApi.Api.getAttendancePlanRef(user.uid, planId);
-                await FirestoreApi.Api.setData({ docRef: planRef, data: planData });
+                await FirestoreApi.Api.setData({ docRef: planRef, data: { ...planData, createdAt: new Date().toISOString() } });
             }
 
             closeModal();
         } catch (error) {
             console.error("Error saving plan:", error);
-            alert("حدث خطأ أثناء حفظ باقة الدوام");
         } finally {
             setLoading(false);
         }
     };
 
     const handleDeletePlan = async (planId: string) => {
-        if (!confirm("هل أنت متأكد من حذف هذه الباقة؟")) return;
+        if (!confirm("هل أنت متأكد من حذف هذه الباقة؟ سيؤثر هذا على نظام احتساب الحضور للموظفين المرتبطين بها.")) return;
         try {
             const planRef = FirestoreApi.Api.getAttendancePlanRef(user.uid, planId);
             await FirestoreApi.Api.deleteData(planRef);
         } catch (error) {
             console.error("Error deleting plan:", error);
-            alert("حدث خطأ أثناء حذف الباقة");
         }
     };
 
@@ -158,259 +165,299 @@ export default function AttendancePlansPage() {
         });
     };
 
-    if (!mounted || !user) return <div className="bg-[#0f172a] min-h-screen" />;
+    if (!mounted) return null;
 
     return (
         <DashboardLayout>
-            <div className="max-w-7xl mx-auto px-4 py-8">
-                <motion.header
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12"
-                >
-                    <div>
-                        <h1 className="text-2xl font-black mb-1 bg-gradient-to-l from-white to-white/60 bg-clip-text text-transparent">
-                            باقات الدوام
-                        </h1>
-                        <p className="text-xs text-slate-400 font-medium flex items-center gap-1.5">
-                            تصميم وإدارة جداول العمل والورديات لمختلف أقسام وفئات الموظفين
-                            <span className="w-1 h-1 rounded-full bg-blue-500 animate-pulse" />
-                        </p>
-                    </div>
-
+            <PageHeader
+                title="هندسة جداول الحضور"
+                subtitle="بناء هياكل الدوام المخصصة، تصميم الورديات، وتوزيع أيام العمل التشغيلية للمؤسسة."
+                icon={CalendarRange}
+                breadcrumb="الإعدادات التشغيلية"
+                actions={
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs shadow-lg shadow-blue-500/20 transition-all active:scale-95 group"
+                        className="h-11 px-7 rounded-xl bg-primary hover:bg-primary/90 text-white font-black text-[12px] transition-all shadow-2xl shadow-primary/30 flex items-center gap-2.5 active:scale-95 group"
                     >
-                        <Plus className="w-3.5 h-3.5 group-hover:rotate-90 transition-transform" />
-                        <span>إنشاء باقة</span>
+                        <Plus className="w-4.5 h-4.5 group-hover:rotate-90 transition-transform" />
+                        <span>إنشاء بنية دوام</span>
                     </button>
-                </motion.header>
+                }
+            />
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-                    <AnimatePresence mode="popLayout">
-                        {plans.length === 0 ? (
-                            <div className="col-span-full py-24 text-center">
-                                <div className="flex flex-col items-center justify-center text-slate-500 gap-4 text-center">
-                                    <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center text-slate-600">
-                                        <Layers className="w-10 h-10" />
-                                    </div>
-                                    <p className="font-bold text-lg">لا توجد باقات دوام مضافة حالياً</p>
-                                    <p className="text-sm max-w-xs mx-auto">ابدأ بإنشاء باقة دوام لتحديد أيام العمل وفترات الورديات للموظفين.</p>
-                                </div>
-                            </div>
-                        ) : (
-                            plans.map((plan, index) => (
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-10 pb-20">
+                <AnimatePresence mode="popLayout">
+                    {plans.length === 0 ? (
+                        <div className="col-span-full py-40 flex flex-col items-center justify-center text-slate-500 gap-10 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-primary/2 rounded-full blur-[140px] pointer-events-none" />
+                            <div className="w-32 h-32 rounded-[3rem] bg-slate-950 flex items-center justify-center border border-white/5 shadow-2xl relative group/empty">
                                 <motion.div
-                                    key={plan.id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.95 }}
-                                    transition={{ delay: index * 0.1 }}
-                                    className="group glass p-5 rounded-xl border border-white/5 shadow-xl hover:shadow-2xl hover:border-blue-500/20 transition-all flex flex-col h-full"
-                                >
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500 group-hover:scale-105 transition-transform shadow-inner">
-                                            <CalendarRange className="w-4.5 h-4.5" />
-                                        </div>
+                                    animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.3, 0.1] }}
+                                    transition={{ duration: 4, repeat: Infinity }}
+                                    className="absolute inset-0 bg-primary/20 rounded-full blur-2xl"
+                                />
+                                <Layers className="w-14 h-14 text-slate-700 group-hover/empty:text-primary transition-colors" />
+                            </div>
+                            <div className="text-center space-y-3 relative z-10">
+                                <h3 className="text-3xl font-black text-white tracking-tighter uppercase italic">غياب المخطط التشغيلي</h3>
+                                <p className="text-meta !text-[11px] max-w-[450px] mx-auto leading-relaxed">قم بتصميم المخطط الزمني الأول لضبط حركة تدفق الموظفين وقواعد الحضور داخل المؤسسة.</p>
+                            </div>
+                            <button
+                                onClick={() => setIsModalOpen(true)}
+                                className="h-11 px-8 rounded-xl bg-primary/10 border border-primary/20 text-[11px] font-black text-primary hover:text-white hover:bg-primary transition-all uppercase tracking-widest active:scale-95 shadow-xl shadow-primary/5"
+                            >
+                                تصميم أول خطة دوام
+                            </button>
+                        </div>
+                    ) : (
+                        plans.map((plan, idx) => (
+                            <motion.div
+                                key={plan.id}
+                                initial={{ opacity: 0, y: 30 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: idx * 0.05, duration: 0.6, ease: "circOut" }}
+                            >
+                                <AppCard padding="none" className="group overflow-hidden flex flex-col h-full border-white/5 shadow-[0_30px_60px_rgba(0,0,0,0.5)] surface-deep hover:translate-y-[-10px] transition-all duration-700">
+                                    <div className="p-8 space-y-8 flex-1 relative">
+                                        <div className="absolute -top-4 -right-4 w-32 h-32 bg-primary/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
 
-                                        <div className="flex gap-1.5">
-                                            <button
-                                                onClick={() => openEditModal(plan)}
-                                                className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all border border-white/5 flex items-center justify-center"
-                                            >
-                                                <Pencil className="w-3 h-3" />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeletePlan(plan.id)}
-                                                className="w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 transition-all border border-rose-500/10 flex items-center justify-center"
-                                            >
-                                                <Trash2 className="w-3 h-3" />
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <h3 className="text-base font-black text-white mb-3 group-hover:text-blue-500 transition-colors uppercase tracking-tight">{plan.name}</h3>
-
-                                    <div className="space-y-4 flex-1">
-                                        <div className="space-y-1.5">
-                                            <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest flex items-center gap-1">
-                                                <CalendarDays className="w-2.5 h-2.5 text-blue-500/70" /> أيام العمل
-                                            </span>
-                                            <div className="flex flex-wrap gap-1">
-                                                {daysOfWeek.map(d => (
-                                                    <span key={d.id} className={cn(
-                                                        "text-[8px] font-bold px-1.5 py-0.5 rounded border transition-colors",
-                                                        plan.days.includes(d.id)
-                                                            ? "bg-blue-500/10 text-blue-400 border-blue-500/10"
-                                                            : "bg-white/[0.02] text-slate-700 border-white/5"
-                                                    )}>
-                                                        {d.name}
-                                                    </span>
-                                                ))}
+                                        <div className="flex items-start justify-between relative z-10">
+                                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/30 to-slate-950 border border-primary/20 flex items-center justify-center text-primary shadow-inner group-hover:scale-110 group-hover:rotate-6 transition-all duration-700 shadow-2xl">
+                                                <CalendarCheck className="w-8 h-8" />
+                                            </div>
+                                            <div className="flex gap-2.5 opacity-0 group-hover:opacity-100 transition-all translate-x-6 group-hover:translate-x-0">
+                                                <button
+                                                    onClick={() => openEditModal(plan)}
+                                                    className="w-11 h-11 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all border border-white/5 active:scale-90"
+                                                >
+                                                    <Pencil className="w-4.5 h-4.5" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeletePlan(plan.id)}
+                                                    className="w-11 h-11 rounded-xl bg-rose-500/10 hover:bg-rose-500 flex items-center justify-center text-rose-500 hover:text-white transition-all border border-rose-500/20 active:scale-90"
+                                                >
+                                                    <Trash2 className="w-4.5 h-4.5" />
+                                                </button>
                                             </div>
                                         </div>
 
-                                        <div className="pt-3 border-t border-white/5 space-y-2">
-                                            <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest flex items-center gap-1">
-                                                <Clock className="w-2.5 h-2.5 text-emerald-500/70" /> فترات الدوام
-                                            </span>
-                                            <div className="grid gap-1.5">
-                                                {plan.shifts.map((s: Shift, idx: number) => (
-                                                    <div key={idx} className="flex items-center justify-between bg-white/[0.01] border border-white/5 px-2 py-1.5 rounded-lg group/shift hover:bg-white/[0.03] transition-colors">
-                                                        <span className="text-[9px] font-bold text-slate-600">فترة {idx + 1}</span>
-                                                        <div className="flex items-center gap-1.5">
-                                                            <div className="flex items-center gap-1 text-[10px] font-black text-white bg-slate-900/50 px-1.5 py-0.5 rounded">
-                                                                <Timer className="w-2 h-2 text-emerald-500" />
-                                                                {s.start}
+                                        <div className="space-y-3 relative z-10">
+                                            <h3 className="text-2xl font-black text-white tracking-tighter group-hover:text-primary transition-colors leading-none">
+                                                {plan.name}
+                                            </h3>
+                                            <div className="flex items-center gap-3">
+                                                <Briefcase className="w-4 h-4 text-slate-700" />
+                                                <span className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">Institutional Profile</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-4 pt-4 border-t border-white/[0.03] relative z-10">
+                                            <div className="text-[10px] font-black text-slate-700 uppercase tracking-widest px-1">دورة العمل الأسبوعية</div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {daysOfWeek.map(d => {
+                                                    const isActive = plan.days.includes(d.id);
+                                                    return (
+                                                        <span key={d.id} className={cn(
+                                                            "text-[10px] font-black px-3.5 py-2 rounded-xl border transition-all duration-500 truncate",
+                                                            isActive
+                                                                ? "bg-primary/20 text-primary border-primary/20 shadow-lg shadow-primary/5"
+                                                                : "bg-white/[0.01] text-slate-800 border-white/5 opacity-10"
+                                                        )}>
+                                                            {d.name}
+                                                        </span>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-4 pt-4 relative z-10">
+                                            <div className="text-[10px] font-black text-slate-700 uppercase tracking-widest px-1">توزيع الورديات (Shifts)</div>
+                                            <div className="grid gap-3">
+                                                {plan.shifts.map((s: Shift, sIdx: number) => (
+                                                    <div key={sIdx} className="flex items-center justify-between p-4 rounded-2xl bg-slate-950 border border-white/5 group/shift hover:border-emerald-500/40 transition-all duration-500 shadow-inner overflow-hidden relative">
+                                                        <div className="absolute inset-0 bg-emerald-500/5 translate-x-full group-hover/shift:translate-x-0 transition-transform duration-700 pointer-events-none" />
+                                                        <div className="flex items-center gap-4 relative z-10">
+                                                            <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-[11px] font-black text-slate-600 uppercase shadow-inner">
+                                                                {sIdx + 1}
                                                             </div>
-                                                            <ArrowLeftRight className="w-2 h-2 text-slate-800" />
-                                                            <div className="flex items-center gap-1 text-[10px] font-black text-white bg-slate-900/50 px-1.5 py-0.5 rounded">
-                                                                <Timer className="w-2 h-2 text-rose-500" />
-                                                                {s.end}
+                                                            <div className="flex items-center gap-4">
+                                                                <span className="text-[15px] font-black text-white tabular-nums">{s.start}</span>
+                                                                <ArrowLeftRight className="w-4 h-4 text-slate-800" />
+                                                                <span className="text-[15px] font-black text-white tabular-nums">{s.end}</span>
                                                             </div>
                                                         </div>
+                                                        <Clock className="w-5 h-5 text-emerald-500/20 group-hover/shift:text-emerald-500 transition-all duration-500 group-hover/shift:rotate-12 relative z-10" />
                                                     </div>
                                                 ))}
                                             </div>
                                         </div>
                                     </div>
-                                </motion.div>
-                            ))
-                        )}
-                    </AnimatePresence>
-                </div>
 
-                <Modal
-                    isOpen={isModalOpen}
-                    onClose={closeModal}
-                    title={isEditMode ? 'تعديل باقة الدوام' : 'إنشاء باقة دوام جديدة'}
-                >
-                    <form onSubmit={handleSavePlan} className="space-y-8 max-h-[80vh] overflow-y-auto px-2 custom-scrollbar">
-                        <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold text-slate-500 px-1 flex items-center gap-2 uppercase tracking-widest">
-                                <Layers className="w-3 h-3" /> اسم الباقة
-                            </label>
-                            <input
-                                type="text"
-                                value={planName}
-                                onChange={(e) => setPlanName(e.target.value)}
-                                placeholder="مثال: الدوام الرسمي الصيفي..."
-                                required
-                                className="w-full bg-slate-900/50 border border-white/5 rounded-lg px-3.5 py-2.5 text-[13px] text-white focus:border-blue-500/50 outline-none transition-all"
-                            />
-                        </div>
+                                    <div className="p-6 bg-white/[0.01] border-t border-white/5 flex items-center justify-between relative overflow-hidden group/footer">
+                                        <div className="absolute inset-0 bg-primary/5 translate-y-full group-hover/footer:translate-y-0 transition-transform duration-500" />
+                                        <div className="flex items-center gap-3 relative z-10">
+                                            <Zap className="w-4 h-4 text-primary animate-pulse" />
+                                            <span className="text-[11px] font-black text-slate-600 uppercase tracking-widest">Active Architecture</span>
+                                        </div>
+                                        <button className="text-[11px] font-black text-slate-500 hover:text-white uppercase tracking-[0.2em] transition-all flex items-center gap-2 relative z-10 group/btn">
+                                            تحليل الكفاءة <ChevronLeft className="w-4 h-4 group-hover/btn:translate-x-[-3px] transition-transform" />
+                                        </button>
+                                    </div>
+                                </AppCard>
+                            </motion.div>
+                        ))
+                    )}
+                </AnimatePresence>
+            </div>
 
-                        <div className="space-y-2.5">
-                            <label className="text-[10px] font-bold text-slate-500 px-1 flex items-center gap-2 uppercase tracking-widest">
-                                <CalendarDays className="w-3 h-3" /> تحديد أيام العمل
-                            </label>
-                            <div className="flex flex-wrap gap-1 p-1 bg-slate-900/30 rounded-xl border border-white/5 shadow-inner">
-                                {daysOfWeek.map(day => (
+            {/* Attendance Plan Blueprint Modal */}
+            <Modal
+                isOpen={isModalOpen}
+                onClose={closeModal}
+                title={isEditMode ? 'تحديث بنية الدوام' : 'تصميم باقة دوام مؤسسية'}
+                maxWidth="max-w-4xl"
+            >
+                <form onSubmit={handleSavePlan} className="space-y-12 p-4">
+                    <div className="space-y-6 group">
+                        <label className="text-meta px-2 flex items-center gap-3 uppercase tracking-widest">
+                            <Layers className="w-5 h-5 text-primary" /> مسمى الهيكل التشغيلي
+                        </label>
+                        <input
+                            type="text"
+                            value={planName}
+                            onChange={(e) => setPlanName(e.target.value)}
+                            placeholder="مثال: قطاع العمليات الميدانية، المكتب الرئيسي..."
+                            required
+                            className="w-full h-11 bg-slate-950/50 border border-white/10 rounded-xl px-4 text-[14px] font-black text-white focus:border-primary/50 focus:ring-4 focus:ring-primary/5 outline-none transition-all shadow-inner placeholder:text-slate-800"
+                        />
+                    </div>
+
+                    <div className="space-y-6">
+                        <label className="text-meta px-2 flex items-center gap-3 uppercase tracking-widest">
+                            <CalendarDays className="w-5 h-5 text-primary" /> تحديد دورة العمل الأسبوعية
+                        </label>
+                        <div className="grid grid-cols-4 md:grid-cols-7 gap-4">
+                            {daysOfWeek.map(day => {
+                                const isSelected = selectedDays.includes(day.id);
+                                return (
                                     <button
                                         key={day.id}
                                         type="button"
                                         onClick={() => toggleDay(day.id)}
                                         className={cn(
-                                            "flex-1 px-2 py-1.5 rounded-lg text-[9px] font-black transition-all border whitespace-nowrap",
-                                            selectedDays.includes(day.id)
-                                                ? "bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-500/20"
-                                                : "bg-white/5 border-white/5 text-slate-500 hover:bg-white/10"
+                                            "h-11 rounded-xl text-[11px] font-black transition-all duration-500 border flex flex-col items-center justify-center -space-y-0.5",
+                                            isSelected
+                                                ? "bg-primary text-white border-primary/20 shadow-2xl shadow-primary/30 scale-95"
+                                                : "bg-slate-950 border-white/5 text-slate-700 hover:bg-slate-900 hover:text-slate-400 group/day"
                                         )}
                                     >
-                                        {day.name}
+                                        <span className="opacity-40 uppercase font-mono text-[8px]">{day.id}</span>
+                                        <span>{day.name}</span>
+                                        {isSelected && <Sparkles className="w-2.5 h-2.5 text-white/40 animate-pulse" />}
                                     </button>
-                                ))}
-                            </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <div className="space-y-8">
+                        <div className="flex justify-between items-center px-2">
+                            <label className="text-meta flex items-center gap-3 uppercase tracking-widest">
+                                <Clock className="w-5 h-5 text-primary" /> تشكيل طبقات الورديات
+                            </label>
+                            <button
+                                type="button"
+                                onClick={addShift}
+                                className="h-11 px-5 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all font-black text-[11px] uppercase tracking-widest flex items-center gap-2 group shadow-xl shadow-primary/5 active:scale-95"
+                            >
+                                <Plus className="w-4 h-4" /> إضافة وردية
+                            </button>
                         </div>
 
-                        <div className="space-y-2.5">
-                            <div className="flex justify-between items-center px-1">
-                                <label className="text-[10px] font-bold text-slate-500 flex items-center gap-2 uppercase tracking-widest">
-                                    <Clock className="w-3 h-3" /> فترات الدوام
-                                </label>
-                                <button
-                                    type="button"
-                                    onClick={addShift}
-                                    className="flex items-center gap-1.5 px-2 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 rounded border border-emerald-500/10 text-[8px] font-bold uppercase tracking-widest"
-                                >
-                                    <Plus className="w-2.5 h-2.5" /> إضافة فترة
-                                </button>
-                            </div>
-
-                            <div className="space-y-4">
-                                {shifts.map((shift, index) => (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <AnimatePresence>
+                                {shifts.map((shift, idx) => (
                                     <motion.div
-                                        key={index}
-                                        initial={{ opacity: 0, scale: 0.95 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        className="relative bg-slate-900/50 p-3 rounded-xl border border-white/5 shadow-inner"
+                                        key={idx}
+                                        initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.9, y: -10 }}
+                                        className="relative p-6 rounded-xl bg-slate-950 border border-white/10 border-dashed group/shift-edit hover:border-primary/40 transition-all duration-500 shadow-2xl"
                                     >
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-1">
-                                                <span className="text-[8px] font-black text-slate-600 uppercase px-1">بداية الفترة</span>
+                                        <div className="grid grid-cols-2 gap-8 relative z-10">
+                                            <div className="space-y-4">
+                                                <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest px-1 flex items-center gap-2">
+                                                    <Sun className="w-3.5 h-3.5" /> نقطة الدخول
+                                                </span>
                                                 <input
                                                     type="time"
                                                     value={shift.start}
-                                                    onChange={(e) => updateShift(index, 'start', e.target.value)}
-                                                    className="w-full bg-slate-950 border border-white/5 rounded-lg px-2 py-1.5 text-white font-black [color-scheme:dark] outline-none focus:border-blue-500/50 transition-all text-center text-sm"
+                                                    onChange={(e) => updateShift(idx, 'start', e.target.value)}
+                                                    className="w-full h-11 bg-slate-950/50 border border-white/10 rounded-xl px-4 text-center text-[14px] font-black text-white [color-scheme:dark] outline-none focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5 transition-all shadow-inner"
                                                 />
                                             </div>
-                                            <div className="space-y-1">
-                                                <span className="text-[8px] font-black text-slate-600 uppercase px-1">نهاية الفترة</span>
+                                            <div className="space-y-4">
+                                                <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest px-1 flex items-center gap-2">
+                                                    <Moon className="w-3.5 h-3.5" /> نقطة الانصراف
+                                                </span>
                                                 <input
                                                     type="time"
                                                     value={shift.end}
-                                                    onChange={(e) => updateShift(index, 'end', e.target.value)}
-                                                    className="w-full bg-slate-950 border border-white/5 rounded-lg px-2 py-1.5 text-white font-black [color-scheme:dark] outline-none focus:border-blue-500/50 transition-all text-center text-sm"
+                                                    onChange={(e) => updateShift(idx, 'end', e.target.value)}
+                                                    className="w-full h-11 bg-slate-950/50 border border-white/10 rounded-xl px-4 text-center text-[14px] font-black text-white [color-scheme:dark] outline-none focus:border-rose-500/50 focus:ring-4 focus:ring-rose-500/5 transition-all shadow-inner"
                                                 />
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-6 flex flex-col items-center gap-3">
+                                            <div className="h-px w-24 bg-white/5" />
+                                            <div className="flex items-center gap-3 text-[11px] font-black text-slate-800 uppercase tracking-[0.3em]">
+                                                <Coffee className="w-4 h-4" /> Shift Layer {idx + 1}
                                             </div>
                                         </div>
 
                                         {shifts.length > 1 && (
                                             <button
                                                 type="button"
-                                                onClick={() => removeShift(index)}
-                                                className="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-rose-500 text-white flex items-center justify-center shadow-lg shadow-rose-500/40 hover:scale-110 active:scale-95 transition-all"
+                                                onClick={() => removeShift(idx)}
+                                                className="absolute -top-3 -left-3 w-11 h-11 rounded-[1.5rem] bg-rose-500 text-white flex items-center justify-center shadow-2xl shadow-rose-500/40 hover:scale-110 active:scale-90 transition-all z-20"
                                             >
-                                                <X className="w-3.5 h-3.5" />
+                                                <Trash2 className="w-5 h-5" />
                                             </button>
                                         )}
 
-                                        <div className="mt-3 flex justify-center">
-                                            <div className="inline-flex items-center gap-1.5 text-[8px] font-black text-slate-700 bg-white/5 px-3 py-0.5 rounded-full uppercase tracking-tighter">
-                                                فترة رقـم {index + 1}
-                                            </div>
-                                        </div>
+                                        <MousePointer2 className="absolute right-6 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-900 opacity-0 group-hover/shift-edit:opacity-100 transition-all duration-500" />
                                     </motion.div>
                                 ))}
-                            </div>
+                            </AnimatePresence>
                         </div>
+                    </div>
 
-                        <div className="flex gap-3 pt-2">
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-black text-sm transition-all shadow-xl shadow-blue-500/20 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
-                            >
-                                {loading ? 'جاري الحفظ...' : (
-                                    <>
-                                        <span>{isEditMode ? 'تحديث الباقة' : 'تفعيل الباقة'}</span>
-                                        <Check className="w-4 h-4" />
-                                    </>
-                                )}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={closeModal}
-                                className="px-6 py-2.5 bg-white/5 hover:bg-white/10 text-slate-400 rounded-lg font-bold transition-all border border-white/5 text-xs"
-                            >
-                                إلغاء
-                            </button>
-                        </div>
-                    </form>
-                </Modal>
-            </div>
+                    <div className="flex gap-6 pt-6 border-t border-white/5">
+                        <button
+                            type="submit"
+                            disabled={loading || selectedDays.length === 0}
+                            className="flex-1 h-11 rounded-xl bg-primary text-white font-black text-[13px] transition-all shadow-2xl shadow-primary/40 hover:bg-primary/90 flex items-center justify-center gap-2.5 active:scale-95 disabled:opacity-50 uppercase tracking-[0.2em] group"
+                        >
+                            {loading ? (
+                                <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                            ) : (
+                                <>
+                                    <span>{isEditMode ? 'مزامنة معايير الدوام' : 'اعتماد البنية التشغيلية'}</span>
+                                    <ShieldCheck className="w-4.5 h-4.5 group-hover:scale-110 transition-transform" />
+                                </>
+                            )}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={closeModal}
+                            className="px-8 h-11 rounded-xl bg-white/5 hover:bg-white/10 text-[12px] font-black text-slate-500 hover:text-white transition-all border border-white/5 active:scale-95 uppercase tracking-widest"
+                        >
+                            إلغاء العملية
+                        </button>
+                    </div>
+                </form>
+            </Modal>
         </DashboardLayout>
     );
 }

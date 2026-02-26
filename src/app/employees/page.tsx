@@ -3,9 +3,8 @@
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { FirestoreApi } from '@/lib/firebase/firestoreApi';
-import { collection, onSnapshot, query } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase/clientApp';
-import SearchFilter from '@/components/SearchFilter';
 import Modal from '@/components/ui/Modal';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -13,15 +12,24 @@ import {
     User,
     Pencil,
     Trash2,
-    Eye,
-    EyeOff,
-    Check,
+    Users,
     IdCard,
     Lock,
     Briefcase,
-    Info
+    Info,
+    EyeOff,
+    Eye,
+    Check,
+    Search,
+    Shield,
+    Fingerprint,
+    ExternalLink,
+    Mail,
+    Phone
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import PageHeader from '@/components/ui/PageHeader';
+import AppCard from '@/components/ui/AppCard';
 
 export default function EmployeesPage() {
     const [mounted, setMounted] = useState(false);
@@ -35,7 +43,7 @@ export default function EmployeesPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
-    // حقول الموظف
+    // Form fields
     const [empName, setEmpName] = useState('');
     const [empJobId, setEmpJobId] = useState('');
     const [empPassword, setEmpPassword] = useState('');
@@ -45,36 +53,29 @@ export default function EmployeesPage() {
         setMounted(true);
         const storedUser = localStorage.getItem('userData');
         if (storedUser) {
-            const parsedUser = JSON.parse(storedUser);
-            setUser(parsedUser);
-
-            // جلب الموظفين
-            const empColRef = collection(db, "employees", parsedUser.uid, "employees");
-            const q = query(empColRef);
-            const unsubscribeEmps = onSnapshot(q, (snapshot) => {
-                const empList = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                setEmployees(empList);
-            });
-
-            // جلب باقات الدوام
-            const plansColRef = collection(db, "attendancePlans", parsedUser.uid, "plans");
-            const unsubscribePlans = onSnapshot(query(plansColRef), (snapshot) => {
-                const plansList = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                setPlans(plansList);
-            });
-
-            return () => {
-                unsubscribeEmps();
-                unsubscribePlans();
-            };
+            try {
+                const parsedUser = JSON.parse(storedUser);
+                setUser(parsedUser);
+                fetchData(parsedUser.uid);
+            } catch (e) {
+                console.error("Error parsing user data:", e);
+            }
         }
-    }, [mounted]);
+    }, []);
+
+    const fetchData = (uid: string) => {
+        const empColRef = collection(db, "employees", uid, "employees");
+        onSnapshot(query(empColRef), (snapshot) => {
+            const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setEmployees(list);
+        });
+
+        const plansColRef = collection(db, "attendancePlans", uid, "plans");
+        onSnapshot(query(plansColRef), (snapshot) => {
+            const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setPlans(list);
+        });
+    };
 
     const handleSaveEmployee = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -107,11 +108,9 @@ export default function EmployeesPage() {
                     }
                 });
             }
-
             closeModal();
         } catch (error) {
             console.error("Error saving employee:", error);
-            alert("حدث خطأ أثناء حفظ بيانات الموظف");
         } finally {
             setLoading(false);
         }
@@ -126,7 +125,6 @@ export default function EmployeesPage() {
             await FirestoreApi.Api.deleteData(empRef);
         } catch (error) {
             console.error("Error deleting employee:", error);
-            alert("حدث خطأ أثناء حذف الموظف");
         }
     };
 
@@ -151,231 +149,275 @@ export default function EmployeesPage() {
         setShowPassword(false);
     };
 
-    if (!mounted) {
-        return (
-            <div className="min-h-screen bg-[#020617] flex items-center justify-center">
-                <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-            </div>
-        );
-    }
+    if (!mounted) return null;
 
-    if (!user) {
-        return <DashboardLayout><div>جاري تسجيل الدخول...</div></DashboardLayout>;
-    }
+    const filteredEmployees = employees.filter(emp =>
+        searchQuery === '' ||
+        (emp.name && emp.name.includes(searchQuery)) ||
+        (emp.jobId && emp.jobId.includes(searchQuery))
+    );
 
     return (
         <DashboardLayout>
-            <div className="max-w-7xl mx-auto px-4 py-8">
-                <motion.header
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12"
-                >
-                    <div>
-                        <h1 className="text-2xl font-black mb-1 bg-gradient-to-l from-white to-white/60 bg-clip-text text-transparent">
-                            الموظفين
-                        </h1>
-                        <p className="text-xs text-slate-400 font-medium flex items-center gap-1.5">
-                            إدارة بيانات الموظفين المسجلين في النظام
-                            <span className="w-1 h-1 rounded-full bg-primary animate-pulse" />
-                        </p>
-                    </div>
-
+            <PageHeader
+                title="إدارة الكادر البشري"
+                subtitle="تحكم مركزي في بيانات الموظفين، الصلاحيات، وباقات الدوام التشغيلية."
+                icon={Users}
+                breadcrumb="المستندات الإدارية"
+                actions={
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-xs shadow-lg shadow-primary/20 transition-all active:scale-95 group"
+                        className="h-11 px-7 rounded-xl bg-primary hover:bg-primary/90 text-white font-black text-[12px] transition-all shadow-2xl shadow-primary/30 flex items-center gap-2.5 active:scale-95 group"
                     >
-                        <UserPlus className="w-4 h-4 group-hover:rotate-12 transition-transform" />
-                        <span>إضافة موظف</span>
+                        <UserPlus className="w-4.5 h-4.5 transition-transform group-hover:rotate-12" />
+                        <span>إضافة موظف جديد</span>
                     </button>
-                </motion.header>
+                }
+            />
 
-                <div className="mb-10">
-                    <SearchFilter
-                        searchValue={searchQuery}
-                        onSearchChange={setSearchQuery}
-                        placeholder="بحث باسم الموظف أو الرقم الوظيفي..."
-                    />
+            {/* Smart Search Bar Section */}
+            <AppCard padding="none" className="mb-8 border-white/5 shadow-2xl bg-slate-900/40">
+                <div className="p-6 md:p-8">
+                    <div className="relative group max-w-2xl">
+                        <label className="text-meta mb-2.5 block px-1 flex items-center gap-2">
+                            البحث الذكي في قاعدة بيانات الموظفين
+                        </label>
+                        <div className="relative">
+                            <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                                <Search className="w-4 h-4 text-slate-600 group-focus-within:text-primary transition-all group-focus-within:scale-110" />
+                            </div>
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="ابحث باسم الموظف، الرقم الوظيفي، أو المسمى..."
+                                className="w-full h-11 bg-slate-950/60 border border-white/5 rounded-xl pr-12 pl-4 text-[13px] font-black text-white outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/5 transition-all shadow-inner"
+                            />
+                        </div>
+                    </div>
                 </div>
+            </AppCard>
 
-                {/* List of Employees */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    <AnimatePresence mode="popLayout">
-                        {(() => {
-                            const filtered = employees.filter(emp =>
-                                searchQuery === '' ||
-                                (emp.name && emp.name.includes(searchQuery)) ||
-                                (emp.jobId && emp.jobId.includes(searchQuery))
-                            );
-
-                            if (filtered.length === 0) {
-                                return (
-                                    <motion.div
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        className="col-span-full py-24 flex flex-col items-center justify-center text-slate-500 gap-4"
-                                    >
-                                        <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center">
-                                            <Info className="w-10 h-10" />
-                                        </div>
-                                        <p className="font-bold text-lg">
-                                            {searchQuery === '' ? 'لا يوجد موظفين حالياً' : 'لا يوجد موظفين يطابقون البحث'}
-                                        </p>
-                                    </motion.div>
-                                );
-                            }
-
-                            return filtered.map((emp, index) => (
+            <AnimatePresence mode="popLayout">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                    {filteredEmployees.length === 0 ? (
+                        <div className="col-span-full py-40 flex flex-col items-center justify-center text-slate-500 gap-10 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-primary/2 rounded-full blur-[140px] pointer-events-none" />
+                            <div className="w-32 h-32 rounded-[3rem] bg-slate-950 flex items-center justify-center border border-white/5 shadow-2xl relative group/empty">
                                 <motion.div
-                                    key={emp.id}
-                                    layout
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.9 }}
-                                    transition={{ delay: index * 0.05 }}
-                                    className="glass p-4 rounded-xl group hover:border-primary/30 transition-all"
-                                >
-                                    <div className="flex flex-col gap-4">
-                                        <div className="flex items-start justify-between">
-                                            <div className="w-11 h-11 rounded-lg bg-gradient-to-tr from-primary/20 to-emerald-400/20 flex items-center justify-center shadow-inner group-hover:from-primary group-hover:to-emerald-400 transition-all duration-500">
-                                                <User className="w-5.5 h-5.5 text-primary group-hover:text-white transition-colors" />
-                                            </div>
-                                            <div className="flex gap-1.5">
-                                                <button
-                                                    onClick={() => openEditModal(emp)}
-                                                    className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white border border-white/5 transition-all"
-                                                    title="تعديل"
-                                                >
-                                                    <Pencil className="w-3.5 h-3.5" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteEmployee(emp.id)}
-                                                    className="p-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/10 transition-all"
-                                                    title="حذف"
-                                                >
-                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                </button>
-                                            </div>
+                                    animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.3, 0.1] }}
+                                    transition={{ duration: 4, repeat: Infinity }}
+                                    className="absolute inset-0 bg-primary/20 rounded-full blur-2xl"
+                                />
+                                <Users className="w-14 h-14 text-slate-700 group-hover/empty:text-primary transition-colors" />
+                            </div>
+                            <div className="text-center space-y-3 relative z-10">
+                                <h3 className="text-3xl font-black text-white tracking-tighter uppercase italic">سجل الموظفين فارغ</h3>
+                                <p className="text-meta !text-[11px] max-w-sm mx-auto leading-relaxed">لم نجد أي سجلات متطابقة في قاعدة البيانات. ابدأ بإضافة الكوادر البشرية لتنشيط الأنظمة الذكية.</p>
+                            </div>
+                            <button
+                                onClick={() => setIsModalOpen(true)}
+                                className="h-11 px-8 rounded-xl bg-white/5 border border-white/5 text-[11px] font-black text-slate-500 hover:text-white hover:bg-white/10 transition-all uppercase tracking-widest active:scale-95"
+                            >
+                                إضافة أول موظف الآن
+                            </button>
+                        </div>
+                    ) : (
+                        filteredEmployees.map((emp, idx) => (
+                            <motion.div
+                                key={emp.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: idx * 0.05 }}
+                            >
+                                <AppCard padding="none" className="group h-full flex flex-col surface-deep">
+                                    <div className="relative h-24 bg-gradient-to-br from-primary/20 via-primary/5 to-transparent overflow-hidden">
+                                        <div className="absolute top-5 left-5 flex gap-2 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0 z-10">
+                                            <button
+                                                onClick={() => openEditModal(emp)}
+                                                className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white text-slate-300 hover:text-slate-950 backdrop-blur-md transition-all flex items-center justify-center border border-white/10"
+                                            >
+                                                <Pencil className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteEmployee(emp.id)}
+                                                className="w-10 h-10 rounded-xl bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white backdrop-blur-md transition-all flex items-center justify-center border border-rose-500/10"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                        <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000" />
+                                    </div>
+
+                                    <div className="px-8 pb-8 -mt-12 relative z-10 flex-1 flex flex-col">
+                                        <div className="w-24 h-24 rounded-xl bg-slate-950 border-[6px] border-[#020617] flex items-center justify-center shadow-2xl mb-5 group-hover:scale-110 transition-transform duration-700 bg-gradient-to-br from-slate-900 to-slate-950 relative overflow-hidden">
+                                            <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            <User className="w-11 h-11 text-primary/40 group-hover:text-primary transition-colors relative z-10" />
                                         </div>
 
-                                        <div className="space-y-0.5">
-                                            <h3 className="text-base font-black text-white group-hover:text-primary transition-colors truncate">
-                                                {emp.name}
-                                            </h3>
-                                            <div className="flex items-center gap-1.5 text-slate-400 text-[11px] font-bold">
-                                                <IdCard className="w-3.5 h-3.5" />
-                                                {emp.jobId}
-                                            </div>
-                                        </div>
-
-                                        {emp.planId && (
-                                            <div className="pt-3 border-t border-white/5 flex items-center justify-between">
-                                                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary/10 text-primary text-[11px] font-black uppercase tracking-wider">
-                                                    <Briefcase className="w-3.5 h-3.5" />
-                                                    {plans.find(p => p.id === emp.planId)?.name || 'باقة غير معروفة'}
+                                        <div className="space-y-6 flex-1 flex flex-col">
+                                            <div>
+                                                <h3 className="text-[19px] font-black text-white tracking-tighter group-hover:text-primary transition-colors truncate">
+                                                    {emp.name}
+                                                </h3>
+                                                <div className="flex items-center gap-3 mt-2">
+                                                    <span className="text-meta !text-slate-500 bg-white/5 px-2.5 py-1 rounded-lg border border-white/5">
+                                                        {emp.jobId}
+                                                    </span>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                                        <span className="text-meta !text-slate-700">نشط</span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        )}
-                                    </div>
-                                </motion.div>
-                            ));
-                        })()}
-                    </AnimatePresence>
-                </div>
 
-                {/* Modal Component */}
-                <Modal
-                    isOpen={isModalOpen}
-                    onClose={closeModal}
-                    title={isEditMode ? 'تعديل بيانات الموظف' : 'إضافة موظف جديد'}
-                >
-                    <form onSubmit={handleSaveEmployee} className="space-y-4">
-                        <div className="space-y-1.5">
-                            <label className="text-[12px] font-bold text-slate-500 px-1 flex items-center gap-2 uppercase tracking-widest">
-                                <User className="w-3.5 h-3.5" /> اسم الموظف
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col gap-2 group/field">
+                                                    <Briefcase className="w-4 h-4 text-slate-600 group-hover/field:text-primary transition-colors" />
+                                                    <span className="text-[11px] font-black text-white truncate">
+                                                        {plans.find(p => p.id === emp.planId)?.name || 'غير محدد'}
+                                                    </span>
+                                                </div>
+                                                <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-col gap-2 group/id">
+                                                    <Fingerprint className="w-4 h-4 text-slate-600 group-hover/id:text-primary transition-colors" />
+                                                    <span className="text-meta !text-[8px]">المعرف الحيوي</span>
+                                                </div>
+                                            </div>
+
+                                            <button className="w-full mt-auto h-11 rounded-xl bg-white/[0.03] hover:bg-white text-slate-500 hover:text-slate-950 transition-all border border-white/5 flex items-center justify-center gap-2.5 text-[11px] font-black uppercase tracking-widest active:scale-95 group/btn">
+                                                <span>استعراض الملف الشامل</span>
+                                                <ExternalLink className="w-4 h-4 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </AppCard>
+                            </motion.div>
+                        )))
+                    }
+                </div>
+            </AnimatePresence>
+
+            <Modal
+                isOpen={isModalOpen}
+                onClose={closeModal}
+                title={isEditMode ? 'تحديث السجل الوظيفي' : 'اعتماد كادر جديد'}
+                maxWidth="max-w-2xl"
+            >
+                <form onSubmit={handleSaveEmployee} className="space-y-10 p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        <div className="space-y-4">
+                            <label className="text-meta px-2 flex items-center gap-3">
+                                <User className="w-4 h-4 text-primary" /> قاعدة الاسم الكامل
                             </label>
                             <input
                                 type="text"
                                 value={empName}
                                 onChange={(e) => setEmpName(e.target.value)}
-                                placeholder="الاسم الكامل"
+                                placeholder="الاسم الرباعي الرسمي..."
                                 required
-                                className="w-full bg-slate-900/50 border border-white/5 rounded-lg px-3.5 py-2.5 text-[13px] text-white focus:border-primary/50 outline-none transition-all"
+                                className="w-full h-11 bg-slate-950/50 border border-white/10 rounded-xl px-4 text-[14px] font-black text-white focus:border-primary/50 focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-inner placeholder:text-slate-800"
                             />
                         </div>
 
-                        <div className="space-y-1.5">
-                            <label className="text-[12px] font-bold text-slate-500 px-1 flex items-center gap-2 uppercase tracking-widest">
-                                <IdCard className="w-3.5 h-3.5" /> الرقم الوظيفي
+                        <div className="space-y-4">
+                            <label className="text-meta px-2 flex items-center gap-3">
+                                <IdCard className="w-4 h-4 text-primary" /> الهوية الوظيفية
                             </label>
                             <input
                                 type="text"
                                 value={empJobId}
                                 onChange={(e) => setEmpJobId(e.target.value)}
-                                placeholder="مثال: 2025001"
+                                placeholder="الرقم التعريفي (ID)..."
                                 required
-                                className="w-full bg-slate-900/50 border border-white/5 rounded-lg px-3.5 py-2.5 text-[13px] text-white focus:border-primary/50 outline-none transition-all"
+                                className="w-full h-11 bg-slate-950/50 border border-white/10 rounded-xl px-4 text-[14px] font-black text-white focus:border-primary/50 focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-inner placeholder:text-slate-800"
                             />
                         </div>
+                    </div>
 
-                        <div className="space-y-1.5">
-                            <label className="text-[12px] font-bold text-slate-500 px-1 flex items-center gap-2 uppercase tracking-widest">
-                                <Lock className="w-3.5 h-3.5" /> كلمة المرور
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        <div className="space-y-4">
+                            <label className="text-meta px-2 flex items-center gap-3">
+                                <Lock className="w-4 h-4 text-primary" /> مفتاح التشفير (Access)
                             </label>
-                            <div className="relative group">
+                            <div className="relative">
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     value={empPassword}
                                     onChange={(e) => setEmpPassword(e.target.value)}
                                     placeholder="••••••••"
                                     required
-                                    className="w-full bg-slate-900/50 border border-white/5 rounded-lg px-3.5 py-2.5 text-[13px] text-white focus:border-primary/50 outline-none transition-all pl-12"
+                                    className="w-full h-11 bg-slate-950/50 border border-white/10 rounded-xl px-4 text-[14px] font-black text-white focus:border-primary/50 focus:ring-4 focus:ring-primary/5 transition-all outline-none pl-12 shadow-inner placeholder:text-slate-800"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                                    className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 hover:text-white transition-colors"
                                 >
-                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    {showPassword ? <EyeOff className="w-5.5 h-5.5" /> : <Eye className="w-5.5 h-5.5" />}
                                 </button>
                             </div>
                         </div>
 
-                        <div className="space-y-1.5">
-                            <label className="text-[12px] font-bold text-slate-500 px-1 flex items-center gap-2 uppercase tracking-widest">
-                                <Briefcase className="w-3.5 h-3.5" /> باقة الدوام
+                        <div className="space-y-4">
+                            <label className="text-meta px-2 flex items-center gap-3">
+                                <Briefcase className="w-4 h-4 text-primary" /> بروتوكول الدوام
                             </label>
                             <select
                                 value={empPlanId}
                                 onChange={(e) => setEmpPlanId(e.target.value)}
-                                className="w-full bg-slate-900/50 border border-white/5 rounded-lg px-3.5 py-2.5 text-[13px] text-white focus:border-primary/50 outline-none transition-all appearance-none cursor-pointer"
+                                className="w-full h-11 bg-slate-950/50 border border-white/10 rounded-xl px-4 text-[14px] font-black text-white focus:border-primary/50 focus:ring-4 focus:ring-primary/5 transition-all outline-none appearance-none cursor-pointer shadow-inner"
                             >
                                 <option value="">اختر باقة الدوام...</option>
                                 {plans.map(plan => (
-                                    <option key={plan.id} value={plan.id} className="bg-slate-900">{plan.name}</option>
+                                    <option key={plan.id} value={plan.id}>{plan.name}</option>
                                 ))}
                             </select>
                         </div>
+                    </div>
 
-                        <div className="flex gap-3 pt-2">
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="flex-1 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-lg font-black text-sm transition-all shadow-lg shadow-primary/20 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
-                            >
-                                {loading ? 'جاري الحفظ...' : <span>{isEditMode ? 'تحديث البيانات' : 'حفظ الموظف'} <Check className="w-4 h-4" /></span>}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={closeModal}
-                                className="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-slate-400 rounded-lg font-bold text-xs transition-all border border-white/5"
-                            >
-                                إلغاء
-                            </button>
+                    <div className="glass-premium rounded-[2.5rem] p-10 border border-white/5 flex flex-col items-center gap-6 group text-center">
+                        <div className="flex gap-10">
+                            <div className="flex flex-col items-center gap-3 opacity-30 group-hover:opacity-100 transition-opacity">
+                                <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
+                                    <Mail className="w-6 h-6" />
+                                </div>
+                                <p className="text-meta">E-Mail Gateway</p>
+                            </div>
+                            <div className="flex flex-col items-center gap-3 opacity-30 group-hover:opacity-100 transition-opacity">
+                                <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
+                                    <Phone className="w-6 h-6" />
+                                </div>
+                                <p className="text-meta">Cellular Auth</p>
+                            </div>
                         </div>
-                    </form>
-                </Modal>
-            </div>
+                        <p className="text-[11px] font-bold text-slate-600 uppercase tracking-widest">توسيع البيانات متاح عبر الملف الشخصي المتقدم</p>
+                    </div>
+
+                    <div className="flex gap-4 pt-6">
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="flex-1 h-11 rounded-xl bg-primary text-white font-black text-[13px] transition-all shadow-2xl shadow-primary/20 hover:bg-primary/90 flex items-center justify-center gap-2.5 active:scale-95 disabled:opacity-50"
+                        >
+                            {loading ? (
+                                <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                            ) : (
+                                <>
+                                    <span>{isEditMode ? 'تحديث السجل المركب' : 'إتمام عملية الاعتماد'}</span>
+                                    <Check className="w-4.5 h-4.5" />
+                                </>
+                            )}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={closeModal}
+                            className="px-8 h-11 rounded-xl bg-white/5 font-black text-[12px] text-slate-500 hover:text-white transition-all border border-white/5 active:scale-95"
+                        >
+                            إلغاء العملية
+                        </button>
+                    </div>
+                </form>
+            </Modal>
         </DashboardLayout>
     );
 }

@@ -16,7 +16,7 @@ export default function SearchFilter({
 }: SearchFilterProps) {
     return (
         <div className="mb-8 lg:w-96">
-            <div className="glass p-1 rounded-xl flex items-center group focus-within:ring-2 ring-primary/20 transition-all">
+            <div className="bg-slate-950/40 border border-white/10 p-1.5 rounded-xl flex items-center group focus-within:ring-4 focus-within:ring-primary/5 focus-within:border-primary/50 transition-all shadow-inner">
                 <div className="p-2">
                     <Search className="w-4 h-4 text-slate-500 group-focus-within:text-primary transition-colors" />
                 </div>
