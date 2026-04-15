@@ -1,10 +1,239 @@
-.gSettingForm label{
-    text-align: left;
-   }
-.gSettingForm input{
- width: 200px;
+/* تطبيق الهوية البصرية الرسمية للنظام */
+.backup-page {
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  background: var(--bg, #f8fafc);
+  color: var(--text, #0f172a);
 }
-.gSettingForm .ant-form-item-label {
-width: 150px;
-justify-content: left;
+
+.backup-container {
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
 }
+
+/* تطبيق الخط الرسمي على جميع عناصر الصفحة */
+.backup-page *,
+.backup-page .ant-card,
+.backup-page .ant-form,
+.backup-page .ant-input,
+.backup-page .ant-select,
+.backup-page .ant-button,
+.backup-page .ant-tabs,
+.backup-page .ant-upload,
+.backup-page .ant-alert,
+.backup-page .ant-list,
+.backup-page .ant-progress,
+.backup-page .ant-typography,
+.backup-page .ant-form-item-label,
+.backup-page .ant-tooltip {
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif !important;
+}
+
+.backup-container *,
+.backup-container .ant-card,
+.backup-container .ant-form,
+.backup-container .ant-input,
+.backup-container .ant-select,
+.backup-container .ant-button,
+.backup-container .ant-tabs,
+.backup-container .ant-upload,
+.backup-container .ant-alert,
+.backup-container .ant-list,
+.backup-container .ant-progress {
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif !important;
+}
+
+/* تحسين البطاقات */
+.ant-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.ant-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* تحسين الأزرار */
+.ant-btn-primary {
+  background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.ant-btn-primary:hover {
+  background: linear-gradient(135deg, #40a9ff 0%, #69c0ff 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+/* تحسين شريط التقدم */
+.ant-progress-bg {
+  background: linear-gradient(90deg, #1890ff 0%, #40a9ff 100%);
+}
+
+/* تحسين قائمة النسخ الاحتياطية */
+.ant-list-item {
+  padding: 16px 0;
+  border-bottom: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
+}
+
+.ant-list-item:hover {
+  background-color: #fafafa;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 0 -16px;
+}
+
+/* تحسين منطقة رفع الملفات */
+.ant-upload-drag {
+  border: 2px dashed #d9d9d9;
+  border-radius: 12px;
+  background: #fafafa;
+  transition: all 0.3s ease;
+}
+
+.ant-upload-drag:hover {
+  border-color: #1890ff;
+  background: #f0f8ff;
+}
+
+.ant-upload-drag-icon {
+  color: #1890ff !important;
+}
+
+/* تحسين التبويبات */
+.ant-tabs-tab {
+  font-weight: 500;
+  padding: 12px 24px;
+  border-radius: 8px 8px 0 0;
+  transition: all 0.3s ease;
+}
+
+.ant-tabs-tab:hover {
+  color: #1890ff;
+}
+
+.ant-tabs-tab-active {
+  background: linear-gradient(135deg, #f0f8ff 0%, #e6f7ff 100%);
+  color: #1890ff;
+}
+
+/* تحسين التنبيهات */
+.ant-alert {
+  border-radius: 8px;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* تحسين العناوين */
+.ant-typography h2 {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* تحسين المسافات */
+.ant-space-vertical > .ant-space-item {
+  margin-bottom: 16px;
+}
+
+/* تحسين الاستجابة */
+@media (max-width: 768px) {
+  .ant-card {
+    margin-bottom: 16px;
+  }
+
+  .ant-list-item-actions {
+    margin-top: 8px;
+  }
+
+  .ant-list-item-actions > li {
+    margin-bottom: 8px;
+  }
+}
+
+/* تحسين الألوان */
+.ant-tag {
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.ant-tag-blue {
+  background: #e6f7ff;
+  color: #1890ff;
+  border-color: #91d5ff;
+}
+
+.ant-tag-green {
+  background: #f6ffed;
+  color: #52c41a;
+  border-color: #b7eb8f;
+}
+
+.ant-tag-orange {
+  background: #fff7e6;
+  color: #fa8c16;
+  border-color: #ffd591;
+}
+
+/* تحسين النماذج */
+.ant-form-item-label > label {
+  font-weight: 500;
+  color: #262626;
+}
+
+.ant-input,
+.ant-select-selector {
+  border-radius: 8px;
+  border: 1px solid #d9d9d9;
+  transition: all 0.3s ease;
+}
+
+.ant-input:focus,
+.ant-select-focused .ant-select-selector {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* تحسين الأيقونات */
+.anticon {
+  font-size: 16px;
+}
+
+/* تحسين القوائم */
+.ant-list-item-meta-title {
+  font-weight: 500;
+  color: #262626;
+}
+
+.ant-list-item-meta-description {
+  color: #8c8c8c;
+}
+
+/* تحسين التدرجات */
+.gradient-bg {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* تحسين الظلال */
+.shadow-sm {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-md {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.shadow-lg {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+

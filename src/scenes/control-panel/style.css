@@ -1,43 +1,43 @@
-.site-layout{
-height: 100%;
+.site-layout {
+  height: 100%;
 }
 
 .site-layout .site-layout-background {
-    background: #fff;
-  }
-  
+  background: #fff;
+}
+
 .trigger {
-    padding: 0 24px;
-    font-size: 18px;
-    line-height: 64px;
-    cursor: pointer;
-    float: left;
-    transition: color 0.3s;
-  }
-  
-  .trigger:hover {
-    color: #0972B6;
-  }
-  .control-drawer{
+  padding: 0 24px;
+  font-size: 18px;
+  line-height: 64px;
+  cursor: pointer;
+  float: left;
+  transition: color 0.3s;
+}
+
+.trigger:hover {
+  color: #0972b6;
+}
+.control-drawer {
+  display: none;
+}
+.drawer-vis {
+  display: none;
+  margin-top: 15px;
+  text-align: right;
+  margin-right: 10px;
+}
+@media only screen and (max-width: 600px) {
+  .control-menu {
     display: none;
   }
-  .drawer-vis{
-    display: none;
-    margin-top: 15px;
-    text-align: right;
-    margin-right: 10px;
-  }
-  @media only screen and (max-width: 600px) {
-  .control-menu{
-    display: none;
-  }
-  .control-drawer{
+  .control-drawer {
     display: block;
   }
-  .drawer-vis{
+  .drawer-vis {
     display: inline-block;
   }
-  .control-drawer .ant-drawer-body{
+  .control-drawer .ant-drawer-body {
     padding: 0;
   }
 }

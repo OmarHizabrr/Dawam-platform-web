@@ -10,6 +10,7 @@
     "apexcharts": "^3.26.0",
     "axios": "^0.21.1",
     "chrome-dgram": "^3.0.6",
+    "firebase": "^8.10.1",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.1",
     "moment": "^2.30.1",
@@ -29,6 +30,7 @@
     "react-scripts": "4.0.3",
     "serve": "^14.2.0",
     "svelte-gantt": "^3.0.4-beta",
+    "timeago.js": "^4.0.2",
     "web-vitals": "^1.0.1",
     "webpack": "4.44.2",
     "workbox": "^0.0.0",
@@ -39,6 +41,7 @@
   },
   "scripts": {
     "start": "react-scripts --openssl-legacy-provider start",
+    "dev": "react-scripts --openssl-legacy-provider start",
     "build": "react-scripts --openssl-legacy-provider build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

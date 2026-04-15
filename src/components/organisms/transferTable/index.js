@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import './style.css';
 import { Typography ,Layout,Tabs,Table, Button,Modal, DatePicker, Select,Card } from 'antd';
-import axios from 'axios';
+// import axios from 'axios';
+import { FirebaseServices } from "../../../firebase/FirebaseServices";
 import { useCookies,CookiesProvider  } from 'react-cookie';
 import {Env} from './../../../styles';
 import dayjs from 'dayjs';
@@ -27,9 +28,9 @@ export default function transferTable(props){
      // eslint-disable-next-line react-hooks/rules-of-hooks
      useEffect(() => {
         const id=cookies.user;
-        axios.get(Env.HOST_SERVER_NAME+'transport-amounts/'+id.user_id+'/'+start+'/'+end)
-        .then(response => {
-          setData(response.data);
+        FirebaseServices.getTransportAmounts(id.user_id, start, end)
+        .then(data => {
+          setData(data);
           setLoad(false);
         }).catch(function (error) {
           console.log(error);
@@ -106,7 +107,7 @@ export default function transferTable(props){
   
       }
 
-      const onOk = (value: DatePickerProps['value'] | RangePickerProps['value']) => {
+      const onOk = (value) => {
         console.log('onOk: ', value);
       };
 

@@ -20,7 +20,9 @@ padding: 0px;
  flex-direction: row;
 }
 .emp-report-modal *{
-    font-family: 'Tajawal';
+    font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
 }
 .emp-report-modal .dawam-section{
     display: flex;

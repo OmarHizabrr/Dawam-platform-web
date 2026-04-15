@@ -1,0 +1,18 @@
+/* تصحيح اتجاه خلايا التقويم */
+.ant-picker-cell-inner {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+/* تصحيح اتجاه عرض الأشهر */
+.ant-picker-month-btn, 
+.ant-picker-year-btn {
+  direction: rtl !important;
+}
+
+/* تصحيح اتجاه header التقويم */
+.ant-picker-header-view {
+  direction: rtl !important;
+  display: flex;
+  justify-content: space-between;
+}

@@ -1,23 +1,69 @@
+th{
+    text-align: center!important;
+}
+
+/* تنسيق عمود مدة الإجازة */
+.duration-display {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 40px;
+}
+
+.duration-days {
+    font-weight: 600;
+    font-size: 14px;
+    color: #389e0d;
+    margin-bottom: 2px;
+    line-height: 1.2;
+}
+
+.duration-time {
+    font-size: 14px;
+    color: #52c41a;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.duration-hours {
+    font-size: 14px;
+    color: #1890ff;
+    font-weight: 600;
+    margin-bottom: 2px;
+    line-height: 1.2;
+}
 
 .requestsHeader{
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    align-items: flex-start;
     margin-bottom: 20px;
+    gap: 20px;
 }
 .requestsRange{
     display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
 }
 .reauestsProgress{
     display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    margin-left: 10px;
 }
 
 @media only screen and (max-width: 600px) {
 
     :where(.css-dev-only-do-not-override-1rqnfsa).ant-col{
-        font-family: 'Tajawal';
+        font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+          sans-serif;
     }
     .requestsHeader{
         flex-direction: row;

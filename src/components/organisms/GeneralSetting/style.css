@@ -1,10 +1,374 @@
-.gSettingForm label{
-    text-align: left;
-   }
-.gSettingForm input{
- width: 200px;
+/* تطبيق الهوية البصرية الرسمية للنظام */
+.general-settings-page {
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  background: var(--bg, #f8fafc);
+  color: var(--text, #0f172a);
 }
-.gSettingForm .ant-form-item-label {
-width: 150px;
-justify-content: left;
+
+.general-settings-form {
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
 }
+
+/* تطبيق الخط الرسمي على جميع عناصر الصفحة */
+.general-settings-page *,
+.general-settings-page .ant-card,
+.general-settings-page .ant-form,
+.general-settings-page .ant-input,
+.general-settings-page .ant-select,
+.general-settings-page .ant-button,
+.general-settings-page .ant-tabs,
+.general-settings-page .ant-upload,
+.general-settings-page .ant-alert,
+.general-settings-page .ant-typography,
+.general-settings-page .ant-form-item-label,
+.general-settings-page .ant-tooltip {
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif !important;
+}
+
+.general-settings-form *,
+.general-settings-form .ant-card,
+.general-settings-form .ant-form,
+.general-settings-form .ant-input,
+.general-settings-form .ant-select,
+.general-settings-form .ant-button,
+.general-settings-form .ant-tabs,
+.general-settings-form .ant-upload,
+.general-settings-form .ant-alert {
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif !important;
+}
+
+/* تحسين البطاقات - تطبيق الهوية البصرية الرسمية */
+.general-settings-page .ant-card {
+  border-radius: 12px;
+  box-shadow: var(--shadow, 0 25px 50px -12px rgba(0, 0, 0, 0.15));
+  transition: all 0.3s ease;
+  border: 1px solid var(--input-border, #e2e8f0);
+  background: var(--card-bg, #ffffff);
+}
+
+.general-settings-page .ant-card-body {
+  padding: 16px;
+}
+
+.general-settings-page .ant-card:hover {
+  box-shadow: var(--shadow-lg, 0 32px 64px -12px rgba(0, 0, 0, 0.18));
+  border-color: var(--primary, #2563eb);
+}
+
+.general-settings-page .ant-card-head {
+  border-bottom: 2px solid var(--input-border, #e2e8f0);
+  background: var(
+    --gradient-bg,
+    linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)
+  );
+}
+
+.general-settings-page .ant-card-head-title {
+  font-weight: 600;
+  color: var(--text, #0f172a);
+  font-size: 16px;
+}
+
+/* تحسين الأزرار - تطبيق الهوية البصرية الرسمية */
+.general-settings-page .ant-btn-primary {
+  background: var(
+    --gradient-primary,
+    linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)
+  );
+  border: none;
+  border-radius: 12px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+  color: white;
+}
+
+.general-settings-page .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.ant-btn-primary:active {
+  transform: translateY(0);
+}
+
+/* تحسين التبويبات - تطبيق الهوية البصرية الرسمية */
+.general-settings-page .ant-tabs-tab {
+  font-weight: 500;
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 8px 8px 0 0;
+  transition: all 0.3s ease;
+  margin: 0 2px;
+  color: var(--muted, #64748b);
+}
+
+.general-settings-page .ant-tabs-tab:hover {
+  color: var(--primary, #2563eb);
+  background: var(--primary-light, #dbeafe);
+}
+
+.general-settings-page .ant-tabs-tab-active {
+  background: var(--primary-light, #dbeafe);
+  color: var(--primary, #2563eb);
+  border-color: var(--primary, #2563eb);
+}
+
+.general-settings-page .ant-tabs-ink-bar {
+  background: var(
+    --gradient-primary,
+    linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%)
+  );
+  height: 3px;
+}
+
+/* تحسين النماذج - تطبيق الهوية البصرية الرسمية */
+.general-settings-page .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.general-settings-page .ant-form-item-label > label {
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  font-weight: 500;
+  color: var(--text, #0f172a);
+  font-size: 14px;
+}
+
+.general-settings-page
+  .ant-form-item-label
+  > label.ant-form-item-required::before {
+  color: #ef4444;
+}
+
+.general-settings-page .ant-input,
+.general-settings-page .ant-select-selector,
+.general-settings-page .ant-input-number {
+  border-radius: 12px;
+  border: 1px solid var(--input-border, #e2e8f0);
+  background: var(--input-bg, #f8fafc);
+  transition: all 0.3s ease;
+  font-size: 14px;
+  color: var(--text, #0f172a);
+}
+
+.general-settings-page .ant-input:focus,
+.general-settings-page .ant-select-focused .ant-select-selector,
+.general-settings-page .ant-input-number:focus {
+  border-color: var(--primary, #2563eb);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+  background: white;
+}
+
+.ant-input-prefix {
+  color: #8c8c8c;
+}
+
+/* تحسين منطقة رفع الملفات */
+.ant-upload-picture-card {
+  border: 2px dashed #d9d9d9;
+  border-radius: 12px;
+  background: #fafafa;
+  transition: all 0.3s ease;
+  width: 120px;
+  height: 120px;
+}
+
+.ant-upload-picture-card:hover {
+  border-color: #1890ff;
+  background: #f0f8ff;
+}
+
+.ant-upload-picture-card .ant-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+/* تحسين التنبيهات */
+.ant-alert {
+  border-radius: 8px;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ant-alert-info {
+  background: linear-gradient(135deg, #e6f7ff 0%, #f0f8ff 100%);
+  border-left: 4px solid #1890ff;
+}
+
+/* تحسين العناوين - تطبيق الهوية البصرية الرسمية */
+.general-settings-page .ant-typography h2 {
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--primary, #2563eb);
+}
+
+.ant-typography h2 .anticon {
+  margin-left: 8px;
+  font-size: 24px;
+}
+
+/* تحسين المسافات */
+.ant-space-vertical > .ant-space-item {
+  margin-bottom: 16px;
+}
+
+.ant-space-vertical > .ant-space-item:last-child {
+  margin-bottom: 0;
+}
+
+/* تحسين الأيقونات */
+.anticon {
+  font-size: 16px;
+}
+
+.ant-input-prefix .anticon {
+  font-size: 14px;
+}
+
+/* تحسين التقسيم */
+.ant-divider {
+  border-color: #f0f0f0;
+  margin: 24px 0;
+}
+
+/* تحسين الاستجابة */
+@media (max-width: 768px) {
+  .ant-card {
+    margin-bottom: 16px;
+  }
+
+  .ant-tabs-tab {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+
+  .ant-form-item-label > label {
+    font-size: 13px;
+  }
+
+  .ant-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .ant-card-head-title {
+    font-size: 14px;
+  }
+
+  .ant-typography h2 {
+    font-size: 18px;
+  }
+
+  .ant-upload-picture-card {
+    width: 100px;
+    height: 100px;
+  }
+}
+
+/* تحسين الألوان */
+.ant-tag {
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+/* تحسين الظلال */
+.shadow-sm {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-md {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.shadow-lg {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* تحسين التدرجات */
+.gradient-bg {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* تحسين النصوص - تطبيق الهوية البصرية الرسمية */
+.general-settings-page .ant-typography {
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  color: var(--text, #0f172a);
+}
+
+.general-settings-page .ant-typography.ant-typography-secondary {
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  color: var(--muted, #64748b);
+}
+
+/* تحسين التلميحات */
+.ant-tooltip-inner {
+  background: #262626;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+/* تحسين أيام الإجازات */
+.general-settings-page .weekend-days-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.general-settings-page .weekend-day-checkbox {
+  margin: 0;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--input-border, #e2e8f0);
+  background: transparent;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  color: var(--text, #0f172a);
+}
+
+.general-settings-page .weekend-day-checkbox:hover {
+  border-color: var(--primary, #2563eb);
+  color: var(--primary, #2563eb);
+  background: transparent;
+}
+
+.general-settings-page .weekend-day-checkbox.checked {
+  border-color: var(--primary, #2563eb);
+  color: var(--primary, #2563eb);
+  font-weight: 600;
+  background: transparent;
+}
+
+.general-settings-page .weekend-summary {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--muted, #64748b);
+  font-style: italic;
+}
+
+.ant-tooltip-arrow::before {
+  background: #262626;
+}
+

@@ -8,7 +8,6 @@
     background-color: #fff3cd;
     border-color: #ffecb5;
 }
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500&display=swap');
 .attendance .ant-table-cell,.att-model .ant-table-cell{
     text-align: center!important;
 }

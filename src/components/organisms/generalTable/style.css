@@ -1,87 +1,298 @@
-.danger{
-    color: #842029;
-    background-color: #f8d7da;
-    border-color: #f5c2c7;
+.danger {
+  color: #842029;
+  background-color: #f8d7da;
+  border-color: #f5c2c7;
 }
-.warning{
-    color: #664d03;
-    background-color: #fff3cd;
-    border-color: #ffecb5;
+.warning {
+  color: #664d03;
+  background-color: #fff3cd;
+  border-color: #ffecb5;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500&display=swap');
 
-@media print{
-    #att-report h1,h2{
-        margin: 0;
-    }
-    #att-report thead tr{
-    
-        color:#fff;background-color: #0972B6;height: 30px;
-    }
-    #att-report tbody tr:nth-child(even){
-        background-color: #e6e6e6;
-    }
-    #att-report th{
-        font-weight: 100;
-    }
-    #att-report caption{
-        font-weight: 900;
-    }
+@media print {
+  #att-report h1,
+  h2 {
+    margin: 0;
+  }
+  #att-report thead tr {
+    color: #fff;
+    background-color: #0972b6;
+    height: 30px;
+  }
+  #att-report tbody tr:nth-child(even) {
+    background-color: #e6e6e6;
+  }
+  #att-report th {
+    font-weight: 100;
+  }
+  #att-report caption {
+    font-weight: 900;
+  }
 }
-.generalHeader{
-    display:flex;
-    flex-direction:row;
-    margin-bottom:20px;
-    justify-content:space-between;
+.generalHeader {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 20px;
+  justify-content: space-between;
 }
-.generalHeader .generalData{
-    display:flex;
-    flex:1;
-    flex-direction:row;
-    justify-content:space-evenly;
+.generalHeader .generalData {
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+  justify-content: space-evenly;
 }
-.generalHeader .generalOper{
-    display:flex;
-    flex-wrap: wrap;
+.generalHeader .generalOper {
+  display: flex;
+  flex-wrap: wrap;
 
-    flex:1;
-    flex-direction:row;
-    justify-content:flex-end;
+  flex: 1;
+  flex-direction: row;
+  justify-content: flex-end;
 }
 @media only screen and (max-width: 600px) {
+  .generalHeader {
+    flex-direction: column;
+  }
+  .generalHeader .generalData {
+    order: 2;
+    margin-top: 10px;
+    font-size: 13px;
+  }
+  .generalHeader .generalOper {
+    justify-content: end;
+  }
+  .generalHeader .generalOper .date {
+    display: flex;
+    align-items: center;
+    margin-top: 5px;
+  }
 
-    .generalHeader{
-        flex-direction:column;
-    }
-    .generalHeader .generalData{
-        order: 2;
-        margin-top: 10px;
-        font-size: 13px;
-     }
-     .generalHeader .generalOper{
-        justify-content:end;
-    }
-    .generalHeader .generalOper .date {
-        display: flex;
-        align-items: center;
-        margin-top: 5px;
-      }
+  .generalHeader .generalOper span {
+    flex: 0 0 auto; /* Let label take the necessary space */
+    margin-right: 10px; /* Add spacing between label and input */
+  }
 
-      .generalHeader .generalOper span {
-        flex: 0 0 auto; /* Let label take the necessary space */
-        margin-right: 10px; /* Add spacing between label and input */
-      }
-      
-      .generalHeader .generalOper .ant-picker{
-        flex: 1; /* Make input take up remaining space */
-      }
+  .generalHeader .generalOper .ant-picker {
+    flex: 1; /* Make input take up remaining space */
+  }
 
-    .generalHeader .generalOper .date{
-        flex-basis: 100%;
-        order: 2;
-    }
-    .genTable .ant-table-thead > tr > th, .ant-table-tbody > tr > td, .ant-table tfoot > tr > th, .ant-table tfoot > tr > td{
-        padding: 16px 0px;
-    }
+  .generalHeader .generalOper .date {
+    flex-basis: 100%;
+    order: 2;
+  }
+  .genTable .ant-table-thead > tr > th,
+  .ant-table-tbody > tr > td,
+  .ant-table tfoot > tr > th,
+  .ant-table tfoot > tr > td {
+    padding: 16px 0px;
+  }
+}
+
+/* تنسيق نافذة التكريم - مستقل تماماً */
+.trophy-modal-custom .ant-modal-content {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(20px);
+}
+
+.trophy-modal-custom .ant-modal-body {
+  padding: 0;
+  background: transparent;
+}
+
+.trophy-modal-custom .ant-modal-close {
+  display: none;
+}
+
+.trophy-modal-container {
+  padding: 30px 25px;
+  text-align: center;
+  position: relative;
+}
+
+.trophy-modal-content {
+  position: relative;
+  z-index: 2;
+}
+
+.trophy-modal-image-container {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 25px;
+}
+
+.trophy-modal-image {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  animation: trophy-modal-float 3s ease-in-out infinite;
+  filter: drop-shadow(0 10px 20px rgba(9, 114, 182, 0.3));
+}
+
+.trophy-modal-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(
+    circle,
+    rgba(9, 114, 182, 0.1) 0%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  animation: trophy-modal-glow-pulse 2s ease-in-out infinite;
+}
+
+.trophy-modal-text {
+  margin-bottom: 20px;
+}
+
+.trophy-modal-title {
+  color: #6d5eea;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  text-shadow: 0 2px 4px rgba(109, 94, 234, 0.2);
+  animation: trophy-modal-slide-up 0.8s ease-out;
+}
+
+.trophy-modal-subtitle {
+  color: #666;
+  font-size: 16px;
+  margin: 0;
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  font-weight: 500;
+  animation: trophy-modal-slide-up 0.8s ease-out 0.2s both;
+}
+
+.trophy-modal-rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0972b6, #28a745);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  margin-bottom: 25px;
+  box-shadow: 0 8px 20px rgba(9, 114, 182, 0.3);
+  animation: trophy-modal-slide-up 0.8s ease-out 0.4s both;
+  min-width: 120px;
+}
+
+.trophy-modal-rank-number {
+  font-size: 20px;
+  font-weight: 700;
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+}
+
+.trophy-modal-button {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  border: none !important;
+  color: white !important;
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  height: 45px !important;
+  padding: 0 35px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2) !important;
+  transition: all 0.3s ease !important;
+  animation: trophy-modal-slide-up 0.8s ease-out 0.6s both;
+}
+
+.trophy-modal-button:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
+}
+
+.trophy-modal-button:active {
+  transform: translateY(0) !important;
+}
+
+/* تأثيرات الحركة - أسماء فريدة */
+@keyframes trophy-modal-float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes trophy-modal-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+@keyframes trophy-modal-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* تأثيرات إضافية - أسماء فريدة */
+.trophy-modal-custom .ant-modal-content::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #0972b6, #28a745, #ffc107);
+  border-radius: 20px 20px 0 0;
+}
+
+/* تأثيرات الخلفية - أسماء فريدة */
+.trophy-modal-container::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle,
+    rgba(9, 114, 182, 0.05) 0%,
+    transparent 50%
+  );
+  animation: trophy-modal-background-rotate 20s linear infinite;
+  z-index: 1;
+}
+
+@keyframes trophy-modal-background-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

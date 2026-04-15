@@ -1,69 +1,155 @@
-#att-report tbody tr:nth-child(2n){
-    border-bottom: 2px solid;
+#att-report tbody tr:nth-child(2n) {
+  border-bottom: 2px solid;
 }
 :where(.css-dev-only-do-not-override-dt6cet).ant-modal .ant-modal-content {
-    padding: 20px 10px;
+  padding: 20px 10px;
 }
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500&display=swap');
 
-@media print{
-    #att-report h1,h2{
-        margin: 0;
-    }
-    #att-report thead tr{
-    
-        color:#fff;background-color: #0972B6;height: 30px;
-    }
-    #att-report tbody tr:nth-child(even){
-        background-color: #e6e6e6;
-    }
-    #att-report th{
-        font-weight: 100;
-    }
-    #att-report caption{
-        font-weight: 900;
-    }
+@media print {
+  #att-report h1,
+  h2 {
+    margin: 0;
+  }
+  #att-report thead tr {
+    color: #fff;
+    background-color: #0972b6;
+    height: 30px;
+  }
+  #att-report tbody tr:nth-child(even) {
+    background-color: #e6e6e6;
+  }
+  #att-report th {
+    font-weight: 100;
+  }
+  #att-report caption {
+    font-weight: 900;
+  }
 }
-.tasksHeader{
-    display:flex;
-    flex-direction:row;
-    justify-content:space-between;
-    margin-bottom:20px;
+.tasksHeader {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-bottom: 20px;
 }
-.tasksOper{
-    display:flex;
-    flex-direction:row;
-    justify-content:flex-end;
+.tasksOper {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
 }
-.tasksData{
-    display:flex;
-    flex-direction:row;
+.tasksData {
+  display: flex;
+  flex-direction: row;
 }
-.tasksBtn{
-    display:flex;
-    flex-direction:row; 
+.tasksBtn {
+  display: flex;
+  flex-direction: row;
 }
 @media only screen and (max-width: 600px) {
+  .tasksHeader {
+    flex-direction: column;
+  }
+  .tasksOper {
+    order: 1;
+    flex-direction: row;
+  }
+  .tasksData {
+    order: 2;
+    align-items: center;
+  }
+  .tasksBtn {
+    flex-direction: row;
+    order: 2;
+    justify-content: flex-end;
+  }
+  .tasksRange {
+    order: 2;
+    margin-bottom: 10px;
+  }
 
-    .tasksHeader{
-        flex-direction:column;
-    }
-    .tasksOper{
-        order: 1;
-        flex-direction: row;
-    }
-    .tasksData{
-        order: 2;
-        align-items: center;
-    }
-    .tasksBtn{
-        flex-direction:row; 
-        order: 2;
-        justify-content: flex-end;
-    }
-    .tasksRange{
-        order: 2;
-        margin-bottom: 10px;
-    }
+  /* تحسين عرض التواريخ في الجدول على الهاتف */
+  .ant-table-cell {
+    padding: 8px 4px !important;
+  }
 
+  /* تخصيص عرض أعمدة التاريخ */
+  .ant-table-thead > tr > th:nth-child(2),
+  .ant-table-thead > tr > th:nth-child(3),
+  .ant-table-thead > tr > th:nth-child(4) {
+    min-width: 120px !important;
+    max-width: 120px !important;
+  }
+
+  /* تحسين عرض التواريخ في الخلايا */
+  .ant-table-tbody > tr > td:nth-child(2),
+  .ant-table-tbody > tr > td:nth-child(3),
+  .ant-table-tbody > tr > td:nth-child(4) {
+    text-align: center !important;
+    vertical-align: middle !important;
+  }
+
+  /* تخصيص عرض عمود النوع */
+  .ant-table-thead > tr > th:first-child {
+    min-width: 100px !important;
+    max-width: 100px !important;
+  }
+
+  /* تخصيص عرض عمود التفاصيل */
+  .ant-table-thead > tr > th:nth-child(5) {
+    min-width: 120px !important;
+    max-width: 120px !important;
+  }
+
+  /* تخصيص عرض عمود المدة */
+  .ant-table-thead > tr > th:nth-child(6) {
+    min-width: 80px !important;
+    max-width: 80px !important;
+  }
+
+  /* تحسين عرض التواريخ في الجدول */
+  .date-time-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+  }
+
+  .date-time-container .date {
+    font-size: 12px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 2px;
+    line-height: 1.2;
+  }
+
+  .date-time-container .time {
+    font-size: 11px;
+    color: #666;
+    line-height: 1.2;
+  }
+}
+
+/* تحسينات إضافية للشاشات الصغيرة جداً */
+@media only screen and (max-width: 480px) {
+  .ant-table-thead > tr > th:nth-child(2),
+  .ant-table-thead > tr > th:nth-child(3),
+  .ant-table-thead > tr > th:nth-child(4) {
+    min-width: 100px !important;
+    max-width: 100px !important;
+  }
+
+  .ant-table-thead > tr > th:first-child {
+    min-width: 80px !important;
+    max-width: 80px !important;
+  }
+
+  .ant-table-thead > tr > th:nth-child(5) {
+    min-width: 100px !important;
+    max-width: 100px !important;
+  }
+
+  .ant-table-thead > tr > th:nth-child(6) {
+    min-width: 60px !important;
+    max-width: 60px !important;
+  }
 }

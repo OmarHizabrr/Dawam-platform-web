@@ -1,121 +1,153 @@
-import React, { useState, useEffect } from 'react';
-import './style.css';
-import axios from 'axios';
-import {Typography,Row,Col,Avatar,Button,Card, Spin, Form,Input, Layout,Badge,Radio, Rate } from 'antd';
+import {
+  Avatar,
+  Badge,
+  Button,
+  Card,
+  Col,
+  Input,
+  Layout,
+  Rate,
+  Row,
+  Spin,
+  Typography,
+} from "antd";
+// import axios from "axios";
+import { FirebaseServices } from "../../../firebase/FirebaseServices";
+import React, { useEffect, useState } from "react";
+import "./style.css";
 
-import dayjs from 'dayjs';
+import dayjs from "dayjs";
 
-import { useCookies,CookiesProvider  } from 'react-cookie';
-import {useLocation} from 'react-router-dom';
 import {
   ClusterOutlined,
   DollarCircleOutlined,
-  EyeTwoTone,
   EyeInvisibleOutlined,
+  EyeTwoTone,
   TagsOutlined,
-} from '@ant-design/icons';
-import {Env} from './../../../styles';
+} from "@ant-design/icons";
+import { useCookies } from "react-cookie";
+import { useLocation } from "react-router-dom";
+import { Env } from "./../../../styles";
 
 import ReactApexChart from "react-apexcharts";
-const {Text} = Typography;
+const { Text } = Typography;
 
 /* eslint-disable react-hooks/rules-of-hooks */
-export default function summaryData (props) {
-  const [cookies, setCookie, removeCookie]=useCookies(["userId"]);
+export default function summaryData(props) {
+  const [cookies, setCookie, removeCookie] = useCookies(["userId"]);
   const location = useLocation();
 
-  const [start,setStart]=useState(null);     
-  const [end,setEnd]=useState(null);  
+  const [start, setStart] = useState(null);
+  const [end, setEnd] = useState(null);
 
-  const [data,setData]=useState([]);
-  const [serData,setSerData]=useState([]);
-  const [salSpin,setSalSpin]=useState(true);
-  const [attDates,setAttDates]=useState([]);
-  const [attAtt,setAttAtt]=useState([]);
-  const [attLeave,setAttLeave]=useState([]);
-  const [attSpin,setAttSpin]=useState(true);
-  const [thresholds,setThresholds]=useState([]);
-  const [attCount,setAttCount]=useState(0);
-  const [leaveCount,setLeaveCount]=useState(0);
-  const [spiderData,setSpiderData]=useState([]);
+  const [data, setData] = useState([]);
+  const [serData, setSerData] = useState([]);
+  const [salSpin, setSalSpin] = useState(true);
+  const [attDates, setAttDates] = useState([]);
+  const [attAtt, setAttAtt] = useState([]);
+  const [attLeave, setAttLeave] = useState([]);
+  const [attSpin, setAttSpin] = useState(true);
+  const [thresholds, setThresholds] = useState([]);
+  const [attCount, setAttCount] = useState(0);
+  const [leaveCount, setLeaveCount] = useState(0);
+  const [spiderData, setSpiderData] = useState([]);
 
-  const [star,setStar]=useState(0); 
+  const [star, setStar] = useState(0);
 
   const config = {
     options: {
       chart: {
         width: 380,
-        type: "pie"
+        type: "pie",
       },
-     
-        colors: ['#008FFB', '#775DD0', '#FEB019','#FF4560', '#B8C22E', '#00E396'],
-    
-      labels: ["سُلف", "أقساط", "تأخرات", "غياب","جزاءات","صافي الاستحقاق"],
+
+      colors: [
+        "#008FFB", // سُلف
+        "#775DD0", // أقساط
+        "#FEB019", // تأخرات
+        "#A3192E", // غياب
+        "#FF0505", // جزاءات
+        "#8c8c8c", // التكافل
+        "#00E396", // صافي الاستحقاق
+      ],
+
+      labels: [
+        "سُلف",
+        "أقساط",
+        "تأخرات",
+        "غياب",
+        "جزاءات",
+        "التكافل",
+        "صافي الاستحقاق",
+      ],
       responsive: [
         {
           breakpoint: 480,
           options: {
             chart: {
-              width: 200
+              width: 200,
             },
             legend: {
-              position: "bottom"
-            }
-          }
-        }
+              position: "bottom",
+            },
+          },
+        },
       ],
-    series: serData,
-    }
+      series: serData,
+    },
   };
-  const config2={
-    series: [{
-      name: 'صافي الدوام',
-      data: attAtt
-    },{
-      name: 'الدوام المثالي',
-      data:thresholds
-    }],
+  const config2 = {
+    series: [
+      {
+        name: "صافي الدوام",
+        data: attAtt,
+      },
+      {
+        name: "الدوام المثالي",
+        data: thresholds,
+      },
+    ],
     options: {
       chart: {
         height: 350,
-        type: 'area'
+        type: "area",
       },
       dataLabels: {
         enabled: false,
       },
       stroke: {
-        show:true,
-        curve: 'smooth',
-        width:2,
+        show: true,
+        curve: "smooth",
+        width: 2,
       },
       xaxis: {
-        type: 'datetime',
-        categories: attDates
+        type: "datetime",
+        categories: attDates,
       },
-      yaxis:{
-        type:'datetime',
+      yaxis: {
+        type: "datetime",
         min: 0,
         max: 660,
-        tickAmount:7,
+        tickAmount: 7,
       },
       tooltip: {
-        style:{
-          fontFamily:'Tajawal',
-          marginLeft:'5px',
+        style: {
+          fontFamily: "Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+          marginLeft: "5px",
         },
         x: {
-          show:true,
-          format: 'dd-MM-yyyy'
+          show: true,
+          format: "dd-MM-yyyy",
         },
-        y:{         
-          format:'HH:mm',
+        y: {
+          format: "HH:mm",
           formatter: function (val, opts) {
-            return parseInt(val/60)+":"+(val%60);
+            return parseInt(val / 60) + ":" + (val % 60);
+          },
         },
-        }
       },
     },
-  }
+  };
   const configSpider = {
     options: {
       chart: {
@@ -123,212 +155,402 @@ export default function summaryData (props) {
           enabled: true,
           blur: 1,
           left: 1,
-          top: 1
-        }
-      },dataLabels: {
+          top: 1,
+        },
+      },
+      dataLabels: {
         enabled: true,
         background: {
           enabled: true,
-          borderRadius:2,
-        }
-      },xaxis: {
-        categories: ['الحضور المبكر', 'الانضباط', 'الانصراف', 'نسبة أيام الحضور', 'احترام النظام'],
+          borderRadius: 2,
+        },
+      },
+      xaxis: {
+        categories: [
+          "الحضور المبكر",
+          "الانضباط",
+          "الانصراف",
+          "نسبة أيام الحضور",
+          "احترام النظام",
+        ],
         labels: {
           show: true,
           style: {
             colors: ["#808080"],
             fontSize: "11px",
-            fontFamily: 'Tajawal'
-          }
-        }
+            fontFamily: "Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+          },
+        },
       },
       yaxis: {
-        min:0,
-        max:100,
-        tickAmount:5,
+        min: 0,
+        max: 100,
+        tickAmount: 5,
       },
       colors: ["#0972B6", "#002612"],
       stroke: {
-        width: 1
+        width: 1,
       },
       fill: {
-        opacity: 0.5
+        opacity: 0.5,
       },
       markers: {
-        size: 5
-      }
+        size: 5,
+      },
     },
     series: [
       {
         name: "النسبة",
         data: props.spiderData,
       },
-    ]
+    ],
   };
-  const id=cookies.user; 
-  let  user=props.userData;
+  const id = cookies.user;
+  let user = props.userData;
   // let  user=location.userData;
-  if(location.userData != null) 
-       user=location.userData;
- 
-  const [filter,setFilter]=useState(configSpider.series); 
+  if (location.userData != null) user = location.userData;
 
-  const  handleSizeChange = e => {
-    setFilter([{name:'أسامة جليل',data:[90,60,70,80]}]);
+  const [filter, setFilter] = useState(configSpider.series);
+
+  const handleSizeChange = (e) => {
+    setFilter([{ name: "أسامة جليل", data: [90, 60, 70, 80] }]);
+  };
+  function getTwentyFourHourTime(amPmString) {
+    var d = new Date("1/7/2022 " + amPmString);
+    return d.getHours() + ":" + d.getMinutes();
   }
-function getTwentyFourHourTime(amPmString) { 
-    var d = new Date("1/7/2022 " + amPmString); 
-    return d.getHours() + ':' + d.getMinutes(); 
-}
 
-function getMinutesTime(amPmString) {
- 
-  if(amPmString!=null){
-    var d = amPmString.split(':'); 
-    var m=(parseInt(d[0])*60) + parseInt(d[1]);
-    return m; 
+  function getMinutesTime(amPmString) {
+    if (amPmString != null) {
+      var d = amPmString.split(":");
+      var m = parseInt(d[0]) * 60 + parseInt(d[1]);
+      return m;
+    } else return 0;
   }
-  else return 0;
-}
 
-useEffect(() => {
+  useEffect(() => {
+    if (props.setting.length) {
+      setStart(
+        props.setting
+          ? dayjs(
+            dayjs().format("YYYY-MM") +
+            "-" +
+            props.setting.filter(
+              (item) => item.key == "admin.month_start"
+            )[0]?.value,
+            "YYYY-MM-DD"
+          )
+            .subtract(1, "months")
+            .format("YYYY-MM-DD")
+          : null
+      );
+      setEnd(
+        props.setting
+          ? dayjs(
+            dayjs().format("YYYY-MM") +
+            "-" +
+            props.setting.filter((item) => item.key == "admin.month_end")[0]
+              ?.value,
+            "YYYY-MM-DD"
+          ).format("YYYY-MM-DD")
+          : null
+      );
+    } else {
+      var setting;
+      FirebaseServices.getSetting(props.userData?.user_id)
+        .then((data) => {
+          setting = data;
+          setStart(
+            dayjs(
+              dayjs().format("YYYY-MM") +
+              "-" +
+              setting.filter((item) => item.key == "admin.month_start")[0]
+                ?.value,
+              "YYYY-MM-DD"
+            )
+              .subtract(1, "months")
+              .format("YYYY-MM-DD")
+          );
+          setEnd(
+            dayjs(
+              dayjs().format("YYYY-MM") +
+              "-" +
+              setting.filter((item) => item.key == "admin.month_end")[0]
+                ?.value,
+              "YYYY-MM-DD"
+            ).format("YYYY-MM-DD")
+          );
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    }
+    FirebaseServices.getSalaryInfoForPeriod(id?.id || id?.user_id, start, end)
+      .then((data) => {
+        setData(data);
 
-    if(props.setting.length){  
-    setStart(props.setting?dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'):null);
-    setEnd(props.setting?dayjs(dayjs().format('YYYY-MM')+"-"+props.setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'):null);
-  }
-  else{
-    var setting;
-    axios.get(Env.HOST_SERVER_NAME+'setting/'+props.userData.user_id)
-    .then(response => {
-       setting=response.data;
-       setStart(dayjs(dayjs().format('YYYY-MM')+"-"+setting.filter((item)=> item.key == "admin.month_start")[0]?.value, 'YYYY-MM-DD').subtract(1, 'months').format('YYYY-MM-DD'));
-       setEnd(dayjs(dayjs().format('YYYY-MM')+"-"+setting.filter((item)=> item.key == "admin.month_end")[0]?.value, 'YYYY-MM-DD').format('YYYY-MM-DD'));   
-    }).catch(function (error) {
-      console.log(error);
-    }); 
-  }
-    axios.get(Env.HOST_SERVER_NAME+'salary-info/'+id.user_id+'/'+start+'/'+end)
-    .then(response => {
-      setData(response.data); 
+        // Calculate total calendar days
+        const startDate = dayjs(start);
+        const endDate = dayjs(end);
+        const totalCalendarDays = endDate.diff(startDate, 'day') + 1;
 
-      setSerData([parseInt(response.data.lists[0]['debt'] || 0),parseInt(response.data.lists[0]['long_debt'] || 0), parseInt(response.data.lists[0]['lateTimePrice'] || 0), parseInt(Math.round(((response.data.count[0].count-(response.data.lists[0]['attendanceDays']|| 0))*( response.data.lists[0].salary/30)))), parseInt(response.data.lists[0]['vdiscount'] || 0) ,
-      response.data.lists[0].salary - (Math.round(response.data.lists[0].debt || 0)+Math.round(((response.data.count[0].count-response.data.lists[0].attendanceDays)*(response.data.lists[0].salary/30))+parseFloat(response.data.lists[0].lateTimePrice || 0))+Math.round(response.data.lists[0].symbiosis || 0)+Math.round(response.data.lists[0].long_debt || 0)) ]);
-      setSalSpin(false);
-
-      var dates=[];
-      var atts=[];
-     // var leaves=[];
-     var thr=[];
-     response.data.logs.map(function(item){
-     
-      //if(item.dayName!='الجمعة'){
-        dates.push(item.date);
-        
-        if(item.workHours==0   && item.discount==0) {
-          thr.push(0);
-          atts.push(0);
+        // Get weekend setting
+        const weekendDaysSetting = props.setting.filter(
+          (item) => item.key === "admin.weekend_days"
+        )[0]?.value;
+        let weekendDaysCountPerWeek = 1;
+        if (weekendDaysSetting) {
+          try {
+            const parsedDays = JSON.parse(weekendDaysSetting);
+            weekendDaysCountPerWeek = Array.isArray(parsedDays) ? parsedDays.length : 1;
+          } catch (error) {
+            weekendDaysCountPerWeek = 1;
+          }
         }
-        else {
-          thr.push(getMinutesTime(item.duartion));
-          atts.push(getMinutesTime(item.workHours));
+
+        const weeks = data.fridaysData?.[0]?.weeks || 0;
+        const totalWorkingDays =
+          totalCalendarDays - weeks * weekendDaysCountPerWeek;
+
+        // Calculate Absence: (Working Days - Attendance Days - Vacation Days)
+        // Use backend provided required working days count if available
+        const backendRequiredDays = parseInt(
+          data.count?.[0]?.count || 0
+        );
+        const effectiveWorkingDays =
+          backendRequiredDays > 0 ? backendRequiredDays : totalWorkingDays;
+
+        const attendanceDays = Number(
+          data.lists?.[0]?.["attendanceDays"] || 0
+        );
+
+        // Count vacation days from logs (days that have a vacation type name)
+        const vacationDays = data.logs?.filter(
+          (log) => log.types && log.types !== ""
+        ).length || 0;
+
+        const absenceDays = Math.max(
+          effectiveWorkingDays - attendanceDays - vacationDays,
+          0
+        );
+
+        const salary = data.lists?.[0]?.salary || 0;
+        const dailySalary = salary / 30;
+        const absenceCost = Math.round(absenceDays * dailySalary);
+
+        const debt = parseInt(data.lists?.[0]?.["debt"] || 0);
+        const longDebt = parseInt(data.lists?.[0]?.["long_debt"] || 0);
+        const latePrice = parseInt(
+          data.lists?.[0]?.["lateTimePrice"] || 0
+        );
+        const punishments = parseInt(
+          data.lists?.[0]?.["vdiscount"] || 0
+        );
+        const symbiosis = parseInt(data.lists?.[0]?.["symbiosis"] || 0);
+
+        setSerData([
+          debt, // سُلف
+          longDebt, // أقساط
+          latePrice, // تأخرات
+          absenceCost, // غياب
+          punishments, // جزاءات
+          symbiosis, // التكافل
+          salary -
+          (debt +
+            longDebt +
+            latePrice +
+            absenceCost +
+            punishments +
+            symbiosis), // صافي الاستحقاق
+        ]);
+        setSalSpin(false);
+
+        var dates = [];
+        var atts = [];
+        // var leaves=[];
+        var thr = [];
+        if (data.logs) {
+          data.logs.map(function (item) {
+            //if(item.dayName!='الجمعة'){
+            dates.push(item.date);
+
+            if (item.workHours == 0 && item.discount == 0) {
+              thr.push(0);
+              atts.push(0);
+            } else {
+              thr.push(getMinutesTime(item.duartion));
+              atts.push(getMinutesTime(item.workHours));
+            }
+            //}
+            //  leaves.push(getTwentyFourHourTime(item.leave_time));
+          });
         }
-      //}
-      //  leaves.push(getTwentyFourHourTime(item.leave_time));
-    });
-      setAttDates(dates);
-      setAttAtt(atts);
-      setThresholds(thr);
-     // setAttLeave(leaves);
-      setAttSpin(false);
-    }).catch(function (error) {
-      console.log(error);
-    });
+        setAttDates(dates);
+        setAttAtt(atts);
+        setThresholds(thr);
+        // setAttLeave(leaves);
+        setAttSpin(false);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  }, [start, end]);
 
-  },[start,end]);
+  if (!user) {
+    return (
+      <Layout>
+        <Card className="site-layout-card userProfileSummary" style={{ margin: "10px 16px", padding: "50px", textAlign: "center" }}>
+          <Spin size="large" />
+        </Card>
+      </Layout>
+    );
+  }
 
-  return(
+  return (
     <Layout>
-    <Card
-     className="site-layout-card userProfileSummary"
-     style={{
-       margin: '10px 16px',
-       padding: 0,
-       height:'auto',
-     }}>
-    <Row >
-    <Col style={{ display: 'flex',flexDirection: 'column'}}  xs={24} sm={24} md={6} lg={6} xl={6}>
-    <Avatar
-    size={{ xs: 100, sm: 100, md: 130, lg: 150, xl: 150, xxl: 150 }}
-    src={Env.HOST_SERVER_STORAGE+user.avatar}
-    style={{display:'block',margin:'10px',alignSelf:'center'}}
-    />
-    <Text style={{textAlign:'center',fontSize:'20px',marginBottom:'10px'}}>{user.user_name} <Badge status="success"  /></Text>
-    <div style={{textAlign:'center',marginBottom:'18px'}}><Badge count={ user.user_id }   style={{ backgroundColor: '#DDDDDD',color:'#000' }} /></div>
-    <div style={{textAlign:'center'}}><Button onClick={props.showModal} type='primary' >الملف الوظيفي </Button></div>
-    </Col>
-    <Col className='userData' xs={24} sm={24} md={10} lg={10} xl={10}>
-      <div className="taggedInfo"><Text><ClusterOutlined /> {user.category.name} </Text></div>
-      <div className="taggedInfo"><Text><TagsOutlined />{user.job}</Text></div>
-      <div className="taggedInfo"><Text><DollarCircleOutlined /> الراتب: <Input.Password bordered={false} style={{width:'100px'}} readOnly={true} value={new Intl.NumberFormat('en-EN').format(user.salary)} iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}/></Text></div>
-      <div className="taggedInfo" style={{marginTop:'10px'}}>
-        <Rate disabled allowHalf value={Math.round(props.star*10)/2} /> {Math.round(props.star*100)}%
-      </div>
-    </Col>
-    <Col xs={24} sm={24} md={8} lg={8} xl={8} style={{textAlign:'center',marginBottom:'-50px'}}>
-    <div className='spider'>
-    <ReactApexChart
-      options={configSpider.options}
-      series={configSpider.series}
-      type="radar"
-      height="300"
-      width="350"
-      style={{padding:0}}
-    />
-    <div  style={{top:'-50px',position:'relative'}} onChange={()=>handleSizeChange()} >
-
-    </div>
-    </div>
-    </Col>
-  </Row>
-  </Card>
-    <Row className="summary" style={{paddingBottom:'10px'}}>
-
-    <Col style={{padding:'10px'}} className='pieColumn' lg={10} sm={24}>
-    <Card style={{height:'100%'}}>
-    <Spin spinning={salSpin}>
-    <ReactApexChart
-      className="pie-chart"
-      options={config.options}
-      series={config.options.series}
-      type="pie"
-      height="400"
-      width="400"
-      style={{padding:0,textAlign:'center',display:'flex',flexDirection:'row',justifyContent:'center'}}
-    />
-    <div style={{textAlign:'center',paddingBottom:'20px'}}>
-    <Text>ملخص المستحقات للفترة  {start+" - "+end} </Text>
-    </div>
-    </Spin>
-    </Card>
-    </Col>
-    <Col style={{padding:'10px'}} className='pieColumn' lg={14} sm={24}>
-    <Card>
-    <Spin spinning={attSpin}>
-    <ReactApexChart
-      options={config2.options}
-      series={config2.series}
-      type="area"
-      height="250"
-      style={{padding:0}}
-    />
-     <div style={{textAlign:'center',}}>
-    <Text>حركة الحضور والانصراف لآخر 30 يوماً</Text>
-    </div>
-    </Spin>
-    </Card>
-    </Col>   
-     </Row>
-     </Layout>
-     );
+      <Card
+        className="site-layout-card userProfileSummary"
+        style={{
+          margin: "10px 16px",
+          padding: 0,
+          height: "auto",
+        }}
+      >
+        <Row>
+          <Col
+            style={{ display: "flex", flexDirection: "column" }}
+            xs={24}
+            sm={24}
+            md={6}
+            lg={6}
+            xl={6}
+          >
+            <Avatar
+              size={{ xs: 100, sm: 100, md: 130, lg: 150, xl: 150, xxl: 150 }}
+              src={Env.HOST_SERVER_STORAGE + (user?.avatar || "")}
+              style={{ display: "block", margin: "10px", alignSelf: "center" }}
+            />
+            <Text
+              style={{
+                textAlign: "center",
+                fontSize: "20px",
+                marginBottom: "10px",
+              }}
+            >
+              {user?.user_name || user?.name} <Badge status="success" />
+            </Text>
+            <div style={{ textAlign: "center", marginBottom: "18px" }}>
+              <Badge
+                count={user?.user_id}
+                style={{ backgroundColor: "#DDDDDD", color: "#000" }}
+              />
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <Button onClick={props.showModal} type="primary">
+                الملف الوظيفي{" "}
+              </Button>
+            </div>
+          </Col>
+          <Col className="userData" xs={24} sm={24} md={10} lg={10} xl={10}>
+            <div className="taggedInfo">
+              <Text>
+                <ClusterOutlined /> {user?.category?.name || "بدون إدارة"}{" "}
+              </Text>
+            </div>
+            <div className="taggedInfo">
+              <Text>
+                <TagsOutlined />
+                {user?.job || "بدون وظيفة"}
+              </Text>
+            </div>
+            <div className="taggedInfo">
+              <Text>
+                <DollarCircleOutlined /> الراتب:{" "}
+                <Input
+                  bordered={false}
+                  style={{ width: "100px", border: 'none', padding: 0, backgroundColor: 'transparent' }}
+                  readOnly={true}
+                  value={new Intl.NumberFormat("en-EN").format(user?.salary || 0)}
+                  type="text"
+                />
+              </Text>
+            </div>
+            <div className="taggedInfo" style={{ marginTop: "10px" }}>
+              <Rate
+                disabled
+                allowHalf
+                value={Math.round((props.star || 0) * 10) / 2}
+              />{" "}
+              {Math.round((props.star || 0) * 100)}%
+            </div>
+          </Col>
+          <Col
+            xs={24}
+            sm={24}
+            md={8}
+            lg={8}
+            xl={8}
+            style={{ textAlign: "center", marginBottom: "-50px" }}
+          >
+            <div className="spider">
+              <ReactApexChart
+                options={configSpider.options}
+                series={configSpider.series}
+                type="radar"
+                height="300"
+                width="350"
+                style={{ padding: 0 }}
+              />
+              <div
+                style={{ top: "-50px", position: "relative" }}
+                onChange={() => handleSizeChange()}
+              ></div>
+            </div>
+          </Col>
+        </Row>
+      </Card>
+      <Row className="summary" style={{ paddingBottom: "10px" }}>
+        <Col style={{ padding: "10px" }} className="pieColumn" lg={10} sm={24}>
+          <Card style={{ height: "100%" }}>
+            <Spin spinning={salSpin}>
+              <ReactApexChart
+                className="pie-chart"
+                options={config.options}
+                series={config.options.series}
+                type="pie"
+                height="400"
+                width="400"
+                style={{
+                  padding: 0,
+                  textAlign: "center",
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "center",
+                }}
+              />
+              <div style={{ textAlign: "center", paddingBottom: "20px" }}>
+                <Text>ملخص المستحقات للفترة {start + " - " + end} </Text>
+              </div>
+            </Spin>
+          </Card>
+        </Col>
+        <Col style={{ padding: "10px" }} className="pieColumn" lg={14} sm={24}>
+          <Card>
+            <Spin spinning={attSpin}>
+              <ReactApexChart
+                options={config2.options}
+                series={config2.series}
+                type="area"
+                height="250"
+                style={{ padding: 0 }}
+              />
+              <div style={{ textAlign: "center" }}>
+                <Text>حركة الحضور والانصراف لآخر 30 يوماً</Text>
+              </div>
+            </Spin>
+          </Card>
+        </Col>
+      </Row>
+    </Layout>
+  );
 }

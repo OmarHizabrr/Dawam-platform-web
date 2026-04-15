@@ -2,7 +2,9 @@
     margin-left: 5px!important;
 }
 .apexcharts-legend-text{
-font-family: Tajawal!important;
+font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  sans-serif !important;
 }
 .summary .ant-card-body{
 padding: 2px;

@@ -3,12 +3,13 @@ import React,{ useState, useEffect }  from 'react';
 import './style.css';
 import { DatePicker,Table, Button,Card,Input,Select,Typography,Form, Popconfirm,Space,Spin,notification} from 'antd';
 import {DeleteOutlined,MinusCircleOutlined, PlusOutlined ,FormOutlined,ExportOutlined,PrinterOutlined} from '@ant-design/icons';
-import axios from 'axios';
+// import axios from 'axios';
+import { FirebaseServices } from "../../../firebase/FirebaseServices";
 import excel from 'xlsx';
 import dayjs from 'dayjs';
 import {useLocation} from 'react-router-dom';
 
-import {Env} from './../../../styles';
+import {Env, PrintFonts} from './../../../styles';
 import Modal from 'antd/lib/modal/Modal';
 const {Text}=Typography;
 
@@ -40,7 +41,13 @@ export default function ViolationsRecords (props){
  const [confirmLoading, setConfirmLoading] = useState(false);
  const [visible, setVisible] = React.useState(false);
  const [update,setUpdate]=useState(null);
-
+const openNotification2 = (placement,text) => {
+        notification.success({
+          message:text ,
+          placement,
+          duration:10,
+        });
+      }
  const showPopconfirm = (id) => {
   setVisible(true);
   setSelectedIndex(id);
@@ -48,15 +55,12 @@ export default function ViolationsRecords (props){
 
 const handlePOk = (record) => {
   setConfirmLoading(true);
-  axios.delete(Env.HOST_SERVER_NAME+'delete-violation/'+record.id)
+  FirebaseServices.deleteViolation(record.id)
   .then(response => {
     setVisible(false);
     setConfirmLoading(false);
-    notification.success({
-      message:<span> {'تم حذف المخالفة بنجاح.' }</span>,
-      placement:'bottomLeft',
-      duration:10
-    });
+    
+    openNotification2('bottomLeft',<span> {'تم حذف المخالفة بنجاح.' }</span>);
 
     setUpdate(update+1);
    }).catch(function (error) {
@@ -179,41 +183,41 @@ const processVio=(record)=>{
   ];
     useEffect(() => {
        
-        axios.get(Env.HOST_SERVER_NAME+'user-type/'+props.user?.id)
-        .then(response => {
-          setType(response.data);
+        FirebaseServices.getUserType(props.user?.id)
+        .then(data => {
+          setType(data);
         }).catch(function (error) {
           console.log(error);
         });
-          axios.get(Env.HOST_SERVER_NAME+'get-emp-names')
-          .then(response => {
+          FirebaseServices.getEmpNames()
+          .then(data => {
             if(props.type=="Admin")
-              setTstypes(response.data);
+              setTstypes(data);
             else
-              setTstypes(response.data.filter(record => record.category==props.user.category.id));
+              setTstypes(data.filter(record => record.category==props.user.category.id));
 
           }).catch(function (error) {
             console.log(error);
           });
-          axios.get(Env.HOST_SERVER_NAME+'get-violations-types')
-            .then(response => {
-                setViosTypes(response.data);
+          FirebaseServices.getViolationsTypes()
+            .then(data => {
+                setViosTypes(data);
             }).catch(function (error) {
             console.log(error);            
           });
-    axios.get(Env.HOST_SERVER_NAME+'get-all-violations/'+start+'/'+end)
-    .then(response => {
+    FirebaseServices.getAllViolations(start, end)
+    .then(data => {
 
       if(location.pathname=="/profile/dept-violations"){
-        var dt=response.data.filter(record => record.uid==props.user.user_id);
+        var dt=data.filter(record => record.uid==props.user.user_id);
 
         if(type!=3){
-          dt=response.data.filter(record => record.category==props.user.category.name);
+          dt=data.filter(record => record.category==props.user.category.name);
         }
         setData(dt);
       }
       else{
-        setData(response.data);
+        setData(data);
       }
       setLoad(false);
     }).catch(function (error) {
@@ -232,7 +236,10 @@ const processVio=(record)=>{
         var report=document.getElementById('task-report');
         //var report=document.body;
        var mywindow = window.open('');
-        mywindow.document.write("<html><head><title></title> <style>@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500&display=swap'); body{font-family:Tajawal;font-size:12px;margin:0}  </style>");
+        mywindow.document.write("<html><head><title></title> <style>" +
+          PrintFonts.getPrintFontsCSS() +
+          "body{font-size:12px;margin:0} " +
+          "</style>");
         mywindow.document.write('</head><body dir="rtl" style="font-size:12px;" >');
         mywindow.document.write(report.innerHTML);
         mywindow.document.write('</body></html>');
@@ -273,7 +280,7 @@ const processVio=(record)=>{
         setSaving(true); 
         values['done_by']=props.user.id;
         
-        axios.post(Env.HOST_SERVER_NAME+'add-violations',values)
+        FirebaseServices.addViolation(values)
         .then(response => {
           setIsModalVisible(false);
            setSaving(false);
@@ -415,7 +422,7 @@ return (
     </Modal>    
     <Table loading={load} columns={columns} scroll={{x: '1000px' }} dataSource={data} onChange={function(){handleChange();}} />
     <div id="task-report"  style={{display:'none'}}>
-    <div  style={{direction: "rtl",fontSize: "12px",fontFamily: "Tajawal",margin: "0",padding:'10px',border:'3px solid black'}}>
+    <div  style={{direction: "rtl",fontSize: "12px",fontFamily: "Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",margin: "0",padding:'10px',border:'3px solid black'}}>
     <header style={{display: "flex",flexDirection: "row",}}>
        <div style={{width: "20%"}}>
            <img loading="eager" style={{width: "250px"}} src={Env.HOST_SERVER_STORAGE+props.setting.filter((item)=> item.key == 'admin.logo')[0]?.value}/>

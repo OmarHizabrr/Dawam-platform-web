@@ -1,60 +1,203 @@
-
 .space-align-block {
-    flex: none;
-    margin: 8px 4px;
-    padding: 4px;
+  flex: none;
+  margin: 8px 4px;
+  padding: 4px;
+}
+.space-align-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.taggedInfo {
+  margin-top: 10px;
+  font-size: 15px;
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif !important;
+}
+
+.site-layout-card .ant-card-body {
+  padding-bottom: 6px !important;
+}
+
+[class="ant-tabs-tab"] a {
+  color: black;
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif !important;
+}
+[class="ant-tabs-tab"] a:hover {
+  color: #40a9ff;
+}
+[class="ant-tabs-tab"] {
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif !important;
+}
+.spider > div {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+.profile-row {
+  margin-top: 10px;
+}
+
+/* تطبيق خط Tajawal على بيانات الموظف */
+.userData,
+.userData *,
+.userData .taggedInfo,
+.userData .taggedInfo *,
+.userData .ant-typography,
+.userData .ant-input,
+.userData .ant-input-password {
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif !important;
+}
+@media only screen and (max-width: 600px) {
+  .userData {
+    text-align: center;
   }
-  .space-align-container {
-    display: flex;
+  .userProfile {
+    display: none;
+  }
+  .site-layout-card .ant-card-body {
+    padding: 0;
+    margin: 0px !important;
+  }
+  .site-layout-card {
+    margin: 0px 0px !important;
+    margin-top: 20px !important;
+    margin-bottom: 10px !important;
+  }
+  .profile-tabs .ant-tabs-nav {
+    margin: 0;
+  }
+  .profile-tabs {
+    padding-right: 20px;
+  }
+  .profile-row {
+    margin-top: 0px;
+  }
+
+  .trophy-section .trophy-container {
+    justify-content: flex-start !important;
+    gap: 6px !important;
+    direction: rtl;
     flex-wrap: wrap;
     align-items: center;
   }
-  .taggedInfo{
-      margin-top: 10px;
-      font-size: 15px;
+  .trophy-section .trophy-item {
+    min-width: 40px;
+    flex-shrink: 0;
   }
 
-  .site-layout-card .ant-card-body{
-    padding-bottom: 6px!important;
+  .medals-section .medals-container {
+    justify-content: flex-start !important;
+    gap: 6px !important;
+    direction: rtl;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .medals-section .medal-item {
+    min-width: 40px;
+    flex-shrink: 0;
   }
 
-  [class="ant-tabs-tab"] a{
-    color:black;
+  .special-cup-section {
+    direction: rtl;
+    text-align: right;
   }
-  [class="ant-tabs-tab"] a:hover{
-    color:#40a9ff;
+  .special-cup-section .special-cup-item {
+    display: inline-block;
+    min-width: 50px;
+    text-align: center;
   }
-  .spider>div{
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
+
+  /* تحسينات إضافية للجوائز في البروفايل على الموبايل */
+  .userData .trophy-section,
+  .userData .medals-section,
+  .userData .special-cup-section {
+    margin-top: 8px;
+    margin-bottom: 8px;
   }
-.profile-row{
-  margin-top: 10px;
-}
-@media only screen and (max-width: 600px) {
-.userData{
-  text-align: center;
-}
-.userProfile{
-  display: none;
-}
-.site-layout-card .ant-card-body{
-  padding: 0;
-  margin: 0px!important;
-}
-.site-layout-card{
-  margin: 0px 0px!important;
-  margin-top: 20px!important; 
-  margin-bottom: 10px!important; 
-}
-.profile-tabs .ant-tabs-nav{
-  margin: 0;
-}
-.profile-tabs{
-  padding-right: 20px;
-}
-.profile-row{
-  margin-top: 0px;
-}
+
+  .userData .trophy-item img,
+  .userData .medal-item img,
+  .userData .special-cup-item img {
+    max-width: 100%;
+    height: auto;
   }
+
+  /* تحسين المسافات بين العناصر */
+  .userData .taggedInfo {
+    margin-bottom: 8px;
+  }
+
+  /* تنسيق خاص لحقل الراتب على الموبايل */
+  .userData .taggedInfo[style*="display: flex"] {
+    display: block !important;
+    text-align: center !important;
+  }
+
+  .userData .taggedInfo[style*="display: flex"] .ant-input-password {
+    display: block !important;
+    text-align: center !important;
+    margin: 10px auto 0 auto !important;
+    width: 120px !important;
+  }
+
+  /* تنسيق حقل الراتب على الموبايل */
+  .userData .taggedInfo .ant-input-password {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background-color: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .userData .taggedInfo .ant-input-password .ant-input {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background-color: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .userData .taggedInfo .ant-input-password .ant-input-suffix {
+    margin-left: 0 !important;
+  }
+
+  /* إصلاح موقع حقل الراتب على الموبايل */
+  .userData .taggedInfo[style*="display: flex"] {
+    justify-content: center !important;
+    text-align: center !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  .userData .taggedInfo[style*="display: flex"] .ant-input-password {
+    display: block !important;
+    text-align: center !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 120px !important;
+  }
+
+  /* إجبار تغيير التنسيق على الموبايل */
+  .userData .taggedInfo[style*="display: flex"] {
+    display: block !important;
+    text-align: center !important;
+  }
+
+  .userData .taggedInfo[style*="display: flex"] .ant-input-password {
+    display: block !important;
+    text-align: center !important;
+    margin: 10px auto 0 auto !important;
+    width: 120px !important;
+  }
+}
