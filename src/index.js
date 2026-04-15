@@ -1,46 +1,51 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
-import { ConfigProvider } from 'antd';
-import * as serviceWorkerRegistration from './serviceWorkerRegistration';
-import dayjs from 'dayjs';
-import arEG from 'antd/lib/locale/ar_EG';
+import { ConfigProvider } from "antd";
+import React from "react";
+import { createRoot } from "react-dom/client";
+import App from "./App";
+import "./index.css";
+import reportWebVitals from "./reportWebVitals";
+// import * as serviceWorkerRegistration from './serviceWorkerRegistration';
+import arEG from "antd/lib/locale/ar_EG";
+import dayjs from "dayjs";
+import TemporaryRegistrationPage from "./components/TemporaryRegistrationPage";
 
-import 'dayjs/locale/ar';
+import "dayjs/locale/ar";
 
+dayjs.locale("ar");
+const SHOW_TEMP_REGISTRATION_PAGE = true; // علق هذا السطر لإخفاء الصفحة المؤقتة.
 
-import locale from 'antd/locale/ar_EG';
+const container = document.getElementById("root");
+const root = createRoot(container);
 
-dayjs.locale('ar')
-
-ReactDOM.render(
+root.render(
   <React.StrictMode>
-  <ConfigProvider locale={arEG}  theme={{
+    <ConfigProvider
+      locale={arEG}
+      theme={{
         components: {
           DatePicker: {
-           cellHeight:window.innerWidth <= 760?20:24,
-           cellWidth:window.innerWidth <= 760?30:36,
-           timeColumnWidth:window.innerWidth <= 760?40:56,
+            cellHeight: window.innerWidth <= 760 ? 20 : 24,
+            cellWidth: window.innerWidth <= 760 ? 30 : 36,
+            timeColumnWidth: window.innerWidth <= 760 ? 40 : 56,
           },
         },
 
         token: {
-          fontFamily: "Tajawal",
-          fontSize: 15, 
-          fontWeightStrong:500,
-          colorBorderSecondary:"#2f2b3d29",
-          colorBgLayout:"#fff",
-        }
-      }}  direction="rtl">
-    <App />
-  </ConfigProvider>
-  </React.StrictMode>,
-  document.getElementById('root')
+          fontFamily: "Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+          fontSize: 15,
+          fontWeightStrong: 500,
+          colorBorderSecondary: "#2f2b3d29",
+          colorBgLayout: "#fff",
+        },
+      }}
+      direction="rtl"
+    >
+      {SHOW_TEMP_REGISTRATION_PAGE ? <TemporaryRegistrationPage /> : <App />}
+    </ConfigProvider>
+  </React.StrictMode>
 );
 
-serviceWorkerRegistration.unregister();
+// serviceWorkerRegistration.unregister();
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
