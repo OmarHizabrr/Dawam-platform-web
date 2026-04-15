@@ -1,0 +1,126 @@
+.accounts-list-container, .create-company-container {
+  padding: 40px 20px;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f0f4ff 0%, #e0e8ff 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, #1d4ed8, #6366f1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 8px !important;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 500px;
+  padding: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.form-header {
+  text-align: center;
+  margin-bottom: 30px;
+  position: relative;
+}
+
+.back-btn {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.premium-form .ant-input-affix-wrapper {
+  border-radius: 12px;
+  padding: 10px 15px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #d1d5db;
+}
+
+.submit-btn {
+  border-radius: 12px !important;
+  height: 50px !important;
+  font-weight: 600 !important;
+  margin-top: 10px;
+}
+
+.list-header {
+  text-align: center;
+  margin-bottom: 50px;
+  width: 100%;
+  max-width: 800px;
+}
+
+.action-bar {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+  justify-content: center;
+}
+
+.search-input {
+  max-width: 400px;
+  border-radius: 12px;
+}
+
+.create-btn {
+  border-radius: 12px;
+}
+
+.accounts-grid {
+  width: 100%;
+  max-width: 1200px;
+}
+
+.account-card {
+  border-radius: 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(139, 126, 230, 0.1);
+}
+
+.account-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(99, 102, 241, 0.1) !important;
+}
+
+.account-icon {
+  font-size: 40px;
+  color: #6366f1;
+  background: #f0f4ff;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  margin: 0 auto 20px;
+}
+
+.account-name {
+  margin-bottom: 5px !important;
+}
+
+.card-footer {
+  margin-top: 20px;
+  border-top: 1px solid #f3f4f6;
+  padding-top: 15px;
+}
+
+.loader-container {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-state {
+  margin-top: 100px;
+}
