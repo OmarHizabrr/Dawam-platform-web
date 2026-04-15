@@ -1,0 +1,15 @@
+/* خط Tajawal من Google Fonts للموقع */
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@200;300;400;500;700;800;900&display=swap');
+
+/* خط افتراضي للموقع */
+:root {
+  --font-primary: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+}
+
+/* تطبيق خط Tajawal على جميع عناصر الموقع (وليس الطباعة) */
+body:not(.print-fonts) *:not(.print-fonts) {
+  font-family: var(--font-primary) !important;
+}
+

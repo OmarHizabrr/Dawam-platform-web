@@ -1,0 +1,15 @@
+firebase deploy
+npm run build
+firebase deploy --project dawam-alhikma
+
+firebase deploy --project doa-dawam
+firebase deploy --project ts-dawam-app
+
+firebase deploy --project mc-foundation
+ npm run build
+ npm start 
+  npm run dev
+ firebase login
+ firebase logout
+
+flutter pub run flutter_launcher_icons

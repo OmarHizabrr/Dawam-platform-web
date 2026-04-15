@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل البيانات | منصتنا الجديدة</title>
+    <!-- استدعاء مكتبة الأيقونات -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* تعريف الألوان للوضع الداكن */
+        :root {
+            --primary-color: #3b82f6;
+            --secondary-color: #2dd4bf;
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --input-bg: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at top right, #1e293b, #0f172a);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            color: var(--text-main);
+        }
+
+        /* حاوية النموذج */
+        .form-container {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 500px;
+            padding: 32px;
+            border-radius: 28px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to left, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .input-group {
+            margin-bottom: 18px;
+        }
+
+        .label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        /* تنسيق الحقول */
+        .field {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1.5px solid transparent;
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            transition: var(--transition);
+            outline: none;
+        }
+
+        .field:focus {
+            border-color: var(--primary-color);
+            background: #3d4b5f;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+        }
+
+        /* تنسيق الهاتف */
+        .phone-layout {
+            display: flex;
+            gap: 10px;
+            direction: ltr;
+        }
+
+        .country-select {
+            flex: 0 0 110px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .phone-input {
+            flex: 1;
+            direction: rtl;
+        }
+
+        /* زر الإرسال الجديد */
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary-color), #2563eb);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            transition: var(--transition);
+        }
+
+        .btn-submit:hover {
+            filter: brightness(1.1);
+            transform: scale(1.01);
+        }
+
+        /* إشعار النجاح */
+        #notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            left: 20px;
+            background: #10b981;
+            color: white;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            transform: translateY(150%);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+        }
+
+        #notification.show {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 450px) {
+            .form-container {
+                padding: 24px 18px;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="form-container">
+        <div class="header">
+            <h1>التسجيل الذكي</h1>
+            <p>املأ بياناتك للانضمام إلى منصتنا الجديدة</p>
+        </div>
+
+        <form id="mainForm">
+            <!-- الاسم الرباعي -->
+            <div class="input-group">
+                <label class="label">
+                    <i data-lucide="user-plus" size="16"></i>
+                    الاسم الرباعي الكامل
+                </label>
+                <input type="text" id="name" class="field" placeholder="مثال: محمد أحمد علي صالح" required>
+            </div>
+
+            <!-- الرقم الوظيفي (جديد) -->
+            <div class="input-group">
+                <label class="label">
+                    <i data-lucide="briefcase" size="16"></i>
+                    الرقم الوظيفي
+                </label>
+                <input type="text" id="jobId" class="field" placeholder="أدخل رقمك الوظيفي" required>
+            </div>
+
+            <!-- رقم الموبايل (واتساب) -->
+            <div class="input-group">
+                <label class="label">
+                    <i data-lucide="message-circle" size="16"></i>
+                    رقم الموبايل (المرتبط بالواتساب)
+                </label>
+                <div class="phone-layout">
+                    <select id="code" class="field country-select">
+                        <option value="+967" selected>🇾🇪 +967</option>
+                        <option value="+966">🇸🇦 +966</option>
+                        <option value="+971">🇦🇪 +971</option>
+                        <option value="+20">🇪🇬 +20</option>
+                        <option value="+965">🇰🇼 +965</option>
+                    </select>
+                    <input type="tel" id="phone" class="field phone-input" placeholder="7XXXXXXXX" required>
+                </div>
+            </div>
+
+            <!-- زر الإرسال (تم تعديل النص) -->
+            <button type="submit" class="btn-submit">
+                ارسال البيانات
+                <i data-lucide="check-circle" size="18"></i>
+            </button>
+        </form>
+    </div>
+
+    <div id="notification">
+        تم استلام بياناتك بنجاح! سنتواصل معك عبر الواتساب.
+    </div>
+
+    <script>
+        // تفعيل الأيقونات
+        lucide.createIcons();
+
+        const form = document.getElementById('mainForm');
+        const notification = document.getElementById('notification');
+
+        // معالجة الإرسال
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // جمع البيانات
+            const data = {
+                name: document.getElementById('name').value,
+                jobId: document.getElementById('jobId').value,
+                phone: document.getElementById('code').value + document.getElementById('phone').value
+            };
+
+            // تفعيل الإشعار
+            notification.classList.add('show');
+
+            // إعادة ضبط النموذج
+            form.reset();
+
+            // إخفاء الإشعار
+            setTimeout(function () {
+                notification.classList.remove('show');
+            }, 4000);
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,42 @@
+/* خطوط الطباعة المحلية */
+
+@font-face {
+  font-family: 'JannaLTBold';
+  src: url('/fonts/alfont_com_Janna-LT-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'BoutrosMBCDinkum';
+  src: url('/fonts/BoutrosMBCDinkum-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* كلاس CSS لاستخدام الخطوط في الطباعة */
+.print-fonts {
+  font-family: 'JannaLTBold', 'BoutrosMBCDinkum', Arial, sans-serif !important;
+}
+
+/* تنسيقات عامة للطباعة */
+@media print {
+  body,
+  table,
+  th,
+  td,
+  div,
+  p,
+  span,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'JannaLTBold', 'BoutrosMBCDinkum', Arial, sans-serif !important;
+  }
+}
+

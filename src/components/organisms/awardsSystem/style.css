@@ -1,0 +1,230 @@
+.awards-loading {
+  text-align: center;
+  padding: 10px;
+  color: #666;
+  font-size: 14px;
+}
+
+.trophy-section {
+  display: block;
+  width: 100%;
+  margin-bottom: 3px;
+}
+
+.medals-section {
+  display: block;
+  width: 100%;
+  margin-bottom: 1px;
+}
+
+.special-cup-section {
+  display: block;
+  width: 100%;
+  margin-bottom: 0px;
+  margin-top: -8px;
+}
+
+.trophy-container,
+.medals-container {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+/* تنسيقات خاصة للمحاذاة */
+.medals-container {
+  margin-left: 10px !important;
+}
+
+.trophy-section {
+  transform: translateX(10px);
+}
+
+/* تنسيقات إضافية للمحاذاة */
+.medals-section {
+  position: relative;
+  left: 10px;
+}
+
+.trophy-item,
+.medal-item,
+.special-cup-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.2s ease;
+}
+
+.trophy-item:hover,
+.medal-item:hover,
+.special-cup-item:hover {
+  transform: scale(1.1);
+}
+
+.trophy-item svg,
+.medal-item svg {
+  transition: filter 0.2s ease;
+}
+
+.trophy-item:hover svg,
+.medal-item:hover svg {
+  filter: brightness(1.2);
+}
+
+/* تأثيرات خاصة للكؤوس - إزالة الخلفيات المضيئة */
+
+/* تأثيرات للميداليات */
+.medal-item:nth-child(1) {
+  /* الذهبية */
+  animation: medalPulse 2s ease-in-out infinite;
+}
+
+.medal-item:nth-child(2) {
+  /* الفضية */
+  animation: medalPulse 2s ease-in-out infinite 0.3s;
+}
+
+.medal-item:nth-child(3) {
+  /* البرونزية */
+  animation: medalPulse 2s ease-in-out infinite 0.6s;
+}
+
+@keyframes medalPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* الكأس المميز */
+.special-cup-item {
+  position: relative;
+}
+
+.special-cup-item:hover {
+  animation: specialCupSpin 1s ease-in-out;
+}
+
+@keyframes specialCupSpin {
+  0% { transform: rotate(0deg); }
+  50% { transform: rotate(10deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* استجابة للشاشات الصغيرة */
+@media (max-width: 768px) {
+  .trophy-container,
+  .medals-container {
+    gap: 6px;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  
+  .trophy-item svg,
+  .medal-item svg {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .trophy-item img,
+  .medal-item img,
+  .special-cup-item img {
+    width: 28px !important;
+    height: 28px !important;
+    object-fit: contain;
+  }
+  
+  .trophy-item div,
+  .medal-item div,
+  .special-cup-item div {
+    font-size: 13px;
+    font-weight: bold;
+    margin-top: 2px;
+  }
+  
+  .special-cup-item div:first-child {
+    font-size: 20px;
+  }
+  
+  .trophy-section,
+  .medals-section,
+  .special-cup-section {
+    margin-bottom: 8px;
+    display: block;
+    width: 100%;
+  }
+}
+
+/* استجابة للشاشات الصغيرة جداً */
+@media (max-width: 480px) {
+  .trophy-container,
+  .medals-container {
+    gap: 4px;
+    justify-content: center;
+  }
+  
+  .trophy-item,
+  .medal-item,
+  .special-cup-item {
+    min-width: 40px;
+    text-align: center;
+  }
+  
+  .trophy-item img,
+  .medal-item img,
+  .special-cup-item img {
+    width: 24px !important;
+    height: 24px !important;
+  }
+  
+  .trophy-item div,
+  .medal-item div,
+  .special-cup-item div {
+    font-size: 12px;
+  }
+  
+  .special-cup-item div:first-child {
+    font-size: 18px;
+  }
+}
+
+/* تحسينات إضافية للشاشات العريضة الصغيرة */
+@media (max-width: 600px) and (orientation: landscape) {
+  .trophy-container,
+  .medals-container {
+    justify-content: flex-start;
+    gap: 8px;
+  }
+  
+  .trophy-item,
+  .medal-item,
+  .special-cup-item {
+    flex-shrink: 0;
+  }
+
+}
+
+/* تلميحات الأدوات */
+.trophy-item,
+.medal-item,
+.special-cup-item {
+  position: relative;
+  cursor: pointer;
+}
+
+.trophy-item:hover::before,
+.medal-item:hover::before,
+.special-cup-item:hover::before {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+}

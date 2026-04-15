@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بطاقة إشعارات محسنة</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .notification-card {
+            display: flex;
+            align-items: flex-start;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(140, 122, 230, 0.1);
+            padding: 20px;
+            margin-bottom: 16px;
+            width: 100%;
+            min-width: 320px;
+            max-width: 480px;
+            border: 1px solid rgba(140, 122, 230, 0.12);
+            position: relative;
+            overflow: hidden;
+            transform-origin: right center;
+            transition: all 0.3s ease-out;
+        }
+
+        .notification-card:hover {
+            box-shadow: 0 6px 24px rgba(140, 122, 230, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .notification-card::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, #8c7ae6, #7266ba);
+            border-radius: 4px 0 0 4px;
+        }
+
+        .notification-avatar {
+            margin-left: 16px;
+        }
+
+        .notification-avatar img {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 3px 10px rgba(140, 122, 230, 0.2);
+            border: 2px solid #ffffff;
+            transition: transform 0.2s ease;
+        }
+
+        .notification-avatar img:hover {
+            transform: scale(1.05);
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .notification-title {
+            color: #8c7ae6;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .notification-time {
+            color: #9aa1ad;
+            font-size: 13px;
+            font-weight: 500;
+            background-color: rgba(140, 122, 230, 0.08);
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+
+        .notification-message {
+            color: #4a4a4a;
+            font-size: 15px;
+            line-height: 1.5;
+            margin-top: 4px;
+        }
+
+        .notification-actions {
+            display: flex;
+            margin-top: 12px;
+            gap: 8px;
+        }
+
+        .notification-action-btn {
+            background: transparent;
+            border: none;
+            color: #8c7ae6;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 5px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .notification-action-btn:hover {
+            background-color: rgba(140, 122, 230, 0.1);
+        }
+
+        .notification-badge {
+            display: inline-block;
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff6b6b;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            height: 20px;
+            width: 20px;
+            text-align: center;
+            line-height: 20px;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(255, 107, 107, 0.3);
+        }
+
+        .swiped-card {
+            animation: swipeRight 0.5s forwards;
+        }
+
+        @keyframes swipeRight {
+            0% {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+        }
+
+        .swiped-left-card {
+            animation: swipeLeft 0.5s forwards;
+        }
+
+        @keyframes swipeLeft {
+            0% {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateX(-120%);
+                opacity: 0;
+            }
+        }
+
+        /* تحسينات إضافية للشكل العام */
+        .notification-card.unread {
+            background: linear-gradient(to right, rgba(140, 122, 230, 0.05), rgba(255, 255, 255, 1));
+        }
+
+        .demo-heading {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #8c7ae6;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .demo-instruction {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        @media (max-width: 480px) {
+            .notification-card {
+                padding: 16px;
+                border-radius: 12px;
+            }
+
+            .notification-avatar img {
+                width: 42px;
+                height: 42px;
+            }
+
+            .notification-title {
+                font-size: 15px;
+            }
+
+            .notification-message {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2 class="demo-heading">الإشعارات</h2>
+        <p class="demo-instruction">انقر على أي بطاقة إشعار للتمرير وإزالتها</p>
+
+        <div class="notification-card unread" onclick="swipeCard(this, 'right')">
+            <span class="notification-badge">1</span>
+            <div class="notification-avatar">
+                <img src="https://ui-avatars.com/api/?name=علي&background=8c7ae6&color=fff&size=64" alt="صورة المستخدم">
+            </div>
+            <div class="notification-content">
+                <div class="notification-title-row">
+                    <span class="notification-title">رسالة جديدة</span>
+                    <span class="notification-time">منذ 5 دقائق</span>
+                </div>
+                <div class="notification-message">
+                    لقد استلمت رسالة جديدة من أحمد بخصوص المشروع الجديد.
+                </div>
+                <div class="notification-actions">
+                    <button class="notification-action-btn">عرض</button>
+                    <button class="notification-action-btn">تجاهل</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="notification-card" onclick="swipeCard(this, 'left')">
+            <div class="notification-avatar">
+                <img src="https://ui-avatars.com/api/?name=نور&background=8c7ae6&color=fff&size=64" alt="صورة المستخدم">
+            </div>
+            <div class="notification-content">
+                <div class="notification-title-row">
+                    <span class="notification-title">تذكير باجتماع</span>
+                    <span class="notification-time">منذ ساعة</span>
+                </div>
+                <div class="notification-message">
+                    لديك اجتماع مهم غداً في تمام الساعة العاشرة صباحاً.
+                </div>
+                <div class="notification-actions">
+                    <button class="notification-action-btn">تأكيد</button>
+                    <button class="notification-action-btn">تأجيل</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="notification-card unread" onclick="swipeCard(this, 'right')">
+            <span class="notification-badge">2</span>
+            <div class="notification-avatar">
+                <img src="https://ui-avatars.com/api/?name=سارة&background=8c7ae6&color=fff&size=64"
+                    alt="صورة المستخدم">
+            </div>
+            <div class="notification-content">
+                <div class="notification-title-row">
+                    <span class="notification-title">طلب صداقة</span>
+                    <span class="notification-time">منذ 3 ساعات</span>
+                </div>
+                <div class="notification-message">
+                    أرسلت سارة طلب صداقة جديد. هل ترغب في قبول الطلب؟
+                </div>
+                <div class="notification-actions">
+                    <button class="notification-action-btn">قبول</button>
+                    <button class="notification-action-btn">رفض</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function swipeCard(card, direction) {
+            if (direction === 'right') {
+                card.classList.add('swiped-card');
+            } else {
+                card.classList.add('swiped-left-card');
+            }
+
+            // إزالة البطاقة بعد انتهاء التأثير المرئي
+            setTimeout(() => {
+                card.style.display = 'none';
+            }, 500);
+
+            // منع انتشار الحدث إلى الأزرار
+            event.stopPropagation();
+        }
+
+        // منع الأزرار من تشغيل تأثير التمرير
+        document.querySelectorAll('.notification-action-btn').forEach(button => {
+            button.addEventListener('click', function (e) {
+                e.stopPropagation();
+            });
+        });
+    </script>
+</body>
+
+</html>
