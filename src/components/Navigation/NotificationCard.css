@@ -1,0 +1,257 @@
+/* البطاقة المصغّرة */
+.notification-card {
+  display: flex;
+  align-items: flex-start;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 10px;
+  margin-bottom: 0px;
+  min-width: 280px;
+  max-width: 350px;
+  border: 1px solid #f0f0f0;
+  transition: all 0.25s ease;
+  gap: 12px;
+  cursor: pointer;
+  position: relative;
+
+}
+
+/* خط بسيط في الجانب الأيسر */
+.notification-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #6d5eea;
+  border-radius: 0 2px 2px 0;
+}
+
+/* خط أحمر للإشعارات المرفوضة */
+.notification-card.rejected-notification::before {
+  background: #ff4d4f;
+  width: 4px;
+}
+
+/* التأثير عند التحويم */
+.notification-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  border-color: #e0e0e0;
+}
+
+
+
+/* الصورة الرمزية */
+.notification-avatar {
+  flex-shrink: 0;
+  position: relative;
+}
+
+
+
+.notification-avatar img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: #fff;
+  border: 2px solid #ffffff;
+  transition: all 0.2s ease;
+}
+
+/* تكبير بسيط للصورة عند التحويم */
+.notification-card:hover .notification-avatar img {
+  transform: scale(1.05);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+
+
+/* المحتوى النصي */
+.notification-content {
+  flex: 1;
+  padding-top: 3px;
+}
+
+/* صف العنوان والوقت */
+.notification-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-direction: row-reverse; /* لجعل الوقت على اليسار */
+}
+
+/* العنوان */
+.notification-title {
+  color: #333;
+  font-weight: 600;
+  font-size: 15px;
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+}
+
+/* الوقت */
+.notification-time {
+  color: #999;
+  font-size: 11px;
+  font-weight: 500;
+  order: -1; /* يعيد الوقت لبداية الصف */
+  background: #f5f5f5;
+  padding: 3px 6px;
+  border-radius: 8px;
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+}
+
+/* الرسالة */
+.notification-message {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.4;
+  margin-top: 4px;
+  font-weight: 400;
+  text-align: right;
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+}
+
+/* المدة الزمنية داخل النص */
+.duration-inline {
+  font-weight: 600;
+  color: #6d5eea;
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  margin-right: 10px;
+}
+
+/* الفترة الزمنية */
+.notification-period-simple {
+  font-size: 13px;
+  font-weight: 400;
+  color: #495057;
+  font-family: Tajawal, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  margin-top: 6px;
+  text-align: right;
+  padding-top: 6px;
+  border-top: 1px solid #e9ecef;
+  direction: rtl;
+  line-height: 1.4;
+}
+
+
+
+
+/* تأثير الانسحاب عند النقر */
+.notification-card.slide-out {
+  transform: translateX(-100%) scale(0.8);
+  opacity: 0;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
+}
+
+/* تأثير الظهور للإشعارات الجديدة */
+.notification-card.slide-in {
+  animation: slideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideIn {
+  0% {
+    transform: translateX(100%) scale(0.8);
+    opacity: 0;
+  }
+  60% {
+    transform: translateX(-10px) scale(1.05);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* تأثير التحميل */
+.notification-card.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.notification-card.loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* تحسينات للشاشات الصغيرة */
+@media (max-width: 768px) {
+  .notification-card {
+    min-width: 280px;
+    max-width: 340px;
+    padding: 12px;
+    margin-bottom: 6px;
+  }
+  
+  .notification-avatar img {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .notification-title {
+    font-size: 14px;
+  }
+  
+  .notification-message {
+    font-size: 13px;
+  }
+  
+  .notification-time {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .notification-card {
+    min-width: 260px;
+    max-width: 300px;
+    padding: 10px;
+    gap: 10px;
+  }
+  
+  .notification-avatar img {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .notification-title {
+    font-size: 13px;
+  }
+  
+  .notification-message {
+    font-size: 12px;
+  }
+}
+
