@@ -1,0 +1,50 @@
+/* Styles for SalariesManagement component */
+th{
+    text-align: center!important;
+}
+.delete-btn:hover{
+    background-color: #f00!important;
+    color:#fff!important;
+    border-radius: 32px;
+}
+.edit-btn:hover{
+    background-color: #0972B6!important;
+    color:#fff!important;
+}
+.discountHeader{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+.discountBtn{
+    display: flex;
+    flex-direction: row;
+    padding-right: 5px;
+}
+.groupTasks{
+    display:flex;
+    flex-direction:row;
+}
+.usersNames{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-row-gap:20px;
+}
+@media only screen and (max-width: 600px) {
+    .discountHeader{
+        flex-direction: row;
+    }
+    .discountRange{
+        order: 2;
+    }
+    .discountBtn{
+        justify-content: flex-end;
+        margin-bottom: 10px;
+    }
+    .groupTasks{
+        flex-direction:column;
+    }
+    .usersNames{
+        grid-template-columns: repeat(1, 1fr)
+    }
+}
